@@ -9,7 +9,13 @@
   },
   "dependencies": {
     "apexcharts": "^3.42.0",
+    "firebase": "^10.4.0",
+    "jszip": "^3.10.1",
+    "primeflex": "^3.3.1",
+    "primeicons": "^6.0.1",
+    "primevue": "^3.35.0",
     "vue": "^3.3.4",
+    "vue-i18n": "^9.5.0",
     "vue3-apexcharts": "^1.4.4"
   },
   "devDependencies": {

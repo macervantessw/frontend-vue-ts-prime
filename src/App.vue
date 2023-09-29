@@ -1,21 +1,15 @@
 <template>
-  <apexchart type="line" :options="chartOptions" :series="series" />
+  <Button label="Download Zip" @click="downloadZip" />
 </template>
+
 <script setup lang="ts">
-const chartOptions = {
-  chart: {
-    id: "vuechart-example",
-  },
-  xaxis: {
-    categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998],
-  },
-};
-const series = [
-  {
-    name: "series-1",
-    data: [30, 40, 35, 50, 49, 60, 70, 91],
-  },
-];
+import Button from "primevue/button";
+import { downloadFile } from "./utilities/file.utilities";
+document.documentElement.style.fontSize = "12px";
+
+function downloadZip() {
+  downloadFile("https://getsamplefiles.com/download/zip/sample-1.zip");
+}
 </script>
 
 <style scoped>
