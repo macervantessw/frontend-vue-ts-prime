@@ -27,6 +27,10 @@ import { computed, ref } from "vue";
 import TextInputWithLabel from "../components/TextInputWithLabel.vue";
 import PasswordInput from "../components/PasswordInput.vue";
 import i18n from "../i18n";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useMessagesStore, useUsersStore } from "../store";
+import { auth } from "../firebase/firebaseInit";
+
 const { t } = i18n.global;
 
 const name = ref("");
@@ -58,27 +62,26 @@ const rules = computed(() => {
 });
 const v$ = useVuelidate(rules, { name: name, surname: surname, emailInput: emailInput, password: password, password2: password2 });
 
-// function signup(isFormValid) {
-//   const auth = getAuth();
-//   this.submitted = true;
-
-//   if (!isFormValid) {
-//     return;
-//   }
-
-//   createUserWithEmailAndPassword(auth, this.email, this.password)
-//     .then((userCredential) => {
-//       const user = userCredential.user;
-//       this.addAdditionaluserInfo(auth);
-//       console.log("User has been created: ", user);
-//     })
-//     .catch((error) => {
-//       if (error.code == "auth/email-already-in-use") {
-//         this.$store.commit("setErrorMessage", "Email already in use ");
-//       }
-//       console.log(error.code, error.name);
-//     });
-// }
+function doSignup() {
+  const messagesStore = useMessagesStore();
+  const usersStore = useUsersStore();
+  v$.value.$touch();
+  if (v$.value.$invalid) {
+    messagesStore.setErrorMessage(t("Please fill in all fields"));
+    return;
+  }
+  createUserWithEmailAndPassword(auth, emailInput.value, password.value)
+    .then((userCredential) => {
+      usersStore.user = userCredential.user;
+      console.log("User has been created: ", userCredential.user);
+    })
+    .catch((error) => {
+      if (error.code == "auth/email-already-in-use") {
+        messagesStore.setErrorMessage(t("Email already in use"));
+      }
+      console.log(error.code, error.name);
+    });
+}
 
 // function addAdditionaluserInfo(auth) {
 //   const user = auth.currentUser;
