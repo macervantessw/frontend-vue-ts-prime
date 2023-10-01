@@ -17,5 +17,8 @@
   "password.suggestions.min-chars": "Minimum 8 characters",
   "Weak": "Weak",
   "medium": "Medium",
-  "strong": "Strong"
+  "strong": "Strong",
+  "Do not have an account": "Do not have an account?",
+  "Create today": "Create today!",
+  "Forgot password": "Forgot password?"
 }
