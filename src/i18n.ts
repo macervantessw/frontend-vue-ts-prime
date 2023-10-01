@@ -1,6 +1,7 @@
 import { createI18n } from "vue-i18n";
 import en from "./locales/en.json";
 import es from "./locales/es.json";
+import it from "./locales/it.json";
 /**
  * Load locale messages
  *
@@ -14,5 +15,5 @@ export default createI18n({
   fallbackLocale: "en",
   globalInjection: true,
   silentFallbackWarn: true,
-  messages: { en, es },
+  messages: { en, es, it },
 });

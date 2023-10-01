@@ -1,28 +1,63 @@
 <template>
-  <Button label="Download Zip" @click="downloadZip" />
+  <router-view />
+  <!-- <Button label="Download Zip" @click="downloadZip" /> -->
+  <Toast position="bottom-right" group="br" />
 </template>
 
 <script setup lang="ts">
 import Button from "primevue/button";
 import { downloadFile } from "./utilities/file.utilities";
+import { watch } from "vue";
+import { useMessagesStore } from "./store";
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
+import Login from "./views/Login.vue";
+
+const toast = useToast();
+const messagesStore = useMessagesStore();
 document.documentElement.style.fontSize = "12px";
+
+watch(
+  () => messagesStore.toastMessage,
+  (toastMessage) => {
+    if (toastMessage.message) {
+      if (!toastMessage.severity || (toastMessage.severity != "success" && toastMessage.severity != "error")) toastMessage.severity = "warn";
+      toast.add({
+        severity: toastMessage.severity,
+        detail: toastMessage.message,
+        group: "br",
+        life: 6000,
+      });
+    }
+  },
+);
 
 function downloadZip() {
   downloadFile("https://getsamplefiles.com/download/zip/sample-1.zip");
 }
 </script>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<style>
+html {
+  height: 100%;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+body {
+  margin: 0;
+  height: 100%;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  background-color: #ffffff;
+  background-image: url("./assets/subtle-prism.svg");
+  background-attachment: fixed;
+  background-size: cover;
+}
+a {
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
 }
 </style>

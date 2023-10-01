@@ -1,0 +1,25 @@
+{
+  "Please fill in all fields": "Si prega di compilare tutti i campi",
+  "Remember me": "Ricordati di me",
+  "Log In": "Login",
+  "Welcome Back": "Bentornato",
+  "Email": "E-mail",
+  "Name": "Nome",
+  "Surname": "Cognome",
+  "Password": "Password",
+  "Repeat password": "Ripeti la password",
+  "Passwords must match": "Le password devono essere identiche",
+  "Weak": "Debole",
+  "medium": "medio",
+  "password": {
+    "suggestions": {
+      "capital": "Almeno una maiuscola",
+      "lowercase": "Almeno una minuscola",
+      "min-chars": "Minimo 8 caratteri",
+      "number": "Almeno un numero"
+    }
+  },
+  "pick-a-password": "scegli una password",
+  "strong": "Forte",
+  "suggestions": "Suggerimenti"
+}

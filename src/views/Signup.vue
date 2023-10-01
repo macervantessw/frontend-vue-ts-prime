@@ -1,108 +1,105 @@
 <template>
-  <div class="flex flex-column align-items-center justify-content-center w-full h-full relative">
-    <!--STEP 1 -->
-    <FirstStep v-if="step == 1" v-model:emailModel="email" v-model:password="password" @continue="nextStep" />
-    <!--STEP 2 -->
-    <SecondStep v-if="step == 2" v-model:companyModel="companyName" v-model:companyServicesModel="companyServices" @continue="nextStep" />
-    <!--STEP 3 -->
-    <ThirdStep v-if="step == 3" v-model:workersEmailModel="workers" @continue="nextStep" />
-    <!-- FOOTER -->
-    <div class="footer absolute bottom-0 w-full flex justify-content-center">
-      <a class="flex align-items-center absolute left-0 bottom-0 text-xs m-2" target="_blank" href="https://inedit.com">
-        <img class="w-1rem" src="@/assets/inedit-favicon-32.png" />
-        <div class="ml-1 pt-1">{{ $t("ineditLong") }}</div>
-      </a>
-      <a id="terms-link" class="m-3">{{ $t("terms") }}</a>
-      <a class="m-3">{{ $t("contactUs") }}</a>
+  <div class="w-full h-full flex justify-content-center align-items-center">
+    <div class="surface-card p-4 border-round signup-panel w-full sm:w-30rem md:w-full">
+      <div class="text-center mb-5">
+        <img src="../assets/logo.png" alt="Image" width="150" class="mb-6 mt-3" />
+        <div class="text-900 text-3xl font-medium mb-3">Create a new account</div>
+        <span class="text-600 font-medium line-height-3">Already have an account?</span>
+        <router-link to="login" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Login!</router-link>
+      </div>
+      <div>
+        <TextInputWithLabel id="name" v-model:textInputValue="name" :field-label="$t('Name')" class="w-full p-2 mb-1" :v="v$.name" />
+        <TextInputWithLabel id="surname" v-model:textInputValue="surname" :field-label="$t('Surname')" class="w-full p-2 mb-1" :v="v$.surname" />
+        <TextInputWithLabel id="email" v-model:textInputValue="emailInput" :field-label="$t('Email')" class="w-full p-2 mb-1" :v="v$.emailInput" />
+        <PasswordInput id="password" v-model:password-value="password" class="w-full p-2" :field-label="$t('Password')" :v="v$.password" :suggestions="true" />
+        <PasswordInput id="password2" v-model:password-value="password2" class="w-full p-2" :field-label="$t('Repeat password')" :v="v$.password2" :suggestions="true" />
+        <Button label="Sign Up" icon="pi pi-user" class="w-full mt-6" @click="doSignup"></Button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import FirstStep from "@/components/Signup/FirstStep.vue";
-import SecondStep from "@/components/Signup/SecondStep.vue";
-import ThirdStep from "@/components/Signup/ThirdStep.vue";
-import { createUserWithEmailPasswordAndCompany } from "../../services/CredentialsService";
-import { createNewUser, getUserById } from "../../services/UsersService";
-import { useMainStore } from "../../store";
-import { useRouter } from "vue-router";
-import { ref } from "vue";
-import { useServiceStore } from "../../store";
-import { onBeforeRouteLeave } from "vue-router";
-const servicesStore = useServiceStore();
-const store = useMainStore();
-const router = useRouter();
+import Button from "primevue/button";
+import { useVuelidate } from "@vuelidate/core";
+import { required, email, sameAs, helpers } from "@vuelidate/validators";
+import { computed, ref } from "vue";
+import TextInputWithLabel from "../components/TextInputWithLabel.vue";
+import PasswordInput from "../components/PasswordInput.vue";
+import i18n from "../i18n";
+const { t } = i18n.global;
 
-let companyName = ref("");
-let workers = ref([{ value: "" }]);
-let email = ref("");
-let password = ref("");
-let step = ref(1);
-let companyServices = ref("PM");
-let companyId = "";
-
-async function nextStep() {
-  if (step.value < 3) step.value++;
-  else {
-    await signup();
-    //await createCompany();
-    store.companyId = companyId;
-    createWorkers();
-    router.replace("/home");
-  }
-}
-// async function createCompany() {
-//   const newCompany = await createNewCompany(companyName.value);
-//   if (newCompany) companyId = newCompany.data.data.id;
-// }
-async function signup() {
-  try {
-    const response = await createUserWithEmailPasswordAndCompany(email.value, password.value, companyName.value, servicesStore.selectedServices);
-    if (response) {
-      const credentialsId = response.data.credentialId;
-      store.setUserToken(response.data.token);
-      store.setUserId(response.data.userId);
-      getUserById(response.data.userId).then((userData) => {
-        store.user = userData.data.data;
-      });
-
-      console.log("User has been created: ", credentialsId);
-      //addAdditionaluserInfo(credentialsId);
-    }
-  } catch (error: any) {
-    if (error.code == "auth/email-already-in-use") {
-      store.errorMessage = "Email already in use";
-    }
-    console.log(error.code, error.name);
-  }
-}
-
-// async function addAdditionaluserInfo(credentialsId: number) {
-//   createNewUser(email.value.substring(0, email.value.lastIndexOf("@")), "", email.value, credentialsId);
-// }
-
-function createWorkers() {
-  workers.value.forEach((email) => {
-    if (email.value) createNewUser(email.value.substring(0, email.value.lastIndexOf("@")), "", email.value);
-  });
-}
-
-onBeforeRouteLeave((to, from, next) => {
-  if (step.value > 1 && to.path != "/home/orders") {
-    step.value = step.value - 1;
-    next(false);
-  } else {
-    next();
-  }
+const name = ref("");
+const surname = ref("");
+const emailInput = ref("");
+const password = ref("");
+const password2 = ref("");
+const rules = computed(() => {
+  return {
+    name: {
+      required,
+    },
+    surname: {
+      required,
+    },
+    emailInput: {
+      required,
+      email,
+    },
+    password: {
+      required,
+      sameAs: helpers.withMessage(t("Passwords must match"), sameAs(password2)),
+    },
+    password2: {
+      required,
+      sameAs: helpers.withMessage(t("Passwords must match"), sameAs(password)),
+    },
+  };
 });
+const v$ = useVuelidate(rules, { name: name, surname: surname, emailInput: emailInput, password: password, password2: password2 });
+
+// function signup(isFormValid) {
+//   const auth = getAuth();
+//   this.submitted = true;
+
+//   if (!isFormValid) {
+//     return;
+//   }
+
+//   createUserWithEmailAndPassword(auth, this.email, this.password)
+//     .then((userCredential) => {
+//       const user = userCredential.user;
+//       this.addAdditionaluserInfo(auth);
+//       console.log("User has been created: ", user);
+//     })
+//     .catch((error) => {
+//       if (error.code == "auth/email-already-in-use") {
+//         this.$store.commit("setErrorMessage", "Email already in use ");
+//       }
+//       console.log(error.code, error.name);
+//     });
+// }
+
+// function addAdditionaluserInfo(auth) {
+//   const user = auth.currentUser;
+//   updateProfile(user, {
+//     displayName: this.name,
+//   })
+//     .then(() => {})
+//     .catch((error) => {
+//       console.log(error.code, error.name);
+//     });
+//   setDoc(doc(db, "users", user.uid), {
+//     company: this.company,
+//     name: this.name,
+//     surname: this.surname,
+//     type: this.type,
+//   });
+//}
 </script>
 
-<style scoped>
-.p-inputtext {
-  background: hsl(var(--main-color) 35% 20%) !important;
-  border: 2px solid hsl(var(--main-color) 35% 30%) !important;
-}
-.p-inputtext.p-invalid.p-component {
-  border-color: #ef9a9a !important;
+<style>
+.signup-panel {
+  max-width: 35rem;
 }
 </style>

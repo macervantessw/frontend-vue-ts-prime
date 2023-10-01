@@ -1,0 +1,21 @@
+{
+  "Please fill in all fields": "Please fill in all fields",
+  "Remember me": "Remember me",
+  "Log In": "Log In",
+  "Welcome Back": "Welcome Back",
+  "Email": "Email",
+  "Name": "Name",
+  "Surname": "Surname",
+  "Password": "Password",
+  "Repeat password": "Repeat password",
+  "Passwords must match": "Passwords must match",
+  "suggestions": "Suggestions",
+  "pick-a-password": "Pick a password",
+  "password.suggestions.lowercase": "At least one lowercase",
+  "password.suggestions.capital": "At least one uppercase",
+  "password.suggestions.number": "At least one numeric",
+  "password.suggestions.min-chars": "Minimum 8 characters",
+  "Weak": "Weak",
+  "medium": "Medium",
+  "strong": "Strong"
+}
