@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 import { useLocalStorage } from "@vueuse/core";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useMessagesStore } from "./messages.store";
+import { auth } from "../firebase/firebaseInit";
 
 export const useUsersStore = defineStore("Users", {
   state: () => ({
@@ -12,7 +13,6 @@ export const useUsersStore = defineStore("Users", {
   getters: {},
   actions: {
     loginUserWithEmailAndPassword(email: string, password: string) {
-      const auth = getAuth();
       const messagesStore = useMessagesStore();
       return signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
