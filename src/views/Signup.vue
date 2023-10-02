@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-full flex justify-content-center align-items-center">
-    <div class="surface-card p-4 border-round signup-panel w-full sm:w-30rem md:w-full">
+    <div class="surface-card shadow-7 p-4 border-round signup-panel w-full sm:w-30rem md:w-full">
       <div class="text-center mb-5">
         <img src="../assets/logo.png" alt="Image" width="150" class="mb-6 mt-3" />
         <div class="text-900 text-3xl font-medium mb-3">Create a new account</div>
