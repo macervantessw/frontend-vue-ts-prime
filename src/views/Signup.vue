@@ -73,7 +73,9 @@ function doSignup() {
   createUserWithEmailAndPassword(auth, emailInput.value, password.value)
     .then((userCredential) => {
       usersStore.user = userCredential.user;
-      console.log("User has been created: ", userCredential.user);
+      usersStore.createUserOnDatabase(userCredential.user.uid, name.value, surname.value, emailInput.value).then(() => {
+        console.log("User has been created: ", userCredential.user);
+      });
     })
     .catch((error) => {
       if (error.code == "auth/email-already-in-use") {

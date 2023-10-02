@@ -2,7 +2,9 @@ import { defineStore } from "pinia";
 import { useLocalStorage } from "@vueuse/core";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useMessagesStore } from "./messages.store";
-import { auth } from "../firebase/firebaseInit";
+import { auth, db } from "../firebase/firebaseInit";
+import { ref, set } from "firebase/database";
+import { User } from "../interfaces";
 
 export const useUsersStore = defineStore("Users", {
   state: () => ({
@@ -24,6 +26,17 @@ export const useUsersStore = defineStore("Users", {
         .catch((error) => {
           messagesStore.setErrorMessage(error.message);
         });
+    },
+
+    async createUserOnDatabase(userId: string, name: string, surname: string, email: string) {
+      const user: User = {
+        name: name,
+        lastName: surname,
+        email: email,
+        Credit: "100",
+        userID: userId,
+      };
+      set(ref(db, "users/" + userId), user);
     },
 
     async makeLogin(token: string, userId: string, rememberMe: boolean) {
