@@ -3,12 +3,12 @@ import { useLocalStorage } from "@vueuse/core";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useMessagesStore } from "./messages.store";
 import { auth, db } from "../firebase/firebaseInit";
-import { ref, set } from "firebase/database";
+import { child, get, ref, set } from "firebase/database";
 import { User } from "../interfaces";
 
 export const useUsersStore = defineStore("Users", {
   state: () => ({
-    userToken: useLocalStorage<string>("urlCache", ""),
+    userToken: useLocalStorage<string>("token", ""),
     userId: "",
     user: {},
   }),
@@ -21,14 +21,14 @@ export const useUsersStore = defineStore("Users", {
           // Signed in
           this.user = userCredential.user;
           return userCredential.user;
-          // ...
         })
         .catch((error) => {
           messagesStore.setErrorMessage(error.message);
+          return null;
         });
     },
 
-    async createUserOnDatabase(userId: string, name: string, surname: string, email: string) {
+    createUserOnDatabase(userId: string, name: string, surname: string, email: string) {
       const user: User = {
         name: name,
         lastName: surname,
@@ -36,7 +36,23 @@ export const useUsersStore = defineStore("Users", {
         Credit: "100",
         userID: userId,
       };
-      set(ref(db, "users/" + userId), user);
+      return set(ref(db, "users/" + userId), user);
+    },
+
+    getUserFromDatabase(userId: string) {
+      const dbRef = ref(db);
+      return get(child(dbRef, "users/" + userId))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            return snapshot.val();
+          } else {
+            return null;
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          return null;
+        });
     },
 
     async makeLogin(token: string, userId: string, rememberMe: boolean) {

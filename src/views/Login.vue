@@ -44,7 +44,8 @@ import PasswordInput from "../components/PasswordInput.vue";
 import { useRouter } from "vue-router";
 import { useRoute } from "vue-router";
 import { useMessagesStore, useUsersStore } from "../store";
-//import { User } from "firebase/auth";
+import { User } from "firebase/auth";
+import { User as UserInterface } from "../interfaces";
 
 const messagesStore = useMessagesStore();
 const usersStore = useUsersStore();
@@ -83,6 +84,13 @@ const logIn = () => {
   loading.value = true;
   usersStore
     .loginUserWithEmailAndPassword(emailInput.value, password.value)
+    .then((user: User | null) => {
+      if (user) {
+        usersStore.getUserFromDatabase(user.uid).then((user: UserInterface) => {
+          usersStore.user = user;
+        });
+      }
+    })
     .then((user: unknown) => {
       // Signed in
       console.log(user);
