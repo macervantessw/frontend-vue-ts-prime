@@ -5,12 +5,18 @@ import { useMessagesStore } from "./messages.store";
 import { auth, db } from "../firebase/firebaseInit";
 import { child, get, ref, set } from "firebase/database";
 import { User } from "../interfaces";
+import { User as FireUser } from "firebase/auth";
 
 export const useUsersStore = defineStore("Users", {
   state: () => ({
     userToken: useLocalStorage<string>("token", ""),
     userId: "",
-    user: {},
+    user: useLocalStorage<FireUser | null>("user", null, {
+      serializer: {
+        read: (v: string) => (v ? JSON.parse(v) : null),
+        write: (v: FireUser) => JSON.stringify(v),
+      },
+    }),
   }),
   getters: {},
   actions: {

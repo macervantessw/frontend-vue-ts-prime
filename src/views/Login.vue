@@ -45,7 +45,6 @@ import { useRouter } from "vue-router";
 import { useRoute } from "vue-router";
 import { useMessagesStore, useUsersStore } from "../store";
 import { User } from "firebase/auth";
-import { User as UserInterface } from "../interfaces";
 
 const messagesStore = useMessagesStore();
 const usersStore = useUsersStore();
@@ -86,7 +85,7 @@ const logIn = () => {
     .loginUserWithEmailAndPassword(emailInput.value, password.value)
     .then((user: User | null) => {
       if (user) {
-        usersStore.getUserFromDatabase(user.uid).then((user: UserInterface) => {
+        usersStore.getUserFromDatabase(user.uid).then((user: User) => {
           usersStore.user = user;
         });
       }
