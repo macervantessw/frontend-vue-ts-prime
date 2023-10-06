@@ -1,20 +1,19 @@
 import { defineStore } from "pinia";
-import { useLocalStorage } from "@vueuse/core";
+import { useLocalStorage, useStorage } from "@vueuse/core";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useMessagesStore } from "./messages.store";
 import { auth, db } from "../firebase/firebaseInit";
 import { child, get, ref, set } from "firebase/database";
 import { User } from "../interfaces";
-import { User as FireUser } from "firebase/auth";
 
 export const useUsersStore = defineStore("Users", {
   state: () => ({
     userToken: useLocalStorage<string>("token", ""),
-    userId: "",
-    user: useLocalStorage<FireUser | null>("user", null, {
+    userId: useStorage<string>("userId", "", sessionStorage),
+    user: useLocalStorage<User | null>("user", null, {
       serializer: {
         read: (v: string) => (v ? JSON.parse(v) : null),
-        write: (v: FireUser) => JSON.stringify(v),
+        write: (v: User) => JSON.stringify(v),
       },
     }),
   }),
@@ -24,8 +23,7 @@ export const useUsersStore = defineStore("Users", {
       const messagesStore = useMessagesStore();
       return signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-          // Signed in
-          this.user = userCredential.user;
+          this.userId = userCredential.user.uid;
           return userCredential.user;
         })
         .catch((error) => {
@@ -41,7 +39,7 @@ export const useUsersStore = defineStore("Users", {
         email: email,
         Credit: "100",
         userID: userId,
-      };
+      } as User;
       return set(ref(db, "users/" + userId), user);
     },
 

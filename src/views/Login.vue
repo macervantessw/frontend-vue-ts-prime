@@ -44,7 +44,8 @@ import PasswordInput from "../components/PasswordInput.vue";
 import { useRouter } from "vue-router";
 import { useRoute } from "vue-router";
 import { useMessagesStore, useUsersStore } from "../store";
-import { User } from "firebase/auth";
+import { User } from "../interfaces";
+import { User as FireUser } from "firebase/auth";
 
 const messagesStore = useMessagesStore();
 const usersStore = useUsersStore();
@@ -83,7 +84,7 @@ const logIn = () => {
   loading.value = true;
   usersStore
     .loginUserWithEmailAndPassword(emailInput.value, password.value)
-    .then((user: User | null) => {
+    .then((user: FireUser | null) => {
       if (user) {
         usersStore.getUserFromDatabase(user.uid).then((user: User) => {
           usersStore.user = user;

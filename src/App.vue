@@ -11,7 +11,6 @@ import { watch } from "vue";
 import { useMessagesStore } from "./store";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
-import Login from "./views/Login.vue";
 
 const toast = useToast();
 const messagesStore = useMessagesStore();
@@ -57,7 +56,7 @@ body {
 }
 a {
   text-decoration: none;
-  color: white;
+  color: inherit;
   cursor: pointer;
 }
 </style>

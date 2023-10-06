@@ -30,6 +30,7 @@ import i18n from "../i18n";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useMessagesStore, useUsersStore } from "../store";
 import { auth } from "../firebase/firebaseInit";
+import { User } from "../interfaces";
 
 const { t } = i18n.global;
 
@@ -72,7 +73,7 @@ function doSignup() {
   }
   createUserWithEmailAndPassword(auth, emailInput.value, password.value)
     .then((userCredential) => {
-      usersStore.user = userCredential.user;
+      usersStore.user = userCredential.user as User;
       usersStore.createUserOnDatabase(userCredential.user.uid, name.value, surname.value, emailInput.value).then(() => {
         console.log("User has been created: ", userCredential.user);
       });

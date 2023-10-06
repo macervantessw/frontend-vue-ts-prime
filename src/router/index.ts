@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";
+import ForgotPassword from "../views/ForgotPassword.vue";
+import Sessions from "../views/Sessions.vue";
 import Home from "../views/Home.vue";
 import { useSessionsStore } from "../store";
+
 const routes = [
   {
     path: "/",
@@ -19,6 +23,11 @@ const routes = [
     },
   },
   {
+    path: "/sessions/:sessionId",
+    name: "session",
+    component: Sessions,
+  },
+  {
     path: "/signup",
     name: "signup",
     component: Signup,
@@ -27,6 +36,11 @@ const routes = [
     path: "/login",
     name: "login",
     component: Login,
+  },
+  {
+    path: "/forgotPassword",
+    name: "ForgotPassword",
+    component: ForgotPassword,
   },
 ];
 

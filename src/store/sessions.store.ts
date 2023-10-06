@@ -11,12 +11,21 @@ export const useSessionsStore = defineStore("Session", {
   actions: {
     fetchAllSessions() {
       const usersStore = useUsersStore();
-      if (usersStore.user?.uid) {
-        const sessionsRef = fireRef(storage, `Sessions/${usersStore.user.uid}`);
+      if (usersStore.userId) {
+        const sessionsRef = fireRef(storage, `Sessions/${usersStore.userId}`);
         listAll(sessionsRef).then((res) => {
           this.sessions = res.prefixes.map((folderRef) => folderRef.name);
         });
       }
+    },
+    async fetchSessionFiles(sessionId: string): Promise<string[]> {
+      const usersStore = useUsersStore();
+      if (usersStore.userId) {
+        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${sessionId}`);
+        const list = await listAll(sessionRef);
+        return list.items.map((itemRef) => itemRef.name);
+      }
+      return [];
     },
   },
 });
