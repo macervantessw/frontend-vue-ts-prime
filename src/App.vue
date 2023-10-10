@@ -5,8 +5,6 @@
 </template>
 
 <script setup lang="ts">
-import Button from "primevue/button";
-import { downloadFile } from "./utilities/file.utilities";
 import { watch } from "vue";
 import { useMessagesStore } from "./store";
 import Toast from "primevue/toast";
@@ -30,10 +28,6 @@ watch(
     }
   },
 );
-
-function downloadZip() {
-  downloadFile("https://getsamplefiles.com/download/zip/sample-1.zip");
-}
 </script>
 
 <style>

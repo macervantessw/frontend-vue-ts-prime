@@ -1,31 +1,39 @@
 import { defineStore } from "pinia";
 import { useUsersStore } from "./users.store";
-import { ref as fireRef, listAll } from "firebase/storage";
+import { ref as fireRef, listAll, StorageReference } from "firebase/storage";
 import { storage } from "../firebase/firebaseInit";
 
 export const useSessionsStore = defineStore("Session", {
   state: () => ({
-    sessions: [] as string[],
+    patients: [] as string[],
   }),
   getters: {},
   actions: {
-    fetchAllSessions() {
+    fetchAllPatients() {
       const usersStore = useUsersStore();
       if (usersStore.userId) {
-        const sessionsRef = fireRef(storage, `Sessions/${usersStore.userId}`);
-        listAll(sessionsRef).then((res) => {
-          this.sessions = res.prefixes.map((folderRef) => folderRef.name);
+        const patientsRef = fireRef(storage, `Sessions/${usersStore.userId}`);
+        listAll(patientsRef).then((res) => {
+          this.patients = res.prefixes.map((folderRef) => folderRef.name);
         });
       }
     },
-    async fetchSessionFiles(sessionId: string): Promise<string[]> {
+    async fetchPatientSessions(patientId: string): Promise<StorageReference[]> {
       const usersStore = useUsersStore();
       if (usersStore.userId) {
-        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${sessionId}`);
+        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${patientId}`);
         const list = await listAll(sessionRef);
-        return list.items.map((itemRef) => itemRef.name);
+        return list.items.filter((itemRef) => itemRef.name.endsWith("_R.zip"));
       }
       return [];
+    },
+    async fetchSessionFile(patientId: string, fileName: string): Promise<StorageReference | null> {
+      const usersStore = useUsersStore();
+      if (usersStore.userId) {
+        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${patientId}/${fileName}`);
+        return sessionRef;
+      }
+      return null;
     },
   },
 });

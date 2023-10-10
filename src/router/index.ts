@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
-import Sessions from "../views/Sessions.vue";
+import PatientSessions from "../views/PatientSessions.vue";
 import Home from "../views/Home.vue";
 import { useSessionsStore } from "../store";
 
@@ -19,13 +19,19 @@ const routes = [
     component: Home,
     beforeEnter: async () => {
       const sessionsStore = useSessionsStore();
-      sessionsStore.fetchAllSessions();
+      sessionsStore.fetchAllPatients();
     },
   },
   {
-    path: "/sessions/:sessionId",
+    path: "/patientSessions/:patientId",
+    name: "patientSessions",
+    component: PatientSessions,
+  },
+  {
+    path: "/session/:sessionId",
     name: "session",
-    component: Sessions,
+    component: () => import("../views/Session.vue"),
+    props: true,
   },
   {
     path: "/signup",
