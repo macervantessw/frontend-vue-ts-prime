@@ -1,0 +1,5 @@
+export const SIGNALS = {
+  BASETIME: "SM_BASETIME.dat",
+  BREATH_RATE: "RA_BreathRateSignal.dat",
+  MOVEMENT: "RA_MovementSignal.dat",
+};

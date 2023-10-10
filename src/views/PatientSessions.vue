@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-full">
-    <div class="w-full h-full flex flex-column flex-grow-0">
+    <div class="flex flex-column flex-grow-0">
       <p v-for="(file, index) in patientSessions" :key="index" class="link-to-file text-bluegray-800 m-2 cursor-pointer" @click="selectedFile = file">
         {{ file.name }}
       </p>
