@@ -16,15 +16,19 @@
 <script setup lang="ts">
 import Button from "primevue/button";
 import TextInputWithLabel from "../components/TextInputWithLabel.vue";
-import { useRouter } from "vue-router";
 //import { sendResetLink } from "../../services/CredentialsService";
 import { ref, computed } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { required, email as isEmail } from "@vuelidate/validators";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../firebase/firebaseInit";
+import { useMessagesStore } from "../store";
+import i18n from "../i18n";
+import router from "../router";
 
+const { t } = i18n.global;
 let email = ref("");
 let loading = ref(false);
-const router = useRouter();
 
 const rules = computed(() => {
   return {
@@ -41,8 +45,14 @@ const resetPassword = () => {
   if (v$.value.$invalid) {
     return;
   }
-  //sendResetLink(email.value);
-  //router.replace("/mailSent");
+  sendPasswordResetEmail(auth, email.value)
+    .then(() => {
+      useMessagesStore().setSuccessMessage(t("email-sent"));
+      router.push("/login");
+    })
+    .catch((error) => {
+      useMessagesStore().setErrorMessage(error.message);
+    });
 };
 </script>
 
