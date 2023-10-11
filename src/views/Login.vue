@@ -92,9 +92,6 @@ const logIn = () => {
       }
     })
     .then((user: unknown) => {
-      // Signed in
-      console.log(user);
-
       if (route.params.redirectTo) {
         const routeLocation: RouteLocationRaw = { path: route.params.redirectTo.toString() };
         if (route.params.query) routeLocation.query = JSON.parse(route.params.query.toString());
