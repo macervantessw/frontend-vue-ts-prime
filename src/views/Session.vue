@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-full">
-    <apexchart width="100%" class="w-8" type="line" :options="chartOptions" :series="series" @zoomed="zoomed" />
+  <div class="w-full h-full p-3">
+    <BreathRateChart id="breath-rate-chart" class="w-full h-11rem" :file="file" :data="data" />
   </div>
 </template>
 <script lang="ts" setup>
@@ -8,7 +8,9 @@ import { StorageReference, getBytes } from "firebase/storage";
 import { PropType, defineProps, onBeforeMount, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
-import { ASAP, DataPoint } from "downsample";
+
+import BreathRateChart from "../components/Charts/BreathRateChart.vue";
+
 const props = defineProps({
   file: {
     type: Object as PropType<StorageReference>,
@@ -18,21 +20,6 @@ const props = defineProps({
 let zippedFiles = null;
 const timeAxisData = ref([] as number[]);
 const data = ref([] as number[][]);
-const chartOptions = ref({
-  chart: {
-    id: "vuechart-example",
-  },
-  xaxis: {
-    type: "datetime",
-    //categories: timeAxisData.value,
-  },
-});
-const series = ref([
-  {
-    name: "Movement",
-    data: [] as [number, number][],
-  },
-]);
 
 onBeforeMount(() => {
   downloadFileAndUncompress().then((files) => {
@@ -50,31 +37,9 @@ onBeforeMount(() => {
       data.value = breathRateData.map((element, index) => {
         return [timeAxisData.value[index], element];
       });
-      series.value[0].data = ASAP(data.value as DataPoint[], 1000) as [number, number][];
     });
-    // .then((unzippedFile) => {
-    //   timeAxisData.value = readDatFile(unzippedFile);
-    //   chartOptions.value.xaxis.categories = timeAxisData.value.slice(0, 1000);
-    // });
-    // zippedFiles[BREATH_RATE].async("uint8array").then((unzippedFile) => {
-    //   breathRateData.value = readDatFile(unzippedFile);
-    //   series.value[0].data = breathRateData.value.slice(0, 1000);
-    // });
-
-    // const arr1 = [1, 2, 3];
-    // const arr2 = [4, 5, 6];
-
-    // const combinedArray = arr1.map((element, index) => {
-    //   return [element, arr2[index]];
-    // });
-
-    // console.log(combinedArray); // Output: [[1, 4], [2, 5], [3, 6]]
   });
 });
-
-function zoomed(event: any) {
-  console.log(event);
-}
 
 async function downloadFileAndUncompress() {
   if (!props.file) return;
