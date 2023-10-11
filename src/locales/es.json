@@ -24,5 +24,9 @@
   "suggestions": "Sugerencias",
   "Do not have an account": "¿No tiene una cuenta?",
   "Create today": "¡Crea una hoy!",
-  "Forgot password": "¿Has olvidado tu contraseña?"
+  "Forgot password": "¿Has olvidado tu contraseña?",
+  "Reset your password": "Restablecer contraseña",
+  "forgot_password_description": "Por favor, introduzca su dirección de correo electrónico a continuación, si es una dirección válida le enviaremos un correo electrónico con las instrucciones para restablecer su contraseña.",
+  "Send": "Enviar",
+  "email-sent": "Correo electrónico enviado"
 }

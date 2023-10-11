@@ -20,5 +20,9 @@
   "strong": "Strong",
   "Do not have an account": "Do not have an account?",
   "Create today": "Create today!",
-  "Forgot password": "Forgot password?"
+  "Forgot password": "Forgot password?",
+  "Reset your password": "Reset your password",
+  "forgot_password_description": "Please enter your email below, if it is a valid address we will send you en email with the instructions to reset your password",
+  "Send": "Send",
+  "email-sent": "Email sent"
 }
