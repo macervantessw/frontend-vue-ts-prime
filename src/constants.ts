@@ -3,3 +3,5 @@ export const SIGNALS = {
   BREATH_RATE: "RA_BreathRateSignal.dat",
   MOVEMENT: "RA_MovementSignal.dat",
 };
+
+export const MAX_SAMPLES = 1000;

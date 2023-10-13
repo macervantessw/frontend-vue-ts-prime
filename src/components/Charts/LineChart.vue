@@ -11,6 +11,7 @@ import { ref, PropType, computed, watch } from "vue";
 import { useChartsStore } from "../../store";
 import { ASAP, DataPoint } from "downsample";
 import Skeleton from "primevue/skeleton";
+import { MAX_SAMPLES } from "../../constants";
 
 const loading = ref(true);
 const chartsStore = useChartsStore();
@@ -46,7 +47,7 @@ watch(
     const zoomedData = props.data.filter((element) => {
       return element[0] >= min && element[0] <= max;
     });
-    showData.value = ASAP(zoomedData as DataPoint[], 1000) as { x: number; y: number }[];
+    showData.value = ASAP(zoomedData as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
     loading.value = false;
   },
   { deep: true },
