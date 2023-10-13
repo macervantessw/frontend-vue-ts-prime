@@ -7,3 +7,12 @@ export interface User extends FireUser {
   NotifToken?: string;
   userID: string;
 }
+
+export interface Series {
+  name?: string;
+  data: Data[];
+}
+export interface Data {
+  x: number;
+  y: number;
+}

@@ -3,7 +3,7 @@
     <div v-if="loading" class="p-4 w-full" :style="{ height: height }">
       <Skeleton width="100%" height="100%"></Skeleton>
     </div>
-    <apexchart v-else ref="chart" type="line" :height="height" :options="chartOptions" :series="series" />
+    <apexchart v-else ref="chart" type="line" :height="height" :options="chartOptions" :series="showData" />
   </div>
 </template>
 <script lang="ts" setup>
@@ -12,15 +12,16 @@ import { useChartsStore } from "../../store";
 import { ASAP, DataPoint } from "downsample";
 import Skeleton from "primevue/skeleton";
 import { MAX_SAMPLES } from "../../constants";
+import { Series } from "../../interfaces";
 
 const loading = ref(true);
 const chartsStore = useChartsStore();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const chart = ref(null as any);
-const showData = ref([] as { x: number; y: number }[]);
+const showData = ref([] as Series[]);
 const props = defineProps({
   data: {
-    type: Array as PropType<number[][]>,
+    type: Array as PropType<Series[]>,
     required: true,
   },
   id: {
@@ -41,39 +42,16 @@ watch(
   () => props.data,
   (newVal) => {
     if (!newVal || !newVal.length) return;
-    const { min, max } = chartsStore.xaxis;
-    if (!min || !max) return;
-    loading.value = true;
-    const zoomedData = props.data.filter((element) => {
-      return element[0] >= min && element[0] <= max;
-    });
-    showData.value = ASAP(zoomedData as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
-    loading.value = false;
+    updateShownData();
   },
   { deep: true },
 );
 
-// const showData = computed(() => {
-//   if (!props.data || !props.data.length) return [];
-//   if (Object.keys(chartsStore.xaxis).length === 0) return [];
-//   const { min, max } = chartsStore.xaxis;
-//   const zoomedData = props.data.filter((element) => {
-//     return element[0] >= min && element[0] <= max;
-//   });
-//   return ASAP(zoomedData as DataPoint[], 1000) as { x: number; y: number }[];
-// });
 watch(
   () => chartsStore.xaxis,
   (newVal) => {
     if (!props.data || !props.data.length) return;
-    const { min, max } = chartsStore.xaxis;
-    if (!min || !max) return;
-    loading.value = true;
-    const zoomedData = props.data.filter((element) => {
-      return element[0] >= min && element[0] <= max;
-    });
-    showData.value = ASAP(zoomedData as DataPoint[], 1000) as { x: number; y: number }[];
-    loading.value = false;
+    updateShownData();
     if (!chart.value) return;
     chart.value.zoomX(newVal.min, newVal.max);
   },
@@ -88,12 +66,29 @@ watch(
   { deep: true },
 );
 
-const series = computed(() => [
-  {
-    name: props.name,
-    data: showData.value,
-  },
-]);
+function updateShownData() {
+  const { min, max } = chartsStore.xaxis;
+  if (!min || !max) return;
+  loading.value = true;
+  const zoomedData: Series[] = props.data.map((serie) => {
+    return {
+      name: serie.name,
+      data: serie.data.filter((element) => {
+        return element.x >= min && element.x <= max;
+      }),
+    };
+  });
+
+  showData.value = zoomedData;
+  loading.value = false;
+}
+
+// const series = computed(() => [
+//   {
+//     name: props.name,
+//     data: showData.value,
+//   },
+// ]);
 const chartOptions = computed(() => {
   return {
     chart: {
@@ -112,18 +107,41 @@ const chartOptions = computed(() => {
     },
     stroke: {
       width: 1,
+      curve: "smooth",
     },
     xaxis: {
       type: "datetime",
     },
-    yaxis: {
-      tickAmount: 1,
-      labels: {
-        formatter: (value: number) => {
-          return value.toFixed(0);
+    yaxis: [
+      {
+        tickAmount: 1,
+        labels: {
+          formatter: (value: number) => {
+            return value.toFixed(0);
+          },
         },
       },
-    },
+      {
+        show: false,
+      },
+      {
+        opposite: true,
+        axisTicks: {
+          show: true,
+        },
+        axisBorder: {
+          show: true,
+        },
+        title: {
+          text: "Movement",
+        },
+        labels: {
+          formatter: (value: number) => {
+            return value.toFixed(0);
+          },
+        },
+      },
+    ],
   };
 });
 </script>
