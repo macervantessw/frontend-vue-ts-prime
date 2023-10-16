@@ -32,12 +32,13 @@ const series = computed(() => [
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function selection(chartContext: any, { xaxis }: { xaxis: { min: number; max: number } }) {
-  updateXaxisDebounced(xaxis);
+  chartsStore.xaxis = xaxis;
+  // updateXaxisDebounced(xaxis);
 }
 
-const updateXaxisDebounced = debounce((xaxis) => {
-  chartsStore.xaxis = xaxis;
-}, 200);
+// const updateXaxisDebounced = debounce((xaxis) => {
+//   chartsStore.xaxis = xaxis;
+// }, 0);
 
 const chartOptions = computed(() => {
   return {
@@ -70,6 +71,9 @@ const chartOptions = computed(() => {
     colors: ["#008FFB"],
     xaxis: {
       type: "datetime",
+      labels: {
+        datetimeUTC: false,
+      },
       tooltip: {
         enabled: false,
       },

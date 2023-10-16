@@ -11,6 +11,9 @@ import { ref, PropType, computed, watch, onBeforeMount } from "vue";
 import { useChartsStore } from "../../store";
 import Skeleton from "primevue/skeleton";
 import { Series } from "../../interfaces";
+import { MAX_SAMPLES } from "../../constants";
+import apexchart from "vue3-apexcharts";
+import { ApexOptions } from "apexcharts";
 
 const loading = ref(false);
 const chartsStore = useChartsStore();
@@ -60,20 +63,12 @@ watch(
   },
   { deep: true },
 );
-watch(
-  () => chartsStore.xaxis,
-  (newVal) => {
-    if (!chart.value) return;
-    chart.value.zoomX(newVal.min, newVal.max);
-  },
-  { deep: true },
-);
 
 function updateShownData() {
   const { min, max } = chartsStore.xaxis;
   if (!min || !max) return;
   loading.value = true;
-  const zoomedData: Series[] = props.data.map((serie) => {
+  let zoomedData: Series[] = props.data.map((serie) => {
     return {
       name: serie.name,
       data: serie.data.filter((element) => {
@@ -81,6 +76,18 @@ function updateShownData() {
       }),
     };
   });
+
+  const reduction = zoomedData[0].data.length / MAX_SAMPLES;
+  if (reduction > 1) {
+    zoomedData = zoomedData.map((serie) => {
+      return {
+        name: serie.name,
+        data: serie.data.filter((_element, index) => {
+          return index % Math.ceil(reduction) === 0;
+        }),
+      };
+    });
+  }
 
   showData.value = zoomedData;
 }
@@ -92,7 +99,7 @@ function updateShownData() {
 //   },
 // ]);
 const chartOptions = computed(() => {
-  return {
+  const options: ApexOptions = {
     chart: {
       id: props.id,
       type: "line",
@@ -104,6 +111,7 @@ const chartOptions = computed(() => {
         enabled: false,
       },
     },
+
     tooltip: {
       enabled: true,
       shared: true,
@@ -117,44 +125,19 @@ const chartOptions = computed(() => {
     },
     xaxis: {
       type: "datetime",
+      labels: { datetimeUTC: false },
     },
-    yaxis: props.data.map((value, index) => {
-      if (index === 0) {
-        return {
-          tickAmount: 1,
-          labels: {
-            formatter: (value: number) => {
-              return value.toFixed(0);
-            },
-          },
-          min: 10000,
-        };
-      } else if (index === 2 && value.name === "Movement") {
-        return {
-          opposite: true,
-          axisTicks: {
-            show: true,
-          },
-          axisBorder: {
-            show: true,
-          },
-          title: {
-            text: "Movement",
-          },
-          min: 2000,
-          labels: {
-            formatter: (value: number) => {
-              return value.toFixed(0);
-            },
-          },
-        };
-      } else {
-        return {
-          show: false,
-        };
-      }
-    }),
+    yaxis: {
+      show: false,
+    },
   };
+  const movement = props.data.find((serie) => serie.name === "Movement");
+
+  if (movement) {
+    const average = movement.data.reduce((a, b) => a + b.y, 0) / movement.data.length;
+    options.yaxis = { ...options.yaxis, max: average * 3 };
+  }
+  return options;
 });
 </script>
 <style></style>

@@ -6,4 +6,4 @@ export const SIGNALS = {
   MOVEMENT: "RA_MovementSignal.dat",
 };
 
-export const MAX_SAMPLES = 200000;
+export const MAX_SAMPLES = 3000;

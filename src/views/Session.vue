@@ -46,7 +46,7 @@ onBeforeMount(() => {
     if (!zippedFiles) return;
 
     const timeAxisUnzipped = await zippedFiles[SIGNALS.BASETIME].async("uint8array");
-    const timeAxis: number[] = readDatFile(timeAxisUnzipped);
+    const timeAxis: number[] = readDatFile(timeAxisUnzipped).filter((_e, index) => index % 10 === 0);
     const timeAxisData = timeAxis.map((element) => {
       return [element, 0];
     });
@@ -57,20 +57,24 @@ onBeforeMount(() => {
     // });
 
     getData(zippedFiles, timeAxis, SIGNALS.AIR_FFLOW).then((data) => {
-      airFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      // airFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      airFlowData.value = data;
     });
     getData(zippedFiles, timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => {
-      basalAirFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      // basalAirFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      basalAirFlowData.value = data;
     });
     getData(zippedFiles, timeAxis, SIGNALS.MOVEMENT).then((data) => {
-      movementData.value = ASAP(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      // movementData.value = ASAP(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      movementData.value = data;
     });
   });
 });
 
 async function getData(files: Record<string, JSZip.JSZipObject>, timeAxis: number[], fileName: string) {
   const dataUnzipped = await files[fileName].async("uint8array");
-  const data = readDatFile(dataUnzipped);
+  let data = readDatFile(dataUnzipped);
+  data = data.filter((_e, index) => index % 10 === 0);
   return data.map((element, index) => {
     return { x: timeAxis[index], y: element };
   });
