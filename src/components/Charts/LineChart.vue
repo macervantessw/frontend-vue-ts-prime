@@ -7,14 +7,12 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, PropType, computed, watch } from "vue";
+import { ref, PropType, computed, watch, onBeforeMount } from "vue";
 import { useChartsStore } from "../../store";
-import { ASAP, DataPoint } from "downsample";
 import Skeleton from "primevue/skeleton";
-import { MAX_SAMPLES } from "../../constants";
 import { Series } from "../../interfaces";
 
-const loading = ref(true);
+const loading = ref(false);
 const chartsStore = useChartsStore();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const chart = ref(null as any);
@@ -38,11 +36,15 @@ const props = defineProps({
   },
 });
 
+onBeforeMount(() => {
+  loading.value = true;
+});
 watch(
   () => props.data,
   (newVal) => {
     if (!newVal || !newVal.length) return;
     updateShownData();
+    loading.value = false;
   },
   { deep: true },
 );
@@ -54,6 +56,7 @@ watch(
     updateShownData();
     if (!chart.value) return;
     chart.value.zoomX(newVal.min, newVal.max);
+    loading.value = false;
   },
   { deep: true },
 );
@@ -80,7 +83,6 @@ function updateShownData() {
   });
 
   showData.value = zoomedData;
-  loading.value = false;
 }
 
 // const series = computed(() => [
@@ -102,6 +104,10 @@ const chartOptions = computed(() => {
         enabled: false,
       },
     },
+    tooltip: {
+      enabled: true,
+      shared: true,
+    },
     markers: {
       size: 0,
     },
@@ -112,36 +118,42 @@ const chartOptions = computed(() => {
     xaxis: {
       type: "datetime",
     },
-    yaxis: [
-      {
-        tickAmount: 1,
-        labels: {
-          formatter: (value: number) => {
-            return value.toFixed(0);
+    yaxis: props.data.map((value, index) => {
+      if (index === 0) {
+        return {
+          tickAmount: 1,
+          labels: {
+            formatter: (value: number) => {
+              return value.toFixed(0);
+            },
           },
-        },
-      },
-      {
-        show: false,
-      },
-      {
-        opposite: true,
-        axisTicks: {
-          show: true,
-        },
-        axisBorder: {
-          show: true,
-        },
-        title: {
-          text: "Movement",
-        },
-        labels: {
-          formatter: (value: number) => {
-            return value.toFixed(0);
+          min: 10000,
+        };
+      } else if (index === 2 && value.name === "Movement") {
+        return {
+          opposite: true,
+          axisTicks: {
+            show: true,
           },
-        },
-      },
-    ],
+          axisBorder: {
+            show: true,
+          },
+          title: {
+            text: "Movement",
+          },
+          min: 2000,
+          labels: {
+            formatter: (value: number) => {
+              return value.toFixed(0);
+            },
+          },
+        };
+      } else {
+        return {
+          show: false,
+        };
+      }
+    }),
   };
 });
 </script>

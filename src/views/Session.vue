@@ -10,7 +10,7 @@ import { StorageReference, getBytes } from "firebase/storage";
 import { PropType, computed, defineProps, onBeforeMount, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { MAX_SAMPLES, SIGNALS } from "../constants";
-import { ASAP, DataPoint } from "downsample";
+import { ASAP, DataPoint, LTD, LTTB } from "downsample";
 import LineChart from "../components/Charts/LineChart.vue";
 import BrushChart from "../components/Charts/BrushChart.vue";
 import JSZip from "jszip";
@@ -57,10 +57,10 @@ onBeforeMount(() => {
     // });
 
     getData(zippedFiles, timeAxis, SIGNALS.AIR_FFLOW).then((data) => {
-      airFlowData.value = ASAP(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      airFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
     });
     getData(zippedFiles, timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => {
-      basalAirFlowData.value = ASAP(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
+      basalAirFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
     });
     getData(zippedFiles, timeAxis, SIGNALS.MOVEMENT).then((data) => {
       movementData.value = ASAP(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
