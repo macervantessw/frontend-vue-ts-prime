@@ -9,8 +9,8 @@
 import { StorageReference, getBytes } from "firebase/storage";
 import { PropType, computed, defineProps, onBeforeMount, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
-import { MAX_SAMPLES, SIGNALS } from "../constants";
-import { ASAP, DataPoint, LTD, LTTB } from "downsample";
+import { SIGNALS } from "../constants";
+import { ASAP, DataPoint } from "downsample";
 import LineChart from "../components/Charts/LineChart.vue";
 import BrushChart from "../components/Charts/BrushChart.vue";
 import JSZip from "jszip";

@@ -5,7 +5,7 @@
 import { PropType, computed } from "vue";
 import { useChartsStore } from "../../store";
 import dayjs from "dayjs";
-import debounce from "lodash/debounce";
+// import debounce from "lodash/debounce";
 
 const chartsStore = useChartsStore();
 const props = defineProps({
