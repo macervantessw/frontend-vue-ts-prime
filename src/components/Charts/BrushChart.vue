@@ -81,33 +81,33 @@ function selection(chartContext: any, { xaxis }: { xaxis: { min: number; max: nu
   // updateXaxisDebounced(xaxis);
 }
 
-whenever(keys.Shift_Ctrl_ArrowRight, () => {
-  const diff = chartsStore.xaxis.max - chartsStore.xaxis.min;
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min + diff,
-    max: chartsStore.xaxis.max + diff,
-  };
-});
-whenever(keys.Shift_Ctrl_ArrowLeft, () => {
-  const diff = chartsStore.xaxis.max - chartsStore.xaxis.min;
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min - diff,
-    max: chartsStore.xaxis.max - diff,
-  };
-});
 whenever(keys.ArrowRight, () => {
-  if (current.has("shift") || current.has("control")) return;
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min + 10000,
-    max: chartsStore.xaxis.max + 10000,
-  };
+  if (current.has("shift") && current.has("control")) {
+    const diff = chartsStore.xaxis.max - chartsStore.xaxis.min;
+    chartsStore.xaxis = {
+      min: chartsStore.xaxis.min + diff,
+      max: chartsStore.xaxis.max + diff,
+    };
+  } else {
+    chartsStore.xaxis = {
+      min: chartsStore.xaxis.min + 10000,
+      max: chartsStore.xaxis.max + 10000,
+    };
+  }
 });
 whenever(keys.ArrowLeft, () => {
-  if (current.has("shift") || current.has("control")) return;
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min - 10000,
-    max: chartsStore.xaxis.max - 10000,
-  };
+  if (current.has("shift") && current.has("control")) {
+    const diff = chartsStore.xaxis.max - chartsStore.xaxis.min;
+    chartsStore.xaxis = {
+      min: chartsStore.xaxis.min - diff,
+      max: chartsStore.xaxis.max - diff,
+    };
+  } else {
+    chartsStore.xaxis = {
+      min: chartsStore.xaxis.min - 10000,
+      max: chartsStore.xaxis.max - 10000,
+    };
+  }
 });
 
 // const updateXaxisDebounced = debounce((xaxis) => {
