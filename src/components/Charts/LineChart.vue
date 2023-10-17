@@ -13,12 +13,13 @@ import Skeleton from "primevue/skeleton";
 import { Series } from "../../interfaces";
 import { MAX_SAMPLES } from "../../constants";
 import apexchart from "vue3-apexcharts";
+import ApexCharts from "apexcharts";
 import { ApexOptions } from "apexcharts";
 
 const loading = ref(false);
 const chartsStore = useChartsStore();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const chart = ref(null as any);
+const chart = ref(null as ApexCharts | null);
 const showData = ref([] as Series[]);
 const props = defineProps({
   data: {
@@ -35,7 +36,7 @@ const props = defineProps({
   },
   name: {
     type: String,
-    default: "",
+    required: true,
   },
 });
 
@@ -111,7 +112,11 @@ const chartOptions = computed(() => {
         enabled: false,
       },
     },
-
+    title: {
+      text: props.name,
+      align: "center",
+      offsetY: 10,
+    },
     tooltip: {
       enabled: true,
       shared: true,
@@ -120,7 +125,7 @@ const chartOptions = computed(() => {
       size: 0,
     },
     stroke: {
-      width: 1,
+      width: 1.3,
       curve: "smooth",
     },
     xaxis: {

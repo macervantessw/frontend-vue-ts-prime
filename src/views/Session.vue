@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full p-3">
     <!-- <LineChart id="breath-rate-chart" height="200px" class="w-full" :file="file" :data="breathRateData" /> -->
-    <LineChart id="respiratory_chart" height="200px" class="w-full" :file="file" :data="respiratoryData" />
+    <LineChart id="respiratory_chart" height="250px" class="w-full" :file="file" :data="respiratoryData" :name="$t('Respiratory view')" />
     <BrushChart id="brush-chart" class="w-full h-11rem" :file="file" :data="brushData" target="breathe-rate-chart" />
   </div>
 </template>
