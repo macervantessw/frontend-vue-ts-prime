@@ -7,3 +7,4 @@ export const SIGNALS = {
 };
 
 export const MAX_SAMPLES = 3000;
+export const CHART_MOVEMENT = 10000;

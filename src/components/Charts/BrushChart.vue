@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 // import debounce from "lodash/debounce";
 import { useMagicKeys, whenever } from "@vueuse/core";
 import apexchart from "vue3-apexcharts";
-
+import { CHART_MOVEMENT } from "../../constants";
 const { current } = useMagicKeys();
 const keys = useMagicKeys();
 const messagesStore = useMessagesStore();
@@ -82,37 +82,33 @@ function selection(chartContext: any, { xaxis }: { xaxis: { min: number; max: nu
 }
 
 whenever(keys.ArrowRight, () => {
-  if (current.has("shift") && current.has("control")) {
-    const diff = chartsStore.xaxis.max - chartsStore.xaxis.min;
-    chartsStore.xaxis = {
-      min: chartsStore.xaxis.min + diff,
-      max: chartsStore.xaxis.max + diff,
-    };
-  } else {
-    chartsStore.xaxis = {
-      min: chartsStore.xaxis.min + 10000,
-      max: chartsStore.xaxis.max + 10000,
-    };
-  }
-});
-whenever(keys.ArrowLeft, () => {
-  if (current.has("shift") && current.has("control")) {
-    const diff = chartsStore.xaxis.max - chartsStore.xaxis.min;
-    chartsStore.xaxis = {
-      min: chartsStore.xaxis.min - diff,
-      max: chartsStore.xaxis.max - diff,
-    };
-  } else {
-    chartsStore.xaxis = {
-      min: chartsStore.xaxis.min - 10000,
-      max: chartsStore.xaxis.max - 10000,
-    };
-  }
+  if (current.has("shift") && current.has("control")) moveRight(chartsStore.xaxis.max - chartsStore.xaxis.min);
+  else moveRight(CHART_MOVEMENT);
 });
 
-// const updateXaxisDebounced = debounce((xaxis) => {
-//   chartsStore.xaxis = xaxis;
-// }, 0);
+whenever(keys.ArrowLeft, () => {
+  if (current.has("shift") && current.has("control")) moveLeft(chartsStore.xaxis.max - chartsStore.xaxis.min);
+  else moveLeft(CHART_MOVEMENT);
+});
+
+function moveLeft(quantity: number) {
+  chartsStore.xaxis = {
+    min: chartsStore.xaxis.min - quantity,
+    max: chartsStore.xaxis.max - quantity,
+  };
+  chartOptions.chart.selection.xaxis.min = chartsStore.xaxis.min;
+  chartOptions.chart.selection.xaxis.max = chartsStore.xaxis.max;
+  chart.value?.updateOptions(chartOptions);
+}
+function moveRight(quantity: number) {
+  chartsStore.xaxis = {
+    min: chartsStore.xaxis.min + quantity,
+    max: chartsStore.xaxis.max + quantity,
+  };
+  chartOptions.chart.selection.xaxis.min = chartsStore.xaxis.min;
+  chartOptions.chart.selection.xaxis.max = chartsStore.xaxis.max;
+  chart.value?.updateOptions(chartOptions);
+}
 
 const chartOptions = {
   chart: {
