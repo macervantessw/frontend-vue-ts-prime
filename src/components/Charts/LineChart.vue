@@ -119,7 +119,12 @@ const chartOptions = computed(() => {
     },
     tooltip: {
       enabled: true,
-      shared: true,
+      shared: false,
+      custom: function ({ series, _seriesIndex, dataPointIndex, _w }) {
+        //100 - (airflow / basalAirflow) * 100;
+        const atenuation = 100 - (series[1][dataPointIndex] / series[0][dataPointIndex]) * 100;
+        return '<div class="arrow_box">' + "<span>Attenuation: " + atenuation.toFixed(2) + "%</span>" + "</div>";
+      },
     },
     markers: {
       size: 0,
@@ -145,4 +150,8 @@ const chartOptions = computed(() => {
   return options;
 });
 </script>
-<style></style>
+<style>
+.arrow_box {
+  padding: 5px;
+}
+</style>
