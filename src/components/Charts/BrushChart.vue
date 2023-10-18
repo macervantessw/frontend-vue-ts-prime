@@ -61,7 +61,7 @@ function selection(chartContext: any, { xaxis }: { xaxis: { min: number; max: nu
   xaxis.min = Math.floor(xaxis.min);
   xaxis.max = Math.floor(xaxis.max);
   const diff = Math.trunc(xaxis.max - xaxis.min);
-  if (diff > 10 * 60 * 1000) {
+  if (diff - 1 > 10 * 60 * 1000) {
     if (oldMin !== xaxis.min && oldMax !== xaxis.max) {
       xaxis.max = xaxis.min + 10 * 60 * 1000;
     } else if (oldMax !== xaxis.max) {
