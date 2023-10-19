@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-full p-3">
-    <!-- <LineChart id="breath-rate-chart" height="200px" class="w-full" :file="file" :data="breathRateData" /> -->
+  <div class="w-full h-full flex flex-column p-2 gap-3">
+    <LineChart id="oxymetry_chart" height="250px" class="w-full" :file="file" :data="oxymetryChartData" :name="$t('Oxymetry view')" />
     <LineChart id="respiratory_chart" height="250px" class="w-full" :file="file" :data="respiratoryData" :name="$t('Respiratory view')" />
     <BrushChart id="brush-chart" class="w-full h-11rem" :file="file" :data="brushData" target="breathe-rate-chart" />
   </div>
@@ -8,12 +8,11 @@
 <script lang="ts" setup>
 import { StorageReference, getBytes } from "firebase/storage";
 import { PropType, computed, defineProps, onBeforeMount, ref } from "vue";
-import { readDatFile, uncompressFile } from "../utilities/file.utilities";
+import { readDatFile, uncompressFile, getData } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
 import { ASAP, DataPoint } from "downsample";
 import LineChart from "../components/Charts/LineChart.vue";
 import BrushChart from "../components/Charts/BrushChart.vue";
-import JSZip from "jszip";
 import { Data, Series } from "../interfaces";
 
 const props = defineProps({
@@ -30,6 +29,9 @@ const movementData = ref([] as Data[]);
 const airFlowData = ref([] as Data[]);
 const basalAirFlowData = ref([] as Data[]);
 const brushData = ref([] as Data[]);
+const basalOximetryData = ref([] as Data[]);
+const hrData = ref([] as Data[]);
+const oxymetryData = ref([] as Data[]);
 
 const respiratoryData = computed(() => {
   if (!basalAirFlowData.value.length || !airFlowData.value.length || !movementData.value.length) return [] as Series[];
@@ -40,6 +42,15 @@ const respiratoryData = computed(() => {
   ] as Series[];
 });
 
+const oxymetryChartData = computed(() => {
+  if (!hrData.value.length || !oxymetryData.value.length || !basalOximetryData.value.length) return [] as Series[];
+  return [
+    { name: "Oxymetry", data: oxymetryData.value },
+    { name: "Basal Oxymetry", data: basalOximetryData.value },
+    { name: "Heart rate", data: hrData.value },
+  ] as Series[];
+});
+
 onBeforeMount(() => {
   downloadFileAndUncompress().then(async (files) => {
     zippedFiles = files;
@@ -47,38 +58,17 @@ onBeforeMount(() => {
 
     const timeAxisUnzipped = await zippedFiles[SIGNALS.BASETIME].async("uint8array");
     const timeAxis: number[] = readDatFile(timeAxisUnzipped).filter((_e, index) => index % 10 === 0);
-    const timeAxisData = timeAxis.map((element) => {
-      return [element, 0];
-    });
+    const timeAxisData = timeAxis.map((element) => [element, 0]);
     brushData.value = ASAP(timeAxisData as DataPoint[], 1000) as { x: number; y: number }[];
 
-    // getData(zippedFiles, timeAxis, SIGNALS.BREATH_RATE).then((breathRate) => {
-    //   breathRateData.value = breathRate;
-    // });
-
-    getData(zippedFiles, timeAxis, SIGNALS.AIR_FFLOW).then((data) => {
-      // airFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
-      airFlowData.value = data;
-    });
-    getData(zippedFiles, timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => {
-      // basalAirFlowData.value = LTD(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
-      basalAirFlowData.value = data;
-    });
-    getData(zippedFiles, timeAxis, SIGNALS.MOVEMENT).then((data) => {
-      // movementData.value = ASAP(data as DataPoint[], MAX_SAMPLES) as { x: number; y: number }[];
-      movementData.value = data;
-    });
+    getData(zippedFiles, timeAxis, SIGNALS.AIR_FLOW).then((data) => (airFlowData.value = data));
+    getData(zippedFiles, timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => (basalAirFlowData.value = data));
+    getData(zippedFiles, timeAxis, SIGNALS.MOVEMENT).then((data) => (movementData.value = data));
+    getData(zippedFiles, timeAxis, SIGNALS.HR).then((data) => (hrData.value = data));
+    getData(zippedFiles, timeAxis, SIGNALS.OXIMETRY).then((data) => (oxymetryData.value = data));
+    getData(zippedFiles, timeAxis, SIGNALS.BASAL_OXIMETRY).then((data) => (basalOximetryData.value = data));
   });
 });
-
-async function getData(files: Record<string, JSZip.JSZipObject>, timeAxis: number[], fileName: string) {
-  const dataUnzipped = await files[fileName].async("uint8array");
-  let data = readDatFile(dataUnzipped);
-  data = data.filter((_e, index) => index % 10 === 0);
-  return data.map((element, index) => {
-    return { x: timeAxis[index], y: element };
-  });
-}
 
 async function downloadFileAndUncompress() {
   if (!props.file) return;

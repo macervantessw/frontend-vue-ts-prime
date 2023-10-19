@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column" :style="{ height: height }">
+  <div class="card flex flex-column bg-gray-50 border-1 border-round border-200 p-2" :style="{ height: '280px' }">
     <div v-if="loading" class="p-4 w-full" :style="{ height: height }">
       <Skeleton width="100%" height="100%"></Skeleton>
     </div>
@@ -41,7 +41,7 @@ const props = defineProps({
 });
 
 onBeforeMount(() => {
-  loading.value = true;
+  loading.value = false;
 });
 watch(
   () => props.data,
@@ -68,7 +68,7 @@ watch(
 function updateShownData() {
   const { min, max } = chartsStore.xaxis;
   if (!min || !max) return;
-  loading.value = true;
+  loading.value = false;
   let zoomedData: Series[] = props.data.map((serie) => {
     return {
       name: serie.name,
@@ -119,12 +119,6 @@ const chartOptions = computed(() => {
     },
     tooltip: {
       enabled: true,
-      shared: false,
-      custom: function ({ series, _seriesIndex, dataPointIndex, _w }) {
-        //100 - (airflow / basalAirflow) * 100;
-        const atenuation = 100 - (series[1][dataPointIndex] / series[0][dataPointIndex]) * 100;
-        return '<div class="arrow_box">' + "<span>Attenuation: " + atenuation.toFixed(2) + "%</span>" + "</div>";
-      },
     },
     markers: {
       size: 0,
@@ -141,11 +135,62 @@ const chartOptions = computed(() => {
       show: false,
     },
   };
-  const movement = props.data.find((serie) => serie.name === "Movement");
 
-  if (movement) {
-    const average = movement.data.reduce((a, b) => a + b.y, 0) / movement.data.length;
-    options.yaxis = { ...options.yaxis, max: average * 3 };
+  if (props.id === "oxymetry_chart") {
+    options.yaxis = props.data.map((serie, index) => {
+      if (serie.name === "Heart rate") {
+        return {
+          seriesName: serie.name,
+          title: { text: "HR (bpm)", rotate: 0, offsetX: -40, offsetY: -95, style: { color: "#d41919" } },
+          min: 55,
+          max: 160,
+          show: true,
+          opposite: true,
+          floating: true,
+          labels: {
+            formatter: (value: number) => {
+              return value.toFixed(0);
+            },
+            style: {
+              colors: "#d41919",
+            },
+            offsetX: 30,
+          },
+        };
+      } else {
+        return {
+          seriesName: props.data[0].name,
+          title: { text: "SpO2", rotate: 0, offsetX: 25, offsetY: -95 },
+          show: index === 0,
+          min: 60,
+          max: 100,
+          tickAmount: 4,
+          floating: true,
+          labels: {
+            formatter: (value: number) => {
+              return value + "%";
+            },
+            offsetX: 30,
+          },
+        };
+      }
+    });
+    options.colors = ["#189f5c", "rgb(30, 108, 211)", "#d41919"];
+  } else if (props.id === "respiratory_chart") {
+    const movement = props.data.find((serie) => serie.name === "Movement");
+    if (movement) {
+      const average = movement.data.reduce((a, b) => a + b.y, 0) / movement.data.length;
+      options.yaxis = { ...options.yaxis, max: average * 3 };
+    }
+    options.tooltip = {
+      enabled: true,
+      shared: false,
+      custom: function ({ series, _seriesIndex, dataPointIndex, _w }) {
+        //100 - (airflow / basalAirflow) * 100;
+        const atenuation = 100 - (series[1][dataPointIndex] / series[0][dataPointIndex]) * 100;
+        return '<div class="arrow_box">' + "<span>Attenuation: " + atenuation.toFixed(2) + "%</span>" + "</div>";
+      },
+    };
   }
   return options;
 });

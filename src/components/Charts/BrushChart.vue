@@ -1,5 +1,7 @@
 <template>
-  <apexchart ref="chart" type="line" height="150px" :options="chartOptions" :series="series" @selection="selection" />
+  <div class="card flex flex-column bg-gray-50 border-1 border-round border-200 p-2" :style="{ height: '150px' }">
+    <apexchart ref="chart" type="line" height="150px" :options="chartOptions" :series="series" @selection="selection" />
+  </div>
 </template>
 <script lang="ts" setup>
 import { PropType, computed, ref, watch } from "vue";
