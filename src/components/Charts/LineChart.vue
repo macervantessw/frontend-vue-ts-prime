@@ -192,7 +192,7 @@ const chartOptions = computed(() => {
     options.tooltip = {
       ...options.tooltip,
       enabled: true,
-      shared: false,
+      shared: true,
       custom: function ({ series, _seriesIndex, dataPointIndex, _w }) {
         //100 - (airflow / basalAirflow) * 100;
         const atenuation = 100 - (series[1][dataPointIndex] / series[0][dataPointIndex]) * 100;

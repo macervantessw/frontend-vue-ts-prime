@@ -45,8 +45,8 @@ const respiratoryData = computed(() => {
 const oxymetryChartData = computed(() => {
   if (!hrData.value.length || !oxymetryData.value.length || !basalOximetryData.value.length) return [] as Series[];
   return [
-    { name: "Oxymetry", data: oxymetryData.value },
     { name: "Basal Oxymetry", data: basalOximetryData.value },
+    { name: "Oxymetry", data: oxymetryData.value },
     { name: "Heart rate", data: hrData.value },
   ] as Series[];
 });
