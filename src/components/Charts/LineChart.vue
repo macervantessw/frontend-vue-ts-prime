@@ -119,6 +119,10 @@ const chartOptions = computed(() => {
     },
     tooltip: {
       enabled: true,
+      x: {
+        show: false,
+        format: "HH:mm:ss",
+      },
     },
     markers: {
       size: 0,
@@ -130,6 +134,9 @@ const chartOptions = computed(() => {
     xaxis: {
       type: "datetime",
       labels: { datetimeUTC: false },
+      crosshairs: {
+        show: true,
+      },
     },
     yaxis: {
       show: false,
@@ -180,9 +187,10 @@ const chartOptions = computed(() => {
     const movement = props.data.find((serie) => serie.name === "Movement");
     if (movement) {
       const average = movement.data.reduce((a, b) => a + b.y, 0) / movement.data.length;
-      options.yaxis = { ...options.yaxis, max: average * 3 };
+      options.yaxis = { ...options.yaxis, max: average * 4 };
     }
     options.tooltip = {
+      ...options.tooltip,
       enabled: true,
       shared: false,
       custom: function ({ series, _seriesIndex, dataPointIndex, _w }) {
