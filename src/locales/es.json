@@ -29,5 +29,7 @@
   "forgot_password_description": "Por favor, introduzca su dirección de correo electrónico a continuación, si es una dirección válida le enviaremos un correo electrónico con las instrucciones para restablecer su contraseña.",
   "Send": "Enviar",
   "email-sent": "Correo electrónico enviado",
-  "Respiratory view": "Vista de respiración"
+  "Respiratory view": "Vista de respiración",
+  "wrong-email": "Correo electrónico o contraseña incorrectos",
+  "too-many-requests": "Demasiados intentos, inténtelo de nuevo en unos minutos o restablezca su contraseña."
 }

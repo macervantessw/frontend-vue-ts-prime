@@ -5,7 +5,9 @@ import { useMessagesStore } from "./messages.store";
 import { auth, db } from "../firebase/firebaseInit";
 import { child, get, ref, set } from "firebase/database";
 import { User } from "../interfaces";
+import i18n from "../i18n";
 
+const { t } = i18n.global;
 export const useUsersStore = defineStore("Users", {
   state: () => ({
     userToken: useLocalStorage<string>("token", ""),
@@ -27,7 +29,18 @@ export const useUsersStore = defineStore("Users", {
           return userCredential.user;
         })
         .catch((error) => {
-          messagesStore.setErrorMessage(error.message);
+          switch (error.code) {
+            case "auth/invalid-email":
+            case "auth/wrong-password":
+              messagesStore.setErrorMessage(t("wrong-email"));
+              break;
+            case "auth/too-many-requests":
+              messagesStore.setErrorMessage(t("too-many-requests"));
+              break;
+            default:
+              messagesStore.setErrorMessage(error.message);
+              break;
+          }
           return null;
         });
     },

@@ -25,5 +25,7 @@
   "forgot_password_description": "Please enter your email below, if it is a valid address we will send you en email with the instructions to reset your password",
   "Send": "Send",
   "email-sent": "Email sent",
-  "Respiratory view": "Respiratory view"
+  "Respiratory view": "Respiratory view",
+  "wrong-email": "Wrong email or password",
+  "too-many-requests": "Too many requests, please try again in a few minutes or reset your password."
 }

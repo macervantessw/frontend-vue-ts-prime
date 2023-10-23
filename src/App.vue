@@ -24,6 +24,7 @@ watch(
         detail: toastMessage.message,
         group: "br",
         life: 6000,
+        styleClass: "text-xl",
       });
     }
   },

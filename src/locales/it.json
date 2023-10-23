@@ -29,5 +29,7 @@
   "forgot_password_description": "Inserisci il tuo indirizzo e-mail qui sotto, se è un indirizzo valido ti invieremo un'e-mail con le istruzioni per reimpostare la tua password.",
   "Send": "Inviare",
   "email-sent": "Email inviata",
-  "Respiratory view": "Vista della respirazione"
+  "Respiratory view": "Vista della respirazione",
+  "wrong-email": "Email o password errata",
+  "too-many-requests": "Troppe richieste, riprovare tra qualche minuto o reimpostare la password."
 }
