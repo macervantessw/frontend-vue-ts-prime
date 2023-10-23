@@ -1,22 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createRouter, createWebHistory } from "vue-router";
-import Login from "../views/Login.vue";
-import Signup from "../views/Signup.vue";
-import ForgotPassword from "../views/ForgotPassword.vue";
-import PatientSessions from "../views/PatientSessions.vue";
-import Home from "../views/Home.vue";
 import { useSessionsStore } from "../store";
 
 const routes = [
   {
     path: "/",
     name: "Login",
-    component: Login,
+    component: import("../views/Login.vue"),
   },
   {
     path: "/home",
     name: "home",
-    component: Home,
+    component: import("../views/Home.vue"),
     beforeEnter: async () => {
       const sessionsStore = useSessionsStore();
       sessionsStore.fetchAllPatients();
@@ -25,7 +20,7 @@ const routes = [
   {
     path: "/patientSessions/:patientId",
     name: "patientSessions",
-    component: PatientSessions,
+    component: import("../views/PatientSessions.vue"),
   },
   {
     path: "/session/:sessionId",
@@ -36,17 +31,17 @@ const routes = [
   {
     path: "/signup",
     name: "signup",
-    component: Signup,
+    component: import("../views/Signup.vue"),
   },
   {
     path: "/login",
     name: "login",
-    component: Login,
+    component: import("../views/Login.vue"),
   },
   {
     path: "/forgotPassword",
     name: "ForgotPassword",
-    component: ForgotPassword,
+    component: import("../views/ForgotPassword.vue"),
   },
 ];
 
