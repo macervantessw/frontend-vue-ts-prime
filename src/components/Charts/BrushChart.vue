@@ -8,11 +8,10 @@ import { PropType, computed, ref, watch } from "vue";
 import { useChartsStore, useMessagesStore } from "../../store";
 import dayjs from "dayjs";
 // import debounce from "lodash/debounce";
-import { useMagicKeys, whenever } from "@vueuse/core";
+
 import apexchart from "vue3-apexcharts";
-import { CHART_MOVEMENT } from "../../constants";
-const { current } = useMagicKeys();
-const keys = useMagicKeys();
+import { debounce } from "lodash";
+
 const messagesStore = useMessagesStore();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const chart = ref(null as any);
@@ -58,8 +57,22 @@ const series = computed(() => [
   },
 ]);
 
+watch(
+  () => chartsStore.xaxis,
+  (newVal) => {
+    if (newVal.min === chartOptions.chart.selection.xaxis.min || newVal.max === chartOptions.chart.selection.xaxis.max) return;
+    chartOptions.chart.selection.xaxis.min = newVal.min;
+    chartOptions.chart.selection.xaxis.max = newVal.max;
+    chart.value?.updateOptions(chartOptions);
+  },
+  { deep: true },
+);
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function selection(chartContext: any, { xaxis }: { xaxis: { min: number; max: number } }) {
+  updateXaxisDebounced(xaxis);
+}
+const updateXaxisDebounced = debounce((xaxis) => {
   xaxis.min = Math.floor(xaxis.min);
   xaxis.max = Math.floor(xaxis.max);
   const diff = Math.trunc(xaxis.max - xaxis.min);
@@ -80,37 +93,7 @@ function selection(chartContext: any, { xaxis }: { xaxis: { min: number; max: nu
   chartsStore.xaxis = xaxis;
   oldMax = xaxis.max;
   oldMin = xaxis.min;
-  // updateXaxisDebounced(xaxis);
-}
-
-whenever(keys.ArrowRight, () => {
-  if (current.has("shift") && current.has("control")) moveRight(chartsStore.xaxis.max - chartsStore.xaxis.min);
-  else moveRight(CHART_MOVEMENT);
-});
-
-whenever(keys.ArrowLeft, () => {
-  if (current.has("shift") && current.has("control")) moveLeft(chartsStore.xaxis.max - chartsStore.xaxis.min);
-  else moveLeft(CHART_MOVEMENT);
-});
-
-function moveLeft(quantity: number) {
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min - quantity,
-    max: chartsStore.xaxis.max - quantity,
-  };
-  chartOptions.chart.selection.xaxis.min = chartsStore.xaxis.min;
-  chartOptions.chart.selection.xaxis.max = chartsStore.xaxis.max;
-  chart.value?.updateOptions(chartOptions);
-}
-function moveRight(quantity: number) {
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min + quantity,
-    max: chartsStore.xaxis.max + quantity,
-  };
-  chartOptions.chart.selection.xaxis.min = chartsStore.xaxis.min;
-  chartOptions.chart.selection.xaxis.max = chartsStore.xaxis.max;
-  chart.value?.updateOptions(chartOptions);
-}
+}, 200);
 
 const chartOptions = {
   chart: {
@@ -142,18 +125,17 @@ const chartOptions = {
     type: "datetime",
     labels: {
       datetimeUTC: false,
+      showDuplicates: false,
+      formatter: (value: number) => {
+        return dayjs(value).format("HH:mm");
+      },
     },
     tooltip: {
       enabled: false,
     },
   },
   yaxis: {
-    tickAmount: 1,
-    labels: {
-      formatter: (value: number) => {
-        return value.toFixed(0);
-      },
-    },
+    show: false,
   },
 };
 </script>

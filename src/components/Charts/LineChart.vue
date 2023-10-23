@@ -15,6 +15,7 @@ import { MAX_SAMPLES } from "../../constants";
 import apexchart from "vue3-apexcharts";
 import ApexCharts from "apexcharts";
 import { ApexOptions } from "apexcharts";
+import { debounce } from "lodash";
 
 const loading = ref(false);
 const chartsStore = useChartsStore();
@@ -65,7 +66,7 @@ watch(
   { deep: true },
 );
 
-function updateShownData() {
+const updateShownData = debounce(() => {
   const { min, max } = chartsStore.xaxis;
   if (!min || !max) return;
   loading.value = false;
@@ -91,7 +92,7 @@ function updateShownData() {
   }
 
   showData.value = zoomedData;
-}
+}, 200);
 
 // const series = computed(() => [
 //   {
@@ -104,6 +105,7 @@ const chartOptions = computed(() => {
     chart: {
       id: props.id,
       type: "line",
+
       toolbar: {
         autoSelected: "pan",
         show: false,
