@@ -93,7 +93,7 @@ const updateXaxisDebounced = debounce((xaxis) => {
   chartsStore.xaxis = xaxis;
   oldMax = xaxis.max;
   oldMin = xaxis.min;
-}, 200);
+}, 100);
 
 const chartOptions = {
   chart: {

@@ -63,8 +63,8 @@ onBeforeMount(() => {
 
     const timeAxisUnzipped = await zippedFiles[SIGNALS.BASETIME].async("uint8array");
     const timeAxis: number[] = readDatFile(timeAxisUnzipped).filter((_e, index) => index % 10 === 0);
-    const timeAxisData = timeAxis.filter((_e, index) => index % 10 === 0);
-    brushData.value = timeAxisData.map((element) => ({ x: element, y: 0 }));
+
+    brushData.value = timeAxis.map((element) => ({ x: element, y: 0 }));
 
     getData(zippedFiles, timeAxis, SIGNALS.AIR_FLOW).then((data) => (airFlowData.value = data));
     getData(zippedFiles, timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => (basalAirFlowData.value = data));

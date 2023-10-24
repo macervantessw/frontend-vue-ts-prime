@@ -7,10 +7,10 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, PropType, computed, watch, onBeforeMount } from "vue";
+import { ref, computed, watch, onBeforeMount } from "vue";
 import { useChartsStore } from "../../store";
 import Skeleton from "primevue/skeleton";
-import { Series } from "../../interfaces";
+import { Data, Series } from "../../interfaces";
 import { MAX_SAMPLES } from "../../constants";
 import apexchart from "vue3-apexcharts";
 import ApexCharts from "apexcharts";
@@ -22,77 +22,48 @@ const chartsStore = useChartsStore();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const chart = ref(null as ApexCharts | null);
 const showData = ref([] as Series[]);
-const props = defineProps({
-  data: {
-    type: Array as PropType<Series[]>,
-    required: true,
-  },
-  id: {
-    type: String,
-    required: true,
-  },
-  height: {
-    type: String,
-    default: "150px",
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps(["data", "id", "height", "name"]);
 
 onBeforeMount(() => {
   loading.value = false;
 });
 watch(
   () => props.data,
-  (newVal) => {
-    if (!newVal || !newVal.length) return;
+  () => {
     updateShownData();
-    loading.value = false;
   },
   { deep: true },
 );
 
 watch(
   () => chartsStore.xaxis,
-  (newVal) => {
-    if (!props.data || !props.data.length) return;
+  () => {
     updateShownData();
-    if (!chart.value) return;
-    chart.value.zoomX(newVal.min, newVal.max);
-    loading.value = false;
   },
   { deep: true },
 );
 
 const updateShownData = debounce(() => {
+  if (!props.data || !props.data.length) return;
   const { min, max } = chartsStore.xaxis;
   if (!min || !max) return;
   loading.value = false;
-  let zoomedData: Series[] = props.data.map((serie) => {
+  const diff = max - min;
+  let zoomedData: Series[] = props.data.map((serie: Series) => {
     return {
       name: serie.name,
       data: serie.data.filter((element) => {
-        return element.x >= min && element.x <= max;
+        return element.x >= min - diff && element.x <= max + diff;
       }),
     };
   });
-
-  const reduction = zoomedData[0].data.length / MAX_SAMPLES;
-  if (reduction > 1) {
-    zoomedData = zoomedData.map((serie) => {
-      return {
-        name: serie.name,
-        data: serie.data.filter((_element, index) => {
-          return index % Math.ceil(reduction) === 0;
-        }),
-      };
-    });
-  }
-
+  if (!chart.value) return;
+  // const options = chartOptions.value;
+  // options.xaxis.min = min;
+  // options.xaxis.max = max;
+  loading.value = false;
   showData.value = zoomedData;
-}, 200);
+}, 100);
 
 // const series = computed(() => [
 //   {
@@ -139,14 +110,16 @@ const chartOptions = computed(() => {
       crosshairs: {
         show: true,
       },
+      min: chartsStore.xaxis.min,
+      max: chartsStore.xaxis.max,
     },
     yaxis: {
       show: false,
     },
   };
-
+moure axis.min i max quan es mou fent servir fletxes o scroll, despres recalcular showData
   if (props.id === "oxymetry_chart") {
-    options.yaxis = props.data.map((serie, index) => {
+    options.yaxis = props.data.map((serie: Series, index: number) => {
       if (serie.name === "Heart rate") {
         return {
           seriesName: serie.name,
@@ -186,9 +159,9 @@ const chartOptions = computed(() => {
     });
     options.colors = ["#189f5c", "rgb(30, 108, 211)", "#d41919"];
   } else if (props.id === "respiratory_chart") {
-    const movement = props.data.find((serie) => serie.name === "Movement");
+    const movement = props.data.find((serie: Series) => serie.name === "Movement");
     if (movement) {
-      const average = movement.data.reduce((a, b) => a + b.y, 0) / movement.data.length;
+      const average = movement.data.reduce((a: number, b: Data) => a + b.y, 0) / movement.data.length;
       options.yaxis = { ...options.yaxis, max: average * 4 };
     }
     options.tooltip = {
