@@ -1,4 +1,5 @@
 import { User as FireUser } from "firebase/auth";
+import { DeepPartial, LineData, LineStyleOptions, SeriesOptionsCommon } from "lightweight-charts";
 export interface User extends FireUser {
   name: string;
   lastName: string;
@@ -10,9 +11,11 @@ export interface User extends FireUser {
 
 export interface Series {
   name?: string;
-  data: Data[];
+  seriesOptions: DeepPartial<LineStyleOptions & SeriesOptionsCommon>;
+  id: string;
+  data: LineData[];
 }
 export interface Data {
-  x: number;
-  y: number;
+  time: number;
+  value: number;
 }

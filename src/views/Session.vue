@@ -1,23 +1,76 @@
 <template>
   <div class="w-full h-full flex flex-column p-2 gap-3">
-    <LineChart id="oxymetry_chart" height="250px" class="w-full" :file="file" :data="oxymetryChartData" :name="$t('Oxymetry view')" @wheel="handleWheel" />
+    <!-- <LineChart id="oxymetry_chart" height="250px" class="w-full" :file="file" :data="oxymetryChartData" :name="$t('Oxymetry view')" @wheel="handleWheel" />
     <LineChart id="respiratory_chart" height="250px" class="w-full" :file="file" :data="respiratoryData" :name="$t('Respiratory view')" @wheel="handleWheel" />
-    <BrushChart id="brush-chart" class="w-full h-11rem" :file="file" :data="brushData" target="breathe-rate-chart" @wheel="handleWheel" />
+    <BrushChart id="brush-chart" class="w-full h-11rem" :file="file" :data="brushData" target="breathe-rate-chart" @wheel="handleWheel" /> -->
+    <div class="chart-container h-20rem">
+      <OxymetryChart ref="oxymetryChart" :files="zippedFiles" />
+    </div>
+    <div class="chart-container h-20rem">
+      <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" />
+    </div>
   </div>
 </template>
+
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts" setup>
 import { StorageReference, getBytes } from "firebase/storage";
-import { PropType, computed, defineProps, onBeforeMount, ref } from "vue";
-import { readDatFile, uncompressFile, getData } from "../utilities/file.utilities";
+import { PropType, defineProps, onBeforeMount, onMounted, ref } from "vue";
+import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
 //import { ASAP, DataPoint } from "downsample";
-import LineChart from "../components/Charts/LineChart.vue";
-import BrushChart from "../components/Charts/BrushChart.vue";
-import { Data, Series } from "../interfaces";
 import { CHART_MOVEMENT } from "../constants";
 import { useMagicKeys, whenever } from "@vueuse/core";
 import { useChartsStore } from "../store";
+import JSZip from "jszip";
 
+import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
+import OxymetryChart from "../components/Charts/OxymetryChart.vue";
+import { IChartApi, ISeriesApi, Range } from "lightweight-charts";
+
+const oxymetryChart = ref();
+const respiratoryChart = ref();
+
+onMounted(() => {
+  const oxChart: IChartApi = oxymetryChart.value?.getChart();
+  const resChart: IChartApi = respiratoryChart.value?.getChart();
+
+  oxChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+    resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+  });
+
+  resChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+    oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+  });
+
+  function getCrosshairDataPoint(series: ISeriesApi<"Line">, param: any) {
+    if (!param.time) {
+      return null;
+    }
+    const dataPoint = param.seriesData.get(series);
+    return dataPoint || null;
+  }
+
+  function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: any) {
+    if (dataPoint) {
+      chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
+      return;
+    }
+    chart.clearCrosshairPosition();
+  }
+  oxChart.subscribeCrosshairMove((param) => {
+    const mainSeries1 = oxymetryChart.value?.getSeries()[0];
+    const mainSeries2 = respiratoryChart.value?.getSeries()[0];
+    const dataPoint = getCrosshairDataPoint(mainSeries1, param);
+    syncCrosshair(resChart, mainSeries2, dataPoint);
+  });
+  resChart.subscribeCrosshairMove((param) => {
+    const mainSeries1 = oxymetryChart.value?.getSeries()[0];
+    const mainSeries2 = respiratoryChart.value?.getSeries()[0];
+    const dataPoint = getCrosshairDataPoint(mainSeries2, param);
+    syncCrosshair(oxChart, mainSeries1, dataPoint);
+  });
+});
 const { current } = useMagicKeys();
 const keys = useMagicKeys();
 const props = defineProps({
@@ -26,69 +79,52 @@ const props = defineProps({
     required: true,
   },
 });
-let zippedFiles = null;
+const zippedFiles = ref({} as { [key: string]: JSZip.JSZipObject });
 
 // const downsampledData = ref([] as Data[]);
 // const breathRateData = ref([] as Data[]);
-const movementData = ref([] as Data[]);
-const airFlowData = ref([] as Data[]);
-const basalAirFlowData = ref([] as Data[]);
-const brushData = ref([] as Data[]);
-const basalOximetryData = ref([] as Data[]);
-const hrData = ref([] as Data[]);
-const oxymetryData = ref([] as Data[]);
-const chartsStore = useChartsStore();
-const respiratoryData = computed(() => {
-  if (!basalAirFlowData.value.length || !airFlowData.value.length || !movementData.value.length) return [] as Series[];
-  return [
-    { name: "Basal Air flow", data: basalAirFlowData.value },
-    { name: "Air flow", data: airFlowData.value },
-    { name: "Movement", data: movementData.value },
-  ] as Series[];
-});
 
-const oxymetryChartData = computed(() => {
-  if (!hrData.value.length || !oxymetryData.value.length || !basalOximetryData.value.length) return [] as Series[];
-  return [
-    { name: "Basal Oxymetry", data: basalOximetryData.value },
-    { name: "Oxymetry", data: oxymetryData.value },
-    { name: "Heart rate", data: hrData.value },
-  ] as Series[];
-});
+// const brushData = ref([] as Data[]);
+// const basalOximetryData = ref([] as Data[]);
+// const hrData = ref([] as Data[]);
+// const oxymetryData = ref([] as Data[]);
+const chartsStore = useChartsStore();
 
 onBeforeMount(() => {
   downloadFileAndUncompress().then(async (files) => {
-    zippedFiles = files;
-    if (!zippedFiles) return;
+    if (files) zippedFiles.value = files;
+    if (!zippedFiles.value) return;
 
-    const timeAxisUnzipped = await zippedFiles[SIGNALS.BASETIME].async("uint8array");
-    const timeAxis: number[] = readDatFile(timeAxisUnzipped).filter((_e, index) => index % 10 === 0);
+    const timeAxisUnzipped = await zippedFiles.value[SIGNALS.BASETIME].async("uint8array");
+    const timeAxis: number[] = readDatFile(timeAxisUnzipped);
+    timeAxis.splice(-10);
+    chartsStore.timeAxis = timeAxis;
+    // .filter((_e, index) => index % 10 === 0);
 
-    brushData.value = timeAxis.map((element) => ({ x: element, y: 0 }));
+    // brushData.value = timeAxis.map((element) => ({ x: element, y: 0 }));
 
-    getData(zippedFiles, timeAxis, SIGNALS.AIR_FLOW).then((data) => (airFlowData.value = data));
-    getData(zippedFiles, timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => (basalAirFlowData.value = data));
-    getData(zippedFiles, timeAxis, SIGNALS.MOVEMENT).then((data) => (movementData.value = data));
-    getData(zippedFiles, timeAxis, SIGNALS.HR).then((data) => (hrData.value = data));
-    getData(zippedFiles, timeAxis, SIGNALS.OXIMETRY).then((data) => (oxymetryData.value = data));
-    getData(zippedFiles, timeAxis, SIGNALS.BASAL_OXIMETRY).then((data) => (basalOximetryData.value = data));
+    // getData(zippedFiles, timeAxis, SIGNALS.HR).then((data) => (hrData.value = data));
+    // getData(zippedFiles, timeAxis, SIGNALS.OXIMETRY).then((data) => (oxymetryData.value = data));
+    // getData(zippedFiles, timeAxis, SIGNALS.BASAL_OXIMETRY).then((data) => (basalOximetryData.value = data));
   });
 });
 
 whenever(keys.ArrowRight, () => {
-  if (current.has("shift") && current.has("control")) move(chartsStore.xaxis.max - chartsStore.xaxis.min);
+  if (current.has("shift") && current.has("control")) move(chartsStore.selection.max - chartsStore.selection.min);
   else move(CHART_MOVEMENT);
 });
 
 whenever(keys.ArrowLeft, () => {
-  if (current.has("shift") && current.has("control")) move((chartsStore.xaxis.max - chartsStore.xaxis.min) * -1);
+  if (current.has("shift") && current.has("control")) move((chartsStore.selection.max - chartsStore.selection.min) * -1);
   else move(-CHART_MOVEMENT);
 });
 
 function move(quantity: number) {
-  chartsStore.xaxis = {
-    min: chartsStore.xaxis.min + quantity,
-    max: chartsStore.xaxis.max + quantity,
+  if (!chartsStore.selection.min) chartsStore.selection.min = chartsStore.xaxis.min;
+  if (!chartsStore.selection.max) chartsStore.selection.max = chartsStore.xaxis.max;
+  chartsStore.selection = {
+    min: chartsStore.selection.min + quantity,
+    max: chartsStore.selection.max + quantity,
   };
 }
 

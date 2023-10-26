@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="card flex flex-column bg-gray-50 border-1 border-round border-200 p-2" :style="{ height: '280px' }">
     <div v-if="loading" class="p-4 w-full" :style="{ height: height }">
       <Skeleton width="100%" height="100%"></Skeleton>
@@ -16,6 +16,7 @@ import apexchart from "vue3-apexcharts";
 import ApexCharts from "apexcharts";
 import { ApexOptions } from "apexcharts";
 import { debounce } from "lodash";
+import dayjs from "dayjs";
 
 const loading = ref(false);
 const chartsStore = useChartsStore();
@@ -23,7 +24,6 @@ const chartsStore = useChartsStore();
 const chart = ref(null as ApexCharts | null);
 const showData = ref([] as Series[]);
 const props = defineProps(["data", "id", "height", "name"]);
-
 onBeforeMount(() => {
   loading.value = false;
 });
@@ -37,10 +37,18 @@ watch(
 
 watch(
   () => chartsStore.xaxis,
-  () => {
-    updateShownData();
+  (newVal) => {
+    const now = dayjs();
+    // const options = chartOptions.value;
+    // if (!options.xaxis) options.xaxis = {};
+    // options.xaxis.min = newVal.min;
+    // options.xaxis.max = newVal.max;
+    //chart.value?.updateOptions(options);
+    chart.value?.zoomX(newVal.min, newVal.max);
+    const timeSpent = dayjs().diff(now, "millisecond");
+    console.log("updateOptions", timeSpent, "ms");
+    //updateShownData();
   },
-  { deep: true },
 );
 
 const updateShownData = debounce(() => {
@@ -58,9 +66,7 @@ const updateShownData = debounce(() => {
     };
   });
   if (!chart.value) return;
-  // const options = chartOptions.value;
-  // options.xaxis.min = min;
-  // options.xaxis.max = max;
+
   loading.value = false;
   showData.value = zoomedData;
 }, 100);
@@ -117,7 +123,7 @@ const chartOptions = computed(() => {
       show: false,
     },
   };
-moure axis.min i max quan es mou fent servir fletxes o scroll, despres recalcular showData
+  //moure axis.min i max quan es mou fent servir fletxes o scroll, despres recalcular showData
   if (props.id === "oxymetry_chart") {
     options.yaxis = props.data.map((serie: Series, index: number) => {
       if (serie.name === "Heart rate") {
@@ -182,4 +188,4 @@ moure axis.min i max quan es mou fent servir fletxes o scroll, despres recalcula
 .arrow_box {
   padding: 5px;
 }
-</style>
+</style> -->

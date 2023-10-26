@@ -58,7 +58,7 @@ const series = computed(() => [
 ]);
 
 watch(
-  () => chartsStore.xaxis,
+  () => chartsStore.selection,
   (newVal) => {
     if (newVal.min === chartOptions.chart.selection.xaxis.min || newVal.max === chartOptions.chart.selection.xaxis.max) return;
     chartOptions.chart.selection.xaxis.min = newVal.min;

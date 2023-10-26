@@ -19,6 +19,7 @@
     "downsample": "^1.4.0",
     "firebase": "^10.4.0",
     "jszip": "^3.10.1",
+    "lightweight-charts": "^4.1.0",
     "lodash": "^4.17.21",
     "pinia": "^2.1.6",
     "primeflex": "^3.3.1",

@@ -41,11 +41,12 @@ export function readDatFile(file: Uint8Array): number[] {
   }
   return data;
 }
+
 export async function getData(files: Record<string, JSZip.JSZipObject>, timeAxis: number[], fileName: string) {
   const dataUnzipped = await files[fileName].async("uint8array");
-  let data = readDatFile(dataUnzipped);
-  data = data.filter((_e, index) => index % 10 === 0);
-  return data.map((element, index) => {
-    return { x: timeAxis[index], y: element };
+  const data = readDatFile(dataUnzipped);
+  //data = data.filter((_e, index) => index % 10 === 0);
+  return timeAxis.map((element, index) => {
+    return { time: element, value: data[index] };
   });
 }
