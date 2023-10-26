@@ -5,22 +5,12 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { DeepPartial, IChartApi, ISeriesApi, LineData, LineStyleOptions, TimeChartOptions, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
-import { SIGNALS } from "../../constants";
+import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import JSZip from "jszip";
 
-const lineOptions: Partial<LineStyleOptions> = {
-  lineWidth: 2,
-};
-
-const chartOptions: DeepPartial<TimeChartOptions> = {
-  autoSize: false,
-  rightPriceScale: {
-    visible: false,
-  },
-};
 const chartsStore = useChartsStore();
 const props = defineProps({
   files: {
@@ -54,7 +44,7 @@ const resizeHandler = () => {
 
 onMounted(() => {
   // Create the Lightweight Charts Instance using the container ref.
-  chart = createChart(chartContainer.value, chartOptions);
+  chart = createChart(chartContainer.value, CHART_OPTIONS);
 });
 
 onUnmounted(() => {
@@ -72,18 +62,18 @@ watch(
   () => chartsStore.timeAxis,
   () => {
     getData(props.files, chartsStore.timeAxis, SIGNALS.BREATH_RATE).then((data) => {
-      const serie = chart?.addLineSeries({ ...lineOptions, color: "#ffb703" });
-      serie?.setData(data as LineData[]);
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#ffb703" });
+      serie?.setData(data as any);
       series?.push(serie as ISeriesApi<"Line">);
     });
     getData(props.files, chartsStore.timeAxis, SIGNALS.OXIMETRY).then((data) => {
-      const serie = chart?.addLineSeries({ ...lineOptions, color: "#0077b6" });
-      serie?.setData(data as LineData[]);
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#0077b6" });
+      serie?.setData(data as any);
       series?.push(serie as ISeriesApi<"Line">);
     });
     getData(props.files, chartsStore.timeAxis, SIGNALS.HR).then((data) => {
-      const serie = chart?.addLineSeries({ ...lineOptions, color: "#80b918" });
-      serie?.setData(data as LineData[]);
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
+      serie?.setData(data as any);
       series?.push(serie as ISeriesApi<"Line">);
     });
   },

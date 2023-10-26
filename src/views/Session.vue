@@ -135,14 +135,5 @@ async function downloadFileAndUncompress() {
   const zippedFiles = await uncompressFile(blob);
   return zippedFiles;
 }
-
-function handleWheel(event: WheelEvent) {
-  const { deltaY } = event;
-  if (deltaY > 0) {
-    move(deltaY * 20);
-  } else {
-    move(deltaY * 20);
-  }
-}
 </script>
 <style></style>
