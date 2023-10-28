@@ -9,6 +9,9 @@
     <div class="chart-container h-20rem">
       <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" />
     </div>
+    <div class="chart-container h-10rem">
+      <MinimapChart ref="miniMapChart" />
+    </div>
   </div>
 </template>
 
@@ -27,6 +30,7 @@ import JSZip from "jszip";
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import { IChartApi, ISeriesApi, Range } from "lightweight-charts";
+import MinimapChart from "../components/Charts/MinimapChart.vue";
 
 const oxymetryChart = ref();
 const respiratoryChart = ref();

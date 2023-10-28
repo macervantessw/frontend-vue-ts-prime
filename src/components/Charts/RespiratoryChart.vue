@@ -5,7 +5,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { IChartApi, ISeriesApi, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS } from "../../constants";
@@ -76,6 +76,10 @@ watch(
       const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
       serie?.setData(data as any);
       series?.push(serie as ISeriesApi<"Line">);
+      chart?.timeScale().setVisibleRange({
+        from: chartsStore.timeAxis[0] as UTCTimestamp,
+        to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
+      });
     });
   },
 );
