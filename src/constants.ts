@@ -33,12 +33,16 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   kineticScroll: {
     mouse: true,
   },
+  localization: {
+    timeFormatter: (time: number) => {
+      return dayjs(time).format("HH:mm:ss");
+    },
+  },
+
   timeScale: {
     timeVisible: true,
     secondsVisible: true,
-    barSpacing: 0.2,
-    minBarSpacing: 0.2,
-
+    minBarSpacing: 0.1,
     tickMarkFormatter: (time: number) => {
       return dayjs(time).format("HH:mm:ss");
     },

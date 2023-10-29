@@ -82,6 +82,17 @@ watch(
     });
   },
 );
+
+watch(
+  () => chartsStore.selection,
+  (newVal) => {
+    chart?.timeScale().setVisibleRange({
+      from: (Number(newVal.time) - 5 * 60 * 1000) as UTCTimestamp,
+      to: (Number(newVal.time) + 5 * 60 * 1000) as UTCTimestamp,
+    });
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped>

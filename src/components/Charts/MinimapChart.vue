@@ -5,7 +5,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose } from "vue";
-import { IChartApi, ISeriesApi, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, MouseEventParams, Time, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import { cloneDeep } from "lodash";
@@ -44,19 +44,13 @@ onMounted(() => {
   }
 
   chart = createChart(chartContainer.value, chartOptions);
-  chart.subscribeClick((param) => {
-    //     const time = param.time;
-    //     const timeAxis = chartsStore.timeAxis;
-    //     const index = timeAxis.findIndex((item) => item === time);
-    //     if (index !== -1) {
-    //       chartsStore.selection = index;
-    //     }
-    //   });
-    if (!param.point) {
-      return;
-    }
-
-    console.log(`Click at ${param.point.x}, ${param.point.y}. The time is ${param.time}.`);
+  chart.subscribeClick((param: MouseEventParams) => {
+    if (!param.point) return;
+    chartsStore.selection = {
+      x: param.point.x,
+      y: param.point.y,
+      time: param.time as Time,
+    };
   });
 });
 
