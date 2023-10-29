@@ -9,9 +9,10 @@ import { IChartApi, ISeriesApi, MouseEventParams, Time, createChart } from "ligh
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import { cloneDeep } from "lodash";
+import { VertLine } from "./plugins/vertical-line";
 
 const chartsStore = useChartsStore();
-
+const vertline = ref(null as VertLine | null);
 // Lightweight Charts™ instances are stored as normal JS variables
 // If you need to use a ref then it is recommended that you use `shallowRef` instead
 let series: ISeriesApi<"Line">[] = [];
@@ -51,6 +52,25 @@ onMounted(() => {
       y: param.point.y,
       time: param.time as Time,
     };
+    if (chart) {
+      if (vertline.value) series[0].detachPrimitive(vertline.value);
+      vertline.value = new VertLine(chart, series[0], param.time as Time, {
+        showLabel: false,
+        color: "hsla(0, 79.70%, 44.50%, 0.44)",
+        width: 40,
+      });
+      series[0].attachPrimitive(vertline.value);
+      series[0].setMarkers([
+        {
+          time: param.time as Time,
+          position: "inBar",
+          shape: "circle",
+          color: "hsla(0, 79.70%, 44.50%, 0.01)",
+          size: 1,
+        },
+      ]);
+      vertline.value.updateAllViews();
+    }
   });
 });
 

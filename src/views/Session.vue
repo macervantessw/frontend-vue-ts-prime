@@ -22,8 +22,8 @@ import { PropType, defineProps, onBeforeMount, onMounted, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
 //import { ASAP, DataPoint } from "downsample";
-import { CHART_MOVEMENT } from "../constants";
-import { useMagicKeys, whenever } from "@vueuse/core";
+// import { CHART_MOVEMENT } from "../constants";
+// import { useMagicKeys, whenever } from "@vueuse/core";
 import { useChartsStore } from "../store";
 import JSZip from "jszip";
 
@@ -75,8 +75,8 @@ onMounted(() => {
     syncCrosshair(oxChart, mainSeries1, dataPoint);
   });
 });
-const { current } = useMagicKeys();
-const keys = useMagicKeys();
+// const { current } = useMagicKeys();
+// const keys = useMagicKeys();
 const props = defineProps({
   file: {
     type: Object as PropType<StorageReference>,
@@ -113,24 +113,24 @@ onBeforeMount(() => {
   });
 });
 
-whenever(keys.ArrowRight, () => {
-  if (current.has("shift") && current.has("control")) move(chartsStore.selection.max - chartsStore.selection.min);
-  else move(CHART_MOVEMENT);
-});
+// whenever(keys.ArrowRight, () => {
+//   if (current.has("shift") && current.has("control")) move(chartsStore.selection.max - chartsStore.selection.min);
+//   else move(CHART_MOVEMENT);
+// });
 
-whenever(keys.ArrowLeft, () => {
-  if (current.has("shift") && current.has("control")) move((chartsStore.selection.max - chartsStore.selection.min) * -1);
-  else move(-CHART_MOVEMENT);
-});
+// whenever(keys.ArrowLeft, () => {
+//   if (current.has("shift") && current.has("control")) move((chartsStore.selection.max - chartsStore.selection.min) * -1);
+//   else move(-CHART_MOVEMENT);
+// });
 
-function move(quantity: number) {
-  if (!chartsStore.selection.min) chartsStore.selection.min = chartsStore.xaxis.min;
-  if (!chartsStore.selection.max) chartsStore.selection.max = chartsStore.xaxis.max;
-  chartsStore.selection = {
-    min: chartsStore.selection.min + quantity,
-    max: chartsStore.selection.max + quantity,
-  };
-}
+// function move(quantity: number) {
+//   if (!chartsStore.selection.min) chartsStore.selection.min = chartsStore.xaxis.min;
+//   if (!chartsStore.selection.max) chartsStore.selection.max = chartsStore.xaxis.max;
+//   chartsStore.selection = {
+//     min: chartsStore.selection.min + quantity,
+//     max: chartsStore.selection.max + quantity,
+//   };
+// }
 
 async function downloadFileAndUncompress() {
   if (!props.file) return;

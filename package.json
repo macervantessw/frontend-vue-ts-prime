@@ -17,6 +17,7 @@
     "axios": "^1.5.1",
     "dayjs": "^1.11.10",
     "downsample": "^1.4.0",
+    "fancy-canvas": "^2.1.0",
     "firebase": "^10.4.0",
     "jszip": "^3.10.1",
     "lightweight-charts": "^4.1.0",
