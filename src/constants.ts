@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { DeepPartial, LineStyleOptions, TimeChartOptions } from "lightweight-charts";
+import { DeepPartial, LineSeriesPartialOptions, TimeChartOptions } from "lightweight-charts";
 
 export const SIGNALS = {
   BASETIME: "SM_BASETIME.dat",
@@ -19,7 +19,13 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   autoSize: false,
   rightPriceScale: {
     visible: false,
+    autoScale: true,
+    scaleMargins: {
+      top: 0.1,
+      bottom: 0,
+    },
   },
+
   handleScroll: {
     mouseWheel: true,
     pressedMouseMove: true,
@@ -40,8 +46,7 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   },
 
   timeScale: {
-    timeVisible: true,
-    secondsVisible: true,
+    uniformDistribution: true,
     minBarSpacing: 0.1,
     tickMarkFormatter: (time: number) => {
       return dayjs(time).format("HH:mm:ss");
@@ -49,6 +54,6 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   },
 };
 
-export const LINE_OPTIONS: Partial<LineStyleOptions> = {
+export const LINE_OPTIONS: LineSeriesPartialOptions = {
   lineWidth: 2,
 };

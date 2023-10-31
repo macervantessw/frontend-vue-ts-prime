@@ -43,7 +43,9 @@ onMounted(() => {
     chartOptions.timeScale.barSpacing = 0.002;
     chartOptions.timeScale.minBarSpacing = 0.002;
   }
-
+  if (chartOptions.handleScroll) {
+    chartOptions.handleScroll = { mouseWheel: false, pressedMouseMove: false };
+  }
   chart = createChart(chartContainer.value, chartOptions);
   chart.subscribeClick((param: MouseEventParams) => {
     if (!param.point) return;
@@ -56,7 +58,7 @@ onMounted(() => {
       if (vertline.value) series[0].detachPrimitive(vertline.value);
       vertline.value = new VertLine(chart, series[0], param.time as Time, {
         showLabel: false,
-        color: "hsla(0, 79.70%, 44.50%, 0.44)",
+        color: "hsla(180, 4.00%, 44.10%, 0.60)",
         width: 40,
       });
       series[0].attachPrimitive(vertline.value);

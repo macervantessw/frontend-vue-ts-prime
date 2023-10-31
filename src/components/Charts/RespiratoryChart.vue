@@ -62,27 +62,40 @@ onUnmounted(() => {
 watch(
   () => chartsStore.timeAxis,
   () => {
-    getData(props.files, chartsStore.timeAxis, SIGNALS.AIR_FLOW).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#ffb703" });
-      serie?.setData(data as any);
-      series?.push(serie as ISeriesApi<"Line">);
-    });
-    getData(props.files, chartsStore.timeAxis, SIGNALS.BASAL_AIR_FLOW).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#0077b6" });
-      serie?.setData(data as any);
-      series?.push(serie as ISeriesApi<"Line">);
-    });
-    getData(props.files, chartsStore.timeAxis, SIGNALS.MOVEMENT).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
-      serie?.setData(data as any);
-      series?.push(serie as ISeriesApi<"Line">);
+    const promises: Promise<void>[] = [];
+    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
+    promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
+    promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
+
+    Promise.all(promises).then(() => {
+      chart?.timeScale().fitContent();
       chart?.timeScale().setVisibleRange({
         from: chartsStore.timeAxis[0] as UTCTimestamp,
         to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
       });
+      series.forEach((serie) => {
+        serie.priceScale().applyOptions({
+          autoScale: false,
+          scaleMargins: {
+            top: 0.3,
+            bottom: 0.25,
+          },
+        });
+      });
     });
   },
 );
+
+function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
+  return new Promise((resolve) => {
+    getData(props.files, chartsStore.timeAxis, signal).then((data) => {
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color, title: name });
+      serie?.setData(data as any);
+      series?.push(serie as ISeriesApi<"Line">);
+      resolve();
+    });
+  });
+}
 </script>
 
 <style scoped>

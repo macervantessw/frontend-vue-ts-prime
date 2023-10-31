@@ -101,7 +101,7 @@ onBeforeMount(() => {
 
     const timeAxisUnzipped = await zippedFiles.value[SIGNALS.BASETIME].async("uint8array");
     const timeAxis: number[] = readDatFile(timeAxisUnzipped);
-    timeAxis.splice(-10);
+    timeAxis.splice(-2000);
     chartsStore.timeAxis = timeAxis;
     // .filter((_e, index) => index % 10 === 0);
 
