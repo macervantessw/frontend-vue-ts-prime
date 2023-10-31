@@ -7,10 +7,11 @@
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
 import { IChartApi, ISeriesApi, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
-import { getData } from "../../utilities/file.utilities";
+import { getData, getAverage } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS } from "../../constants";
 import JSZip from "jszip";
 
+const average = ref(0);
 const chartsStore = useChartsStore();
 const props = defineProps({
   files: {
@@ -61,9 +62,13 @@ onUnmounted(() => {
 
 watch(
   () => chartsStore.timeAxis,
-  () => {
+  async () => {
     const promises: Promise<void>[] = [];
-    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
+    const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
+
+    // const atenuation = 100 - (series[1][dataPointIndex] / series[0][dataPointIndex]) * 100;
+
+    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703", average));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
     promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
 
@@ -73,23 +78,42 @@ watch(
         from: chartsStore.timeAxis[0] as UTCTimestamp,
         to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
       });
-      series.forEach((serie) => {
-        serie.priceScale().applyOptions({
-          autoScale: false,
-          scaleMargins: {
-            top: 0.3,
-            bottom: 0.25,
-          },
-        });
+
+      series[0].priceScale().applyOptions({
+        autoScale: false,
+        scaleMargins: {
+          top: 0.3,
+          bottom: 0.2,
+        },
       });
+      // series[0].applyOptions({
+      //   autoscaleInfoProvider: () => ({
+      //     priceRange: {
+      //       min: 0,
+      //       max: average.value * 4,
+      //     },
+      //   }),
+      // });
     });
   },
 );
 
-function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
+function generateLineSeries(signal: string, name: string, color: string, avg?: number): Promise<void> {
   return new Promise((resolve) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color, title: name });
+      let options = { ...LINE_OPTIONS, color: color };
+      if (avg) {
+        options = {
+          ...options,
+          autoscaleInfoProvider: () => ({
+            priceRange: {
+              min: 0,
+              max: avg ? avg * 4 : 0,
+            },
+          }),
+        };
+      }
+      const serie = chart?.addLineSeries(options);
       serie?.setData(data as any);
       series?.push(serie as ISeriesApi<"Line">);
       resolve();

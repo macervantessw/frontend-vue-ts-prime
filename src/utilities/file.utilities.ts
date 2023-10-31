@@ -50,3 +50,9 @@ export async function getData(files: Record<string, JSZip.JSZipObject>, timeAxis
     return { time: element, value: data[index] };
   });
 }
+
+export async function getAverage(files: Record<string, JSZip.JSZipObject>, fileName: string) {
+  const dataUnzipped = await files[fileName].async("uint8array");
+  const data = readDatFile(dataUnzipped);
+  return data.reduce((acc, curr) => acc + curr, 0) / data.length;
+}
