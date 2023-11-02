@@ -9,6 +9,7 @@ import { IChartApi, ISeriesApi, UTCTimestamp, createChart } from "lightweight-ch
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
+import { Serie } from "../../interfaces";
 import JSZip from "jszip";
 
 const chartsStore = useChartsStore();
@@ -21,7 +22,7 @@ const props = defineProps({
 
 // Lightweight Charts™ instances are stored as normal JS variables
 // If you need to use a ref then it is recommended that you use `shallowRef` instead
-let series: ISeriesApi<"Line">[] = [];
+let series: Serie<"Line">[] = [];
 let chart: IChartApi | null = null;
 
 const chartContainer = ref();
@@ -62,24 +63,69 @@ watch(
   () => chartsStore.timeAxis,
   () => {
     const promises: Promise<void>[] = [];
-    promises.push(generateLineSeries(SIGNALS.BREATH_RATE, "Breath Rate", "#ffb703"));
     promises.push(generateLineSeries(SIGNALS.OXIMETRY, "Oximetry", "#0077b6"));
-    promises.push(generateLineSeries(SIGNALS.HR, "Heart Rate", "#80b918"));
+    promises.push(generateLineSeries(SIGNALS.BASAL_OXIMETRY, "Basal Oxymetry", "#ffb703"));
+    promises.push(generateLineSeries(SIGNALS.HR, "Heart Rate", "rgb(190, 34, 34)"));
 
     Promise.all(promises).then(() => {
-      // chart?.timeScale().setVisibleRange({
-      //   from: chartsStore.timeAxis[0] as UTCTimestamp,
-      //   to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
-      // });
-      // series.forEach((serie) => {
-      //   serie.priceScale().applyOptions({
-      //     autoScale: false,
-      //     scaleMargins: {
-      //       top: 0.3,
-      //       bottom: 0.25,
-      //     },
-      //   });
-      // });
+      chart?.timeScale().fitContent();
+      chart?.timeScale().setVisibleRange({
+        from: chartsStore.timeAxis[0] as UTCTimestamp,
+        to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
+      });
+      const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
+      const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
+      if (oxymetrySeries) {
+        oxymetrySeries.applyOptions({
+          autoscaleInfoProvider: () => ({
+            priceRange: {
+              min: 55,
+              max: 120,
+            },
+          }),
+        });
+        oxymetrySeries.priceScale().applyOptions({
+          autoScale: false,
+          scaleMargins: {
+            top: 0.3,
+            bottom: 0.35,
+          },
+        });
+        oxymetrySeries.createPriceLine({
+          color: "#0077b6",
+          price: 90,
+          lineStyle: 1,
+          axisLabelVisible: true,
+          lineWidth: 1,
+          title: "90%",
+        });
+        oxymetrySeries.createPriceLine({
+          color: "#0077b6",
+          price: 80,
+          lineStyle: 1,
+          lineWidth: 1,
+          axisLabelVisible: true,
+          title: "80%",
+        });
+      }
+      if (heartRateSeries) {
+        heartRateSeries.createPriceLine({
+          color: "rgb(190, 34, 34)",
+          price: 75,
+          lineStyle: 1,
+          lineWidth: 1,
+          axisLabelVisible: true,
+          title: "75 bpm",
+        });
+        heartRateSeries.createPriceLine({
+          color: "rgb(190, 34, 34)",
+          price: 60,
+          lineStyle: 1,
+          lineWidth: 1,
+          axisLabelVisible: true,
+          title: "60 bpm",
+        });
+      }
     });
   },
 );
@@ -87,9 +133,9 @@ watch(
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color, title: name });
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color });
       serie?.setData(data as any);
-      series?.push(serie as ISeriesApi<"Line">);
+      series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
       resolve();
     });
   });

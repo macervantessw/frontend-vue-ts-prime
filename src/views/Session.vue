@@ -63,14 +63,16 @@ onMounted(() => {
     chart.clearCrosshairPosition();
   }
   oxChart.subscribeCrosshairMove((param) => {
-    const mainSeries1 = oxymetryChart.value?.getSeries()[0];
-    const mainSeries2 = respiratoryChart.value?.getSeries()[0];
+    if (!oxymetryChart.value?.getSeries()[0] || !respiratoryChart.value?.getSeries()[0]) return;
+    const mainSeries1 = oxymetryChart.value?.getSeries()[0].serie;
+    const mainSeries2 = respiratoryChart.value?.getSeries()[0].serie;
     const dataPoint = getCrosshairDataPoint(mainSeries1, param);
     syncCrosshair(resChart, mainSeries2, dataPoint);
   });
   resChart.subscribeCrosshairMove((param) => {
-    const mainSeries1 = oxymetryChart.value?.getSeries()[0];
-    const mainSeries2 = respiratoryChart.value?.getSeries()[0];
+    if (!oxymetryChart.value?.getSeries()[0] || !respiratoryChart.value?.getSeries()[0]) return;
+    const mainSeries1 = oxymetryChart.value?.getSeries()[0].serie;
+    const mainSeries2 = respiratoryChart.value?.getSeries()[0].serie;
     const dataPoint = getCrosshairDataPoint(mainSeries2, param);
     syncCrosshair(oxChart, mainSeries1, dataPoint);
   });

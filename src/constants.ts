@@ -17,6 +17,14 @@ export const CHART_MOVEMENT = 10000;
 
 export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   autoSize: false,
+  grid: {
+    vertLines: {
+      visible: false,
+    },
+    horzLines: {
+      visible: false,
+    },
+  },
   rightPriceScale: {
     visible: false,
     autoScale: true,
@@ -48,7 +56,7 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
 
   timeScale: {
     uniformDistribution: true,
-    minBarSpacing: 0.1,
+    minBarSpacing: 0.05,
     tickMarkFormatter: (time: number) => {
       return dayjs(time).format("HH:mm:ss");
     },
@@ -57,4 +65,8 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
 
 export const LINE_OPTIONS: LineSeriesPartialOptions = {
   lineWidth: 2,
+  priceLineSource: 1,
+  lineType: 0,
+  lastValueVisible: false,
+  priceLineVisible: false,
 };
