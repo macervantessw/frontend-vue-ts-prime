@@ -5,18 +5,20 @@ import Signup from "../views/Signup.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 import PatientSessions from "../views/PatientSessions.vue";
 import Home from "../views/Home.vue";
-import { useSessionsStore } from "../store";
+import { useSessionsStore, useUsersStore } from "../store";
 
 const routes = [
   {
     path: "/",
-    name: "Login",
-    component: Login,
+    redirect: "/home",
   },
   {
     path: "/home",
     name: "home",
     component: Home,
+    meta: {
+      requiresAuth: true,
+    },
     beforeEnter: async () => {
       const sessionsStore = useSessionsStore();
       sessionsStore.fetchAllPatients();
@@ -24,11 +26,17 @@ const routes = [
   },
   {
     path: "/patientSessions/:patientId",
+    meta: {
+      requiresAuth: true,
+    },
     name: "patientSessions",
     component: PatientSessions,
   },
   {
     path: "/session/:sessionId",
+    meta: {
+      requiresAuth: true,
+    },
     name: "session",
     component: () => import("../views/Session.vue"),
     props: true,
@@ -55,4 +63,19 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach(async (to, from, next) => {
+  const usersStore = useUsersStore();
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  if (requiresAuth) {
+    const user = await usersStore.getCurrentUser();
+    if (user) {
+      usersStore.userId = user.uid;
+      next();
+    } else {
+      next("/login");
+    }
+  } else {
+    next();
+  }
+});
 export default router;

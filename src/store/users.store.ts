@@ -1,10 +1,11 @@
 import { defineStore } from "pinia";
 import { useLocalStorage, useStorage } from "@vueuse/core";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { browserLocalPersistence, inMemoryPersistence, setPersistence, signInWithEmailAndPassword, User as FirebaseUser } from "firebase/auth";
 import { useMessagesStore } from "./messages.store";
 import { auth, db } from "../firebase/firebaseInit";
 import { child, get, ref, set } from "firebase/database";
 import { User } from "../interfaces";
+
 import i18n from "../i18n";
 
 const { t } = i18n.global;
@@ -21,28 +22,30 @@ export const useUsersStore = defineStore("Users", {
   }),
   getters: {},
   actions: {
-    loginUserWithEmailAndPassword(email: string, password: string) {
+    loginUserWithEmailAndPassword(email: string, password: string, rememberMe: boolean) {
       const messagesStore = useMessagesStore();
-      return signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          this.userId = userCredential.user.uid;
-          return userCredential.user;
-        })
-        .catch((error) => {
-          switch (error.code) {
-            case "auth/invalid-email":
-            case "auth/wrong-password":
-              messagesStore.setErrorMessage(t("wrong-email"));
-              break;
-            case "auth/too-many-requests":
-              messagesStore.setErrorMessage(t("too-many-requests"));
-              break;
-            default:
-              messagesStore.setErrorMessage(error.message);
-              break;
-          }
-          return null;
-        });
+      return setPersistence(auth, rememberMe ? browserLocalPersistence : inMemoryPersistence).then(() => {
+        return signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            this.userId = userCredential.user.uid;
+            return userCredential.user;
+          })
+          .catch((error) => {
+            switch (error.code) {
+              case "auth/invalid-email":
+              case "auth/wrong-password":
+                messagesStore.setErrorMessage(t("wrong-email"));
+                break;
+              case "auth/too-many-requests":
+                messagesStore.setErrorMessage(t("too-many-requests"));
+                break;
+              default:
+                messagesStore.setErrorMessage(error.message);
+                break;
+            }
+            return null;
+          });
+      });
     },
 
     createUserOnDatabase(userId: string, name: string, surname: string, email: string) {
@@ -80,6 +83,19 @@ export const useUsersStore = defineStore("Users", {
       this.userId = userId;
       // Get user information from firebase
       //his.user = await this.getUserInformation(userId);
+    },
+
+    async getCurrentUser() {
+      return new Promise<FirebaseUser | null>((resolve, reject) => {
+        auth.onAuthStateChanged(
+          (user) => {
+            resolve(user);
+          },
+          () => {
+            reject();
+          },
+        );
+      });
     },
   },
 });

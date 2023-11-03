@@ -81,7 +81,7 @@ const logIn = () => {
   }
   loading.value = true;
   usersStore
-    .loginUserWithEmailAndPassword(emailInput.value, password.value)
+    .loginUserWithEmailAndPassword(emailInput.value, password.value, rememberMe.value)
     .then((user: FireUser | null) => {
       if (user) {
         usersStore.getUserFromDatabase(user.uid).then((user: User) => {

@@ -10,7 +10,12 @@
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
 import { useSessionsStore } from "../store";
+import { onBeforeMount } from "vue";
+const sessionsStore = useSessionsStore();
+const { patients } = storeToRefs(sessionsStore);
 
-const { patients } = storeToRefs(useSessionsStore());
+onBeforeMount(async () => {
+  sessionsStore.fetchAllPatients();
+});
 </script>
 <style></style>
