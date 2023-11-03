@@ -3,13 +3,13 @@
     <!-- <LineChart id="oxymetry_chart" height="250px" class="w-full" :file="file" :data="oxymetryChartData" :name="$t('Oxymetry view')" @wheel="handleWheel" />
     <LineChart id="respiratory_chart" height="250px" class="w-full" :file="file" :data="respiratoryData" :name="$t('Respiratory view')" @wheel="handleWheel" />
     <BrushChart id="brush-chart" class="w-full h-11rem" :file="file" :data="brushData" target="breathe-rate-chart" @wheel="handleWheel" /> -->
-    <div class="chart-container h-20rem">
+    <div class="card chart-container h-20rem shadow-2">
       <OxymetryChart ref="oxymetryChart" :files="zippedFiles" />
     </div>
-    <div class="chart-container h-20rem">
+    <div class="card chart-container h-20rem shadow-2">
       <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" />
     </div>
-    <div class="chart-container h-10rem">
+    <div class="card chart-container h-10rem shadow-2">
       <MinimapChart ref="miniMapChart" />
     </div>
   </div>
@@ -142,4 +142,10 @@ async function downloadFileAndUncompress() {
   return zippedFiles;
 }
 </script>
-<style></style>
+<style>
+.card {
+  background: var(--surface-card);
+  padding: 5px;
+  border-radius: 4px;
+}
+</style>

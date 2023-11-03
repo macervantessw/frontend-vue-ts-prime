@@ -1,9 +1,9 @@
 <template>
-  <div class="flex flex-column h-full w-full bg-white">
+  <div class="sessions flex flex-column h-full w-full">
     <NavigationBar />
     <div class="flex w-full h-full">
-      <div class="flex flex-column">
-        <p v-for="(file, index) in patientSessions" :key="index" class="link-to-file text-bluegray-800 m-2 cursor-pointer" @click="selectedFile = file">
+      <div class="flex flex-column pt-3 pl-2">
+        <p v-for="(file, index) in patientSessions" :key="index" class="link-to-file text-bluegray-800 m-1 cursor-pointer text-xl" @click="selectedFile = file">
           {{ file.name.split("_")[0] }}
         </p>
       </div>
@@ -34,5 +34,8 @@ onBeforeMount(async () => {
 <style>
 .link-to-file:hover {
   text-decoration: underline;
+}
+.sessions {
+  background-color: var(--surface-ground);
 }
 </style>
