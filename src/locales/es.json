@@ -31,5 +31,6 @@
   "email-sent": "Correo electrónico enviado",
   "Respiratory view": "Vista de respiración",
   "wrong-email": "Correo electrónico o contraseña incorrectos",
-  "too-many-requests": "Demasiados intentos, inténtelo de nuevo en unos minutos o restablezca su contraseña."
+  "too-many-requests": "Demasiados intentos, inténtelo de nuevo en unos minutos o restablezca su contraseña.",
+  "Logout": "Cerrar sessión"
 }

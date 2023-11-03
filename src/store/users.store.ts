@@ -20,7 +20,12 @@ export const useUsersStore = defineStore("Users", {
       },
     }),
   }),
-  getters: {},
+  getters: {
+    userInitials(): string {
+      if (!this.user) return "";
+      return this.user.name[0] + this.user.lastName[0];
+    },
+  },
   actions: {
     loginUserWithEmailAndPassword(email: string, password: string, rememberMe: boolean) {
       const messagesStore = useMessagesStore();

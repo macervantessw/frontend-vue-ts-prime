@@ -31,5 +31,6 @@
   "email-sent": "Email inviata",
   "Respiratory view": "Vista della respirazione",
   "wrong-email": "Email o password errata",
-  "too-many-requests": "Troppe richieste, riprovare tra qualche minuto o reimpostare la password."
+  "too-many-requests": "Troppe richieste, riprovare tra qualche minuto o reimpostare la password.",
+  "Logout": "Disconnessione"
 }
