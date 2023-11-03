@@ -30,7 +30,10 @@ function toggleMenu(event: Event) {
 }
 </script>
 <template>
-  <div class="navbar flex align-items-center justify-content-end w-full">
+  <div class="navbar flex align-items-center justify-content-between w-full">
+    <div class="navbar-left h-3rem w-6rem ml-3 cursor-pointer" @click="router.push('/home')">
+      <img src="../assets/logo.png" alt="logo" class="h-full" />
+    </div>
     <div class="navbar-right flex align-items-center cursor-pointer" @click="toggleMenu">
       <Avatar :label="usersStore.userInitials" class="mr-2" size="large" style="border-radius: 4px; background-color: #2196f3; color: #ffffff" />
       <span style="font-size: 1.1rem; font-weight: 500">{{ usersStore.user?.name }} {{ usersStore.user?.lastName }}</span>
