@@ -8,7 +8,7 @@
         </p>
       </div>
       <div class="flex-grow-1">
-        <Session v-if="selectedFile" :file="selectedFile" />
+        <Session v-if="selectedFile" :file="selectedFile" :patient-id="patientId" :session-id="selectedFile.name.split('_')[0]" />
       </div>
     </div>
   </div>

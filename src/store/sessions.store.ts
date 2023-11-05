@@ -1,7 +1,9 @@
 import { defineStore } from "pinia";
 import { useUsersStore } from "./users.store";
 import { ref as fireRef, listAll, StorageReference } from "firebase/storage";
-import { storage } from "../firebase/firebaseInit";
+import { ref as dbRef, get, child, DatabaseReference } from "firebase/database";
+import { db, storage } from "../firebase/firebaseInit";
+import { Session } from "../interfaces";
 
 export const useSessionsStore = defineStore("Session", {
   state: () => ({
@@ -34,6 +36,22 @@ export const useSessionsStore = defineStore("Session", {
         return sessionRef;
       }
       return null;
+    },
+
+    async fetchSessionInfo(userId: string, patientId: string, sessionId: string): Promise<Session> {
+      const ref: DatabaseReference = dbRef(db);
+      return get(child(ref, `users/${userId}/Sessions/${patientId}\\${sessionId}\\`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            return snapshot.val();
+          } else {
+            return null;
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          return null;
+        });
     },
   },
 });

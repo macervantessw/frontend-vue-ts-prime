@@ -24,16 +24,20 @@ import { SIGNALS } from "../constants";
 //import { ASAP, DataPoint } from "downsample";
 // import { CHART_MOVEMENT } from "../constants";
 // import { useMagicKeys, whenever } from "@vueuse/core";
-import { useChartsStore } from "../store";
+import { useChartsStore, useSessionsStore, useUsersStore } from "../store";
 import JSZip from "jszip";
 
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import { IChartApi, ISeriesApi, Range } from "lightweight-charts";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
+import { Session } from "../interfaces";
 
 const oxymetryChart = ref();
 const respiratoryChart = ref();
+const sessionsStore = useSessionsStore();
+const usersStore = useUsersStore();
+const sessionInfo = ref({} as Session);
 
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChart.value?.getChart();
@@ -84,19 +88,22 @@ const props = defineProps({
     type: Object as PropType<StorageReference>,
     required: true,
   },
+  patientId: {
+    type: String,
+    required: true,
+  },
+  sessionId: {
+    type: String,
+    required: true,
+  },
 });
 const zippedFiles = ref({} as { [key: string]: JSZip.JSZipObject });
-
-// const downsampledData = ref([] as Data[]);
-// const breathRateData = ref([] as Data[]);
-
-// const brushData = ref([] as Data[]);
-// const basalOximetryData = ref([] as Data[]);
-// const hrData = ref([] as Data[]);
-// const oxymetryData = ref([] as Data[]);
 const chartsStore = useChartsStore();
 
 onBeforeMount(() => {
+  sessionsStore.fetchSessionInfo(usersStore.userId, props.patientId, props.sessionId).then((session) => {
+    sessionInfo.value = session;
+  });
   downloadFileAndUncompress().then(async (files) => {
     if (files) zippedFiles.value = files;
     if (!zippedFiles.value) return;
@@ -105,13 +112,6 @@ onBeforeMount(() => {
     const timeAxis: number[] = readDatFile(timeAxisUnzipped);
     timeAxis.splice(-2000);
     chartsStore.timeAxis = timeAxis;
-    // .filter((_e, index) => index % 10 === 0);
-
-    // brushData.value = timeAxis.map((element) => ({ x: element, y: 0 }));
-
-    // getData(zippedFiles, timeAxis, SIGNALS.HR).then((data) => (hrData.value = data));
-    // getData(zippedFiles, timeAxis, SIGNALS.OXIMETRY).then((data) => (oxymetryData.value = data));
-    // getData(zippedFiles, timeAxis, SIGNALS.BASAL_OXIMETRY).then((data) => (basalOximetryData.value = data));
   });
 });
 

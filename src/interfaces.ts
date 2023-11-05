@@ -18,3 +18,26 @@ export interface Data {
   time: number;
   value: number;
 }
+export interface Event {
+  endTime: number;
+  eventType: number;
+  startTime: number;
+  sampleIndex?: number;
+}
+export interface SessionData {
+  RespuratoryEvents: Event[];
+  StateEvents: Event[];
+}
+export interface Session {
+  Data: SessionData[];
+  FileVersion: string;
+  Lang: string;
+  PAtientAge: number;
+  PatientBMI: number;
+  PatientHeight: number;
+  PatientName: string;
+  PatientWeigth: string;
+  SessionDevice: string;
+  SessionType: string;
+  UserID: string;
+}
