@@ -25,11 +25,11 @@ export interface Event {
   sampleIndex?: number;
 }
 export interface SessionData {
-  RespuratoryEvents: Event[];
+  RespiratoryEvents: Event[];
   StateEvents: Event[];
 }
 export interface Session {
-  Data: SessionData[];
+  Data: SessionData;
   FileVersion: string;
   Lang: string;
   PAtientAge: number;

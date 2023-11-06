@@ -4,12 +4,13 @@
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, defineExpose } from "vue";
+import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
 import { IChartApi, ISeriesApi, MouseEventParams, Time, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import { cloneDeep } from "lodash";
 import { VertLine } from "./plugins/vertical-line";
+import { Event } from "../../interfaces";
 
 const chartsStore = useChartsStore();
 const vertline = ref(null as VertLine | null);
@@ -19,6 +20,12 @@ let series: ISeriesApi<"Line">[] = [];
 let chart: IChartApi | null = null;
 
 const chartContainer = ref();
+defineProps({
+  stateEvents: {
+    type: Object as PropType<Event[]> | undefined,
+    required: true,
+  },
+});
 
 const getChart = () => {
   return chart;

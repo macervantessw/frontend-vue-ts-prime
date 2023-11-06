@@ -85,11 +85,7 @@ watch(
           }),
         });
         oxymetrySeries.priceScale().applyOptions({
-          autoScale: false,
-          scaleMargins: {
-            top: 0.3,
-            bottom: 0.35,
-          },
+          autoScale: true,
         });
         oxymetrySeries.createPriceLine({
           color: "#0077b6",

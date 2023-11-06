@@ -40,6 +40,7 @@ export const useSessionsStore = defineStore("Session", {
 
     async fetchSessionInfo(userId: string, patientId: string, sessionId: string): Promise<Session> {
       const ref: DatabaseReference = dbRef(db);
+      //PERQUE NO ES UN PATH??
       return get(child(ref, `users/${userId}/Sessions/${patientId}\\${sessionId}\\`))
         .then((snapshot) => {
           if (snapshot.exists()) {

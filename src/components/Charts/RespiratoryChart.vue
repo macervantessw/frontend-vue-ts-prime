@@ -123,7 +123,7 @@ watch(
     const promises: Promise<void>[] = [];
     const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
 
-    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703", average));
+    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703average));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
     promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
 
@@ -134,32 +134,35 @@ watch(
         to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
       });
 
-      series[0].serie.priceScale().applyOptions({
-        autoScale: false,
-        scaleMargins: {
-          top: 0.3,
-          bottom: 0.2,
-        },
-      });
+      const airFlowSeries = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
+      if (airFlowSeries) {
+        airFlowSeries.priceScale().applyOptions({
+          autoScale: true,
+        });
+        airFlowSeries.applyOptions({
+          autoscaleInfoProvider: () => ({
+            priceRange: {
+              min: 0,
+              max: average ? average * 3 : 0,
+            },
+          }),
+        });
+        airFlowSeries.createPriceLine({
+          color: "#ffb703",
+          price: average,
+          lineStyle: 1,
+          lineWidth: 1,
+          axisLabelVisible: true,
+        });
+      }
     });
   },
 );
 
-function generateLineSeries(signal: string, name: string, color: string, avg?: number): Promise<void> {
+function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
       let options = { ...LINE_OPTIONS, color: color };
-      if (avg) {
-        options = {
-          ...options,
-          autoscaleInfoProvider: () => ({
-            priceRange: {
-              min: 0,
-              max: avg ? avg * 4 : 0,
-            },
-          }),
-        };
-      }
       const serie = chart?.addLineSeries(options);
       serie?.setData(data as any);
       series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });

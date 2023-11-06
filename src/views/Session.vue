@@ -1,8 +1,5 @@
 <template>
   <div class="w-full h-full flex flex-column p-2 gap-3">
-    <!-- <LineChart id="oxymetry_chart" height="250px" class="w-full" :file="file" :data="oxymetryChartData" :name="$t('Oxymetry view')" @wheel="handleWheel" />
-    <LineChart id="respiratory_chart" height="250px" class="w-full" :file="file" :data="respiratoryData" :name="$t('Respiratory view')" @wheel="handleWheel" />
-    <BrushChart id="brush-chart" class="w-full h-11rem" :file="file" :data="brushData" target="breathe-rate-chart" @wheel="handleWheel" /> -->
     <div class="card chart-container h-20rem shadow-2">
       <OxymetryChart ref="oxymetryChart" :files="zippedFiles" />
     </div>
@@ -10,7 +7,7 @@
       <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" />
     </div>
     <div class="card chart-container h-10rem shadow-2">
-      <MinimapChart ref="miniMapChart" />
+      <MinimapChart ref="miniMapChart" :state-events="stateEvents" />
     </div>
   </div>
 </template>
@@ -31,13 +28,14 @@ import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import { IChartApi, ISeriesApi, Range } from "lightweight-charts";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
-import { Session } from "../interfaces";
+import { Event, Session } from "../interfaces";
 
 const oxymetryChart = ref();
 const respiratoryChart = ref();
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const sessionInfo = ref({} as Session);
+const stateEvents = ref([] as Event[]);
 
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChart.value?.getChart();
@@ -101,8 +99,9 @@ const zippedFiles = ref({} as { [key: string]: JSZip.JSZipObject });
 const chartsStore = useChartsStore();
 
 onBeforeMount(() => {
-  sessionsStore.fetchSessionInfo(usersStore.userId, props.patientId, props.sessionId).then((session) => {
+  sessionsStore.fetchSessionInfo(usersStore.userId, props.patientId, props.sessionId).then((session: Session) => {
     sessionInfo.value = session;
+    stateEvents.value = session?.Data?.StateEvents;
   });
   downloadFileAndUncompress().then(async (files) => {
     if (files) zippedFiles.value = files;
