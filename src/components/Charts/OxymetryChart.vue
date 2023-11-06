@@ -79,13 +79,17 @@ watch(
         oxymetrySeries.applyOptions({
           autoscaleInfoProvider: () => ({
             priceRange: {
-              min: 55,
-              max: 120,
+              minValue: 55,
+              maxValue: 120,
             },
           }),
         });
         oxymetrySeries.priceScale().applyOptions({
           autoScale: true,
+          scaleMargins: {
+            top: 0,
+            bottom: 0,
+          },
         });
         oxymetrySeries.createPriceLine({
           color: "#0077b6",

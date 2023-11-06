@@ -17,6 +17,11 @@ export const CHART_MOVEMENT = 10000;
 
 export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   autoSize: false,
+  leftPriceScale: {
+    visible: false,
+    autoScale: false,
+  },
+
   grid: {
     vertLines: {
       visible: false,
@@ -26,7 +31,7 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
     },
   },
   rightPriceScale: {
-    visible: true,
+    visible: false,
     autoScale: false,
   },
 

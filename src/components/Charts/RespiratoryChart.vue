@@ -123,7 +123,7 @@ watch(
     const promises: Promise<void>[] = [];
     const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
 
-    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703average));
+    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
     promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
 
@@ -135,24 +135,46 @@ watch(
       });
 
       const airFlowSeries = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
+      const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
+      const movement = series.find((s) => s.id === SIGNALS.MOVEMENT)?.serie;
+
+      const autoScaleInfoProvider = {
+        priceRange: {
+          minValue: 0,
+          maxValue: average * 3 || 100000,
+        },
+      };
+
       if (airFlowSeries) {
+        airFlowSeries.applyOptions({
+          autoscaleInfoProvider: () => autoScaleInfoProvider,
+        });
         airFlowSeries.priceScale().applyOptions({
           autoScale: true,
-        });
-        airFlowSeries.applyOptions({
-          autoscaleInfoProvider: () => ({
-            priceRange: {
-              min: 0,
-              max: average ? average * 3 : 0,
-            },
-          }),
         });
         airFlowSeries.createPriceLine({
           color: "#ffb703",
           price: average,
+          title: "Average: " + average.toFixed(0) + "",
           lineStyle: 1,
           lineWidth: 1,
           axisLabelVisible: true,
+        });
+      }
+      if (basalAirFlowSeries) {
+        basalAirFlowSeries.applyOptions({
+          autoscaleInfoProvider: () => autoScaleInfoProvider,
+        });
+        basalAirFlowSeries.priceScale().applyOptions({
+          autoScale: true,
+        });
+      }
+      if (movement) {
+        movement.applyOptions({
+          autoscaleInfoProvider: () => autoScaleInfoProvider,
+        });
+        movement.priceScale().applyOptions({
+          autoScale: true,
         });
       }
     });
@@ -162,8 +184,7 @@ watch(
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
-      let options = { ...LINE_OPTIONS, color: color };
-      const serie = chart?.addLineSeries(options);
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color });
       serie?.setData(data as any);
       series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
       resolve();
