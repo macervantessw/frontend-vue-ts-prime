@@ -10,13 +10,20 @@ import { useChartsStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS } from "../../constants";
 import JSZip from "jszip";
-import { Serie } from "../../interfaces";
+import { Serie, Event } from "../../interfaces";
 import dayjs from "dayjs";
+import { showRespiratoryEvents } from "../../utilities/chart.utilities";
+
+// import { SessionHighlighting } from "./plugins/session-highlighting";
 
 const chartsStore = useChartsStore();
 const props = defineProps({
   files: {
     type: Object as PropType<Record<string, JSZip.JSZipObject>>,
+    required: true,
+  },
+  respiratoryEvents: {
+    type: Object as PropType<Event[]> | undefined,
     required: true,
   },
 });
@@ -141,16 +148,21 @@ watch(
       const autoScaleInfoProvider = {
         priceRange: {
           minValue: 0,
-          maxValue: average * 3 || 100000,
+          maxValue: average * 2 || 100000,
         },
       };
 
       if (airFlowSeries) {
+        showRespiratoryEvents(chart, airFlowSeries, props.respiratoryEvents);
         airFlowSeries.applyOptions({
           autoscaleInfoProvider: () => autoScaleInfoProvider,
         });
         airFlowSeries.priceScale().applyOptions({
           autoScale: true,
+          scaleMargins: {
+            top: 0,
+            bottom: 0.1,
+          },
         });
         airFlowSeries.createPriceLine({
           color: "#ffb703",

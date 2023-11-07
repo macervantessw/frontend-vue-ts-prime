@@ -44,8 +44,8 @@ export function readDatFile(file: Uint8Array): number[] {
 
 export async function getData(files: Record<string, JSZip.JSZipObject>, timeAxis: number[], fileName: string) {
   const dataUnzipped = await files[fileName].async("uint8array");
-  const data = readDatFile(dataUnzipped);
-  //data = data.filter((_e, index) => index % 10 === 0);
+  let data = readDatFile(dataUnzipped);
+  data = data.filter((_e, index) => index % 3 === 0);
   return timeAxis.map((element, index) => {
     return { time: element, value: data[index] };
   });

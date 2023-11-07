@@ -11,6 +11,7 @@ import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import { cloneDeep } from "lodash";
 import { VertLine } from "./plugins/vertical-line";
 import { Event } from "../../interfaces";
+import { showRespiratoryEvents } from "../../utilities/chart.utilities";
 
 const chartsStore = useChartsStore();
 const vertline = ref(null as VertLine | null);
@@ -20,8 +21,12 @@ let series: ISeriesApi<"Line">[] = [];
 let chart: IChartApi | null = null;
 
 const chartContainer = ref();
-defineProps({
+const props = defineProps({
   stateEvents: {
+    type: Object as PropType<Event[]> | undefined,
+    required: true,
+  },
+  respiratoryEvents: {
     type: Object as PropType<Event[]> | undefined,
     required: true,
   },
@@ -54,6 +59,7 @@ onMounted(() => {
     chartOptions.handleScroll = { mouseWheel: false, pressedMouseMove: false };
   }
   chart = createChart(chartContainer.value, chartOptions);
+
   chart.subscribeClick((param: MouseEventParams) => {
     if (!param.point) return;
     chartsStore.selection = {
@@ -104,6 +110,8 @@ watch(
     serie?.setData(timeSeries as any);
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
+
+    showRespiratoryEvents(chart, series[0], props.respiratoryEvents);
   },
 );
 </script>

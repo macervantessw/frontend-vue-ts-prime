@@ -33,6 +33,10 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   rightPriceScale: {
     visible: false,
     autoScale: false,
+    scaleMargins: {
+      top: 0,
+      bottom: 0,
+    },
   },
 
   handleScroll: {

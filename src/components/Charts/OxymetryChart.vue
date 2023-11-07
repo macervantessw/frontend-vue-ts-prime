@@ -75,6 +75,7 @@ watch(
       });
       const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
       const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
+
       if (oxymetrySeries) {
         oxymetrySeries.applyOptions({
           autoscaleInfoProvider: () => ({
@@ -86,10 +87,6 @@ watch(
         });
         oxymetrySeries.priceScale().applyOptions({
           autoScale: true,
-          scaleMargins: {
-            top: 0,
-            bottom: 0,
-          },
         });
         oxymetrySeries.createPriceLine({
           color: "#0077b6",

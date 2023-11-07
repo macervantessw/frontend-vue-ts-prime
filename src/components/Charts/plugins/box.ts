@@ -11,58 +11,63 @@ import {
   SeriesType,
   Time,
 } from "lightweight-charts";
-import { positionsLine } from "./helpers/position";
+import { positionsBox } from "./helpers/position";
 
-class VertLinePaneRenderer implements ISeriesPrimitivePaneRenderer {
+class BoxPaneRenderer implements ISeriesPrimitivePaneRenderer {
   _x: Coordinate | null = null;
-  _options: VertLineOptions;
-  constructor(x: Coordinate | null, options: VertLineOptions) {
+  _end: Coordinate | null = null;
+  _options: BoxOptions;
+  constructor(x: Coordinate | null, end: Coordinate | null, options: BoxOptions) {
     this._x = x;
+    this._end = end;
     this._options = options;
   }
   draw(target: CanvasRenderingTarget2D) {
     target.useBitmapCoordinateSpace((scope) => {
-      if (this._x === null) return;
+      if (this._x === null || this._end === null) return;
       const ctx = scope.context;
-      const position = positionsLine(this._x, scope.horizontalPixelRatio, this._options.width);
+      const position = positionsBox(this._x, this._end, scope.horizontalPixelRatio);
+      // positionsLine(this._x, scope.horizontalPixelRatio, this._options.width);
       ctx.fillStyle = this._options.color;
-      console.log(position.position, position.length, scope.bitmapSize.height);
-
       ctx.fillRect(position.position, 0, position.length, scope.bitmapSize.height);
     });
   }
 }
 
-class VertLinePaneView implements ISeriesPrimitivePaneView {
-  _source: VertLine;
+class BoxPaneView implements ISeriesPrimitivePaneView {
+  _source: Box;
   _x: Coordinate | null = null;
-  _options: VertLineOptions;
+  _end: Coordinate | null = null;
+  _options: BoxOptions;
 
-  constructor(source: VertLine, options: VertLineOptions) {
+  constructor(source: Box, options: BoxOptions) {
     this._source = source;
     this._options = options;
   }
   update() {
     const timeScale = this._source._chart.timeScale();
     this._x = timeScale.timeToCoordinate(this._source._time);
+    this._end = timeScale.timeToCoordinate(this._source._end);
   }
   renderer() {
-    return new VertLinePaneRenderer(this._x, this._options);
+    return new BoxPaneRenderer(this._x, this._end, this._options);
   }
 }
 
-class VertLineTimeAxisView implements ISeriesPrimitiveAxisView {
-  _source: VertLine;
+class BoxTimeAxisView implements ISeriesPrimitiveAxisView {
+  _source: Box;
   _x: Coordinate | null = null;
-  _options: VertLineOptions;
+  _end: Coordinate | null = null;
+  _options: BoxOptions;
 
-  constructor(source: VertLine, options: VertLineOptions) {
+  constructor(source: Box, options: BoxOptions) {
     this._source = source;
     this._options = options;
   }
   update() {
     const timeScale = this._source._chart.timeScale();
     this._x = timeScale.timeToCoordinate(this._source._time);
+    this._end = timeScale.timeToCoordinate(this._source._end);
   }
   visible() {
     return this._options.showLabel;
@@ -84,7 +89,7 @@ class VertLineTimeAxisView implements ISeriesPrimitiveAxisView {
   }
 }
 
-export interface VertLineOptions {
+export interface BoxOptions {
   color: string;
   labelText: string;
   width: number;
@@ -93,7 +98,7 @@ export interface VertLineOptions {
   showLabel: boolean;
 }
 
-const defaultOptions: VertLineOptions = {
+const defaultOptions: BoxOptions = {
   color: "green",
   labelText: "",
   width: 3,
@@ -102,23 +107,25 @@ const defaultOptions: VertLineOptions = {
   showLabel: false,
 };
 
-export class VertLine implements ISeriesPrimitive<Time> {
+export class Box implements ISeriesPrimitive<Time> {
   _chart: IChartApi;
   _series: ISeriesApi<keyof SeriesOptionsMap>;
   _time: Time;
-  _paneViews: VertLinePaneView[];
-  _timeAxisViews: VertLineTimeAxisView[];
+  _end: Time;
+  _paneViews: BoxPaneView[];
+  _timeAxisViews: BoxTimeAxisView[];
 
-  constructor(chart: IChartApi, series: ISeriesApi<SeriesType>, time: Time, options?: Partial<VertLineOptions>) {
-    const vertLineOptions: VertLineOptions = {
+  constructor(chart: IChartApi, series: ISeriesApi<SeriesType>, time: Time, end: Time, options?: Partial<BoxOptions>) {
+    const boxOptions: BoxOptions = {
       ...defaultOptions,
       ...options,
     };
     this._chart = chart;
     this._series = series;
     this._time = time;
-    this._paneViews = [new VertLinePaneView(this, vertLineOptions)];
-    this._timeAxisViews = [new VertLineTimeAxisView(this, vertLineOptions)];
+    this._end = end;
+    this._paneViews = [new BoxPaneView(this, boxOptions)];
+    this._timeAxisViews = [new BoxTimeAxisView(this, boxOptions)];
   }
   updateAllViews() {
     this._paneViews.forEach((pw) => pw.update());

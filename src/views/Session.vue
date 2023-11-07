@@ -4,10 +4,10 @@
       <OxymetryChart ref="oxymetryChart" :files="zippedFiles" />
     </div>
     <div class="card chart-container h-20rem shadow-2">
-      <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" />
+      <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
     </div>
     <div class="card chart-container h-10rem shadow-2">
-      <MinimapChart ref="miniMapChart" :state-events="stateEvents" />
+      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
     </div>
   </div>
 </template>
@@ -28,7 +28,7 @@ import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import { IChartApi, ISeriesApi, Range } from "lightweight-charts";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
-import { Event, Session } from "../interfaces";
+import { Event, Serie, Session } from "../interfaces";
 
 const oxymetryChart = ref();
 const respiratoryChart = ref();
@@ -65,16 +65,21 @@ onMounted(() => {
     chart.clearCrosshairPosition();
   }
   oxChart.subscribeCrosshairMove((param) => {
-    if (!oxymetryChart.value?.getSeries()[0] || !respiratoryChart.value?.getSeries()[0]) return;
-    const mainSeries1 = oxymetryChart.value?.getSeries()[0].serie;
-    const mainSeries2 = respiratoryChart.value?.getSeries()[0].serie;
+    const respiratorySeries = respiratoryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.AIR_FLOW);
+    const oxymetrySeries = oxymetryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.OXIMETRY);
+    if (!oxymetrySeries || !respiratorySeries) return;
+    const mainSeries1 = oxymetrySeries.serie;
+    const mainSeries2 = respiratorySeries.serie;
     const dataPoint = getCrosshairDataPoint(mainSeries1, param);
     syncCrosshair(resChart, mainSeries2, dataPoint);
   });
   resChart.subscribeCrosshairMove((param) => {
-    if (!oxymetryChart.value?.getSeries()[0] || !respiratoryChart.value?.getSeries()[0]) return;
-    const mainSeries1 = oxymetryChart.value?.getSeries()[0].serie;
-    const mainSeries2 = respiratoryChart.value?.getSeries()[0].serie;
+    const respiratorySeries = respiratoryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.AIR_FLOW);
+    const oxymetrySeries = oxymetryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.OXIMETRY);
+
+    if (!oxymetrySeries || !respiratorySeries) return;
+    const mainSeries1 = oxymetrySeries.serie;
+    const mainSeries2 = respiratorySeries.serie;
     const dataPoint = getCrosshairDataPoint(mainSeries2, param);
     syncCrosshair(oxChart, mainSeries1, dataPoint);
   });
@@ -110,7 +115,8 @@ onBeforeMount(() => {
     const timeAxisUnzipped = await zippedFiles.value[SIGNALS.BASETIME].async("uint8array");
     const timeAxis: number[] = readDatFile(timeAxisUnzipped);
     timeAxis.splice(-2000);
-    chartsStore.timeAxis = timeAxis;
+    chartsStore.timeAxis = timeAxis.filter((_, index) => index % 3 === 0);
+    chartsStore.reducedTimeAxis = timeAxis.filter((_, index) => index % 10 === 0);
   });
 });
 

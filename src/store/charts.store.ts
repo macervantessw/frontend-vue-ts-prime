@@ -6,6 +6,7 @@ export const useChartsStore = defineStore("Charts", {
     xaxis: {} as { min: number; max: number },
     selection: {} as { x: number; y: number; time: Time },
     timeAxis: [] as number[],
+    reducedTimeAxis: [] as number[],
   }),
   getters: {},
   actions: {},
