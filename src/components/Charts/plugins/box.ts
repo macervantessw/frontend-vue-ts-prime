@@ -7,11 +7,13 @@ import {
   ISeriesPrimitiveAxisView,
   ISeriesPrimitivePaneRenderer,
   ISeriesPrimitivePaneView,
+  LineData,
   SeriesOptionsMap,
   SeriesType,
   Time,
 } from "lightweight-charts";
 import { positionsBox } from "./helpers/position";
+import { findNearestTime } from "./helpers/nearest";
 
 class BoxPaneRenderer implements ISeriesPrimitivePaneRenderer {
   _x: Coordinate | null = null;
@@ -38,16 +40,26 @@ class BoxPaneView implements ISeriesPrimitivePaneView {
   _source: Box;
   _x: Coordinate | null = null;
   _end: Coordinate | null = null;
+  _data: LineData[];
   _options: BoxOptions;
 
-  constructor(source: Box, options: BoxOptions) {
+  constructor(source: Box, options: BoxOptions, data: LineData[]) {
     this._source = source;
     this._options = options;
+    this._data = data;
   }
   update() {
     const timeScale = this._source._chart.timeScale();
     this._x = timeScale.timeToCoordinate(this._source._time);
+    if (this._x === null) {
+      const nearest = findNearestTime(this._source._time, this._data);
+      this._x = timeScale.timeToCoordinate(nearest as Time);
+    }
     this._end = timeScale.timeToCoordinate(this._source._end);
+    if (this._end === null) {
+      const nearest = findNearestTime(this._source._end, this._data);
+      this._end = timeScale.timeToCoordinate(nearest as Time);
+    }
   }
   renderer() {
     return new BoxPaneRenderer(this._x, this._end, this._options);
@@ -58,16 +70,26 @@ class BoxTimeAxisView implements ISeriesPrimitiveAxisView {
   _source: Box;
   _x: Coordinate | null = null;
   _end: Coordinate | null = null;
+  _data: LineData[];
   _options: BoxOptions;
 
-  constructor(source: Box, options: BoxOptions) {
+  constructor(source: Box, options: BoxOptions, data: LineData[]) {
     this._source = source;
     this._options = options;
+    this._data = data;
   }
   update() {
     const timeScale = this._source._chart.timeScale();
     this._x = timeScale.timeToCoordinate(this._source._time);
+    if (this._x === null) {
+      const nearest = findNearestTime(this._source._time, this._data);
+      this._x = timeScale.timeToCoordinate(nearest as Time);
+    }
     this._end = timeScale.timeToCoordinate(this._source._end);
+    if (this._end === null) {
+      const nearest = findNearestTime(this._source._end, this._data);
+      this._end = timeScale.timeToCoordinate(nearest as Time);
+    }
   }
   visible() {
     return this._options.showLabel;
@@ -109,23 +131,25 @@ const defaultOptions: BoxOptions = {
 
 export class Box implements ISeriesPrimitive<Time> {
   _chart: IChartApi;
+  _data: LineData[];
   _series: ISeriesApi<keyof SeriesOptionsMap>;
   _time: Time;
   _end: Time;
   _paneViews: BoxPaneView[];
   _timeAxisViews: BoxTimeAxisView[];
 
-  constructor(chart: IChartApi, series: ISeriesApi<SeriesType>, time: Time, end: Time, options?: Partial<BoxOptions>) {
+  constructor(chart: IChartApi, series: ISeriesApi<SeriesType>, data: LineData[], time: Time, end: Time, options?: Partial<BoxOptions>) {
     const boxOptions: BoxOptions = {
       ...defaultOptions,
       ...options,
     };
+    this._data = data;
     this._chart = chart;
     this._series = series;
     this._time = time;
     this._end = end;
-    this._paneViews = [new BoxPaneView(this, boxOptions)];
-    this._timeAxisViews = [new BoxTimeAxisView(this, boxOptions)];
+    this._paneViews = [new BoxPaneView(this, boxOptions, data)];
+    this._timeAxisViews = [new BoxTimeAxisView(this, boxOptions, data)];
   }
   updateAllViews() {
     this._paneViews.forEach((pw) => pw.update());

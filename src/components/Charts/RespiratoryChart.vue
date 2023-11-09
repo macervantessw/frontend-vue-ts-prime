@@ -5,7 +5,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { IChartApi, ISeriesApi, UTCTimestamp, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS } from "../../constants";
@@ -90,8 +90,8 @@ onMounted(() => {
         const basalData = basalAirFlow?.value !== undefined ? basalAirFlow.value : basalAirFlow.close;
         const airFlowData = airFlow?.value !== undefined ? airFlow.value : airFlow.close;
 
-        toolTip.innerHTML = `<div style="color: ${"rgba( 239, 83, 80, 1)"}">Atenuation.</div><div style="font-size: 24px; margin: 4px 0px; color: ${"black"}">
-        ${(100 - (basalData / airFlowData) * 100).toFixed(2)}
+        toolTip.innerHTML = `<div style="color: ${"rgba( 239, 83, 80, 1)"}">Attenuation</div><div style="font-size: 24px; margin: 4px 0px; color: ${"black"}">
+        ${(((airFlowData - basalData) / basalData) * 100).toFixed(2)}
         </div><div style="color: ${"black"}">
         ${dayjs(dateStr).format("HH:mm:ss:SSS")}
         </div>`;
@@ -153,7 +153,6 @@ watch(
       };
 
       if (airFlowSeries) {
-        showRespiratoryEvents(chart, airFlowSeries, props.respiratoryEvents);
         airFlowSeries.applyOptions({
           autoscaleInfoProvider: () => autoScaleInfoProvider,
         });
@@ -199,6 +198,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color });
       serie?.setData(data as any);
       series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
+      if (signal === SIGNALS.AIR_FLOW && serie) showRespiratoryEvents(chart, serie, data as LineData<Time>[], props.respiratoryEvents);
       resolve();
     });
   });

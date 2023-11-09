@@ -5,7 +5,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
-import { IChartApi, ISeriesApi, MouseEventParams, Time, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import { cloneDeep } from "lodash";
@@ -104,14 +104,14 @@ watch(
   () => chartsStore.timeAxis,
   () => {
     const timeSeries = chartsStore.timeAxis.map((item) => {
-      return { time: item, value: 0 };
+      return { time: item, value: 0 } as LineData;
     });
     const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
-    serie?.setData(timeSeries as any);
+    serie?.setData(timeSeries);
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
 
-    showRespiratoryEvents(chart, series[0], props.respiratoryEvents);
+    showRespiratoryEvents(chart, series[0], timeSeries, props.respiratoryEvents);
   },
 );
 </script>

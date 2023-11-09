@@ -26,8 +26,6 @@ class VertLinePaneRenderer implements ISeriesPrimitivePaneRenderer {
       const ctx = scope.context;
       const position = positionsLine(this._x, scope.horizontalPixelRatio, this._options.width);
       ctx.fillStyle = this._options.color;
-      console.log(position.position, position.length, scope.bitmapSize.height);
-
       ctx.fillRect(position.position, 0, position.length, scope.bitmapSize.height);
     });
   }
