@@ -183,6 +183,7 @@ watch(
       if (movement) {
         movement.applyOptions({
           autoscaleInfoProvider: () => autoScaleInfoProvider,
+          lineWidth: 1,
         });
         movement.priceScale().applyOptions({
           autoScale: true,
