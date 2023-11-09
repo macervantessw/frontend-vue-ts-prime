@@ -142,14 +142,14 @@ watch(
         oxymetrySeries.createPriceLine({
           color: "#0077b6",
           price: 90,
-          lineStyle: 1,
+          lineStyle: 2,
           axisLabelVisible: true,
           lineWidth: 1,
         });
         oxymetrySeries.createPriceLine({
           color: "#0077b6",
           price: 80,
-          lineStyle: 1,
+          lineStyle: 2,
           lineWidth: 1,
           axisLabelVisible: true,
         });
@@ -158,14 +158,14 @@ watch(
         heartRateSeries.createPriceLine({
           color: "rgb(190, 34, 34)",
           price: 75,
-          lineStyle: 1,
+          lineStyle: 2,
           lineWidth: 1,
           axisLabelVisible: true,
         });
         heartRateSeries.createPriceLine({
           color: "rgb(190, 34, 34)",
           price: 60,
-          lineStyle: 1,
+          lineStyle: 2,
           lineWidth: 1,
           axisLabelVisible: true,
         });
