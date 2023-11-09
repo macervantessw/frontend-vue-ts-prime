@@ -5,7 +5,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { IChartApi, ISeriesApi, UTCTimestamp, createChart } from "lightweight-charts";
+import { DeepPartial, IChartApi, ISeriesApi, LineStyleOptions, SeriesOptionsCommon, TimeChartOptions, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
@@ -45,7 +45,15 @@ const resizeHandler = () => {
 
 onMounted(() => {
   // Create the Lightweight Charts Instance using the container ref.
-  chart = createChart(chartContainer.value, CHART_OPTIONS);
+  const options: DeepPartial<TimeChartOptions> = {
+    leftPriceScale: {
+      visible: true,
+    },
+    rightPriceScale: {
+      visible: true,
+    },
+  };
+  chart = createChart(chartContainer.value, { ...CHART_OPTIONS, ...options });
 });
 
 onUnmounted(() => {
@@ -63,9 +71,60 @@ watch(
   () => chartsStore.timeAxis,
   () => {
     const promises: Promise<void>[] = [];
-    promises.push(generateLineSeries(SIGNALS.OXIMETRY, "Oximetry", "#0077b6"));
-    promises.push(generateLineSeries(SIGNALS.BASAL_OXIMETRY, "Basal Oxymetry", "#ffb703"));
-    promises.push(generateLineSeries(SIGNALS.HR, "Heart Rate", "rgb(190, 34, 34)"));
+    promises.push(
+      generateLineSeries(SIGNALS.OXIMETRY, "Oximetry", {
+        priceScaleId: "left",
+        color: "#0077b6",
+        autoscaleInfoProvider: () => ({
+          priceRange: {
+            minValue: 50,
+            maxValue: 100,
+          },
+        }),
+        priceFormat: {
+          type: "custom",
+          formatter: (price: number) => {
+            return price.toFixed(0) + "%";
+          },
+        },
+      }),
+    );
+    promises.push(
+      generateLineSeries(SIGNALS.BASAL_OXIMETRY, "Basal Oxymetry", {
+        priceScaleId: "left",
+        color: "#ffb703",
+        autoscaleInfoProvider: () => ({
+          priceRange: {
+            minValue: 50,
+            maxValue: 100,
+          },
+        }),
+        priceFormat: {
+          type: "custom",
+          formatter: (price: number) => {
+            return price.toFixed(0) + "%";
+          },
+        },
+      }),
+    );
+    promises.push(
+      generateLineSeries(SIGNALS.HR, "Heart Rate", {
+        priceScaleId: "right",
+        color: "rgb(190, 34, 34)",
+        autoscaleInfoProvider: () => ({
+          priceRange: {
+            minValue: 40,
+            maxValue: 100,
+          },
+        }),
+        priceFormat: {
+          type: "custom",
+          formatter: (price: number) => {
+            return price.toFixed(0) + "bpm";
+          },
+        },
+      }),
+    );
 
     Promise.all(promises).then(() => {
       chart?.timeScale().fitContent();
@@ -77,14 +136,6 @@ watch(
       const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
 
       if (oxymetrySeries) {
-        oxymetrySeries.applyOptions({
-          autoscaleInfoProvider: () => ({
-            priceRange: {
-              minValue: 55,
-              maxValue: 120,
-            },
-          }),
-        });
         oxymetrySeries.priceScale().applyOptions({
           autoScale: true,
         });
@@ -94,7 +145,6 @@ watch(
           lineStyle: 1,
           axisLabelVisible: true,
           lineWidth: 1,
-          title: "90%",
         });
         oxymetrySeries.createPriceLine({
           color: "#0077b6",
@@ -102,7 +152,6 @@ watch(
           lineStyle: 1,
           lineWidth: 1,
           axisLabelVisible: true,
-          title: "80%",
         });
       }
       if (heartRateSeries) {
@@ -112,7 +161,6 @@ watch(
           lineStyle: 1,
           lineWidth: 1,
           axisLabelVisible: true,
-          title: "75 bpm",
         });
         heartRateSeries.createPriceLine({
           color: "rgb(190, 34, 34)",
@@ -120,17 +168,16 @@ watch(
           lineStyle: 1,
           lineWidth: 1,
           axisLabelVisible: true,
-          title: "60 bpm",
         });
       }
     });
   },
 );
 
-function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
+function generateLineSeries(signal: string, name: string, options: DeepPartial<LineStyleOptions & SeriesOptionsCommon>): Promise<void> {
   return new Promise((resolve) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color });
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, ...options });
       serie?.setData(data as any);
       series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
       resolve();
