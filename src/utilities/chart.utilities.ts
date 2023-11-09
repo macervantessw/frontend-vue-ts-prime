@@ -7,10 +7,10 @@ export function showRespiratoryEvents(chart: IChartApi | null, serie: ISeriesApi
   if (!events || !chart || !serie) return;
 
   events.forEach((event) => {
-    let color = "hsla(207, 73.00%, 39.20%, 0.2)";
-    if (event.eventType === 2) color = "hsla(53, 85%, 52%, 0.1)";
-    else if (event.eventType === 103) color = "hsla(286, 45%, 36%, 0.2)";
-    if (chart) {
+    if (chart && [0, 2, 103].includes(event.eventType)) {
+      let color = "hsla(207, 73.00%, 39.20%, 0.2)";
+      if (event.eventType === 2) color = "hsla(53, 85%, 52%, 0.1)";
+      else if (event.eventType === 103) color = "hsla(286, 45%, 36%, 0.2)";
       const from = event.startTime * 1000;
       const to = event.endTime * 1000;
       const box = new Box(chart, serie, data, from as Time, to as Time, {
