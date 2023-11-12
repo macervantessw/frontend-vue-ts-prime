@@ -10,6 +10,7 @@ export const SIGNALS = {
   HR: "OA_HRSignal.dat",
   BASAL_OXIMETRY: "OA_OximetryBasalSignal.dat",
   OXIMETRY: "OA_OximetrySignal.dat",
+  STATE: "STATE",
 };
 
 export const MAX_SAMPLES = 3000;

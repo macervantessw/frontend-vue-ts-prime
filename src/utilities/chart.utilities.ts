@@ -1,7 +1,6 @@
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time } from "lightweight-charts";
 import { Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
-import { SIGNALS } from "../constants";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function showRespiratoryEvents(chart: IChartApi | null, serie: ISeriesApi<"Line">, data: LineData[], events: Event[], vertOffset = 0, height?: number) {
@@ -45,27 +44,53 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function syncronizeCrosshairs(chart1Ref: any, chart2Ref: any) {
+export function syncronizeCrosshairs(chart1Ref: any, chart2Ref: any, chart3Ref: any, mainSerie1Id: string, mainSerie2Id: string, mainSerie3Id: string) {
   const chart1: IChartApi = chart1Ref?.getChart();
   const chart2: IChartApi = chart2Ref?.getChart();
+  const chart3: IChartApi = chart3Ref?.getChart();
 
   chart1.subscribeCrosshairMove((param) => {
-    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.OXIMETRY);
-    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.AIR_FLOW);
-    if (!series1 || !series2) return;
+    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
+    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
+    const series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
+
+    if (!series1 || !series2 || !series3) return;
     const mainSeries1 = series1.serie;
     const mainSeries2 = series2.serie;
+    const mainSeries3 = series3.serie;
+
     const dataPoint = getCrosshairDataPoint(mainSeries1, param);
     syncCrosshair(chart2, mainSeries2, dataPoint);
+    syncCrosshair(chart3, mainSeries3, dataPoint);
   });
   chart2.subscribeCrosshairMove((param) => {
-    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.OXIMETRY);
-    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.AIR_FLOW);
-    if (!series1 || !series2) return;
+    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
+    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
+    const series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
+
+    if (!series1 || !series2 || !series3) return;
     const mainSeries1 = series1.serie;
     const mainSeries2 = series2.serie;
+    const mainSeries3 = series3.serie;
+
     const dataPoint = getCrosshairDataPoint(mainSeries2, param);
     syncCrosshair(chart1, mainSeries1, dataPoint);
+    syncCrosshair(chart3, mainSeries3, dataPoint);
+  });
+
+  chart3.subscribeCrosshairMove((param) => {
+    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
+    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
+    const series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
+
+    if (!series1 || !series2 || !series3) return;
+    const mainSeries1 = series1.serie;
+    const mainSeries2 = series2.serie;
+    const mainSeries3 = series3.serie;
+
+    const dataPoint = getCrosshairDataPoint(mainSeries3, param);
+    syncCrosshair(chart1, mainSeries1, dataPoint);
+    syncCrosshair(chart2, mainSeries2, dataPoint);
   });
 }
 

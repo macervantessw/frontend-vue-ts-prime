@@ -1,13 +1,13 @@
 <template>
   <div class="w-full h-full flex flex-column p-2 gap-3">
     <div class="card chart-container h-10rem shadow-2">
-      <StateChart ref="oxymetryChart" :state-events="stateEvents" />
+      <StateChart ref="stateChartRef" :state-events="stateEvents" />
     </div>
     <div class="card chart-container h-20rem shadow-2">
-      <OxymetryChart ref="oxymetryChart" :files="zippedFiles" />
+      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" />
     </div>
     <div class="card chart-container h-20rem shadow-2">
-      <RespiratoryChart ref="respiratoryChart" :files="zippedFiles" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
+      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
     </div>
     <div class="card chart-container h-10rem shadow-2">
       <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
@@ -35,26 +35,35 @@ import { Event, Session } from "../interfaces";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
 import StateChart from "../components/Charts/StateChart.vue";
 
-const oxymetryChart = ref();
-const respiratoryChart = ref();
+const oxymetryChartRef = ref();
+const respiratoryChartRef = ref();
+const stateChartRef = ref();
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const sessionInfo = ref({} as Session);
 const stateEvents = ref([] as Event[]);
 
 onMounted(() => {
-  const oxChart: IChartApi = oxymetryChart.value?.getChart();
-  const resChart: IChartApi = respiratoryChart.value?.getChart();
+  const oxChart: IChartApi = oxymetryChartRef.value?.getChart();
+  const resChart: IChartApi = respiratoryChartRef.value?.getChart();
+  const stateChart: IChartApi = stateChartRef.value?.getChart();
 
   oxChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
   resChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
-  syncronizeCrosshairs(oxymetryChart.value, respiratoryChart.value);
+  stateChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+    oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+  });
+
+  syncronizeCrosshairs(oxymetryChartRef.value, respiratoryChartRef.value, stateChartRef.value, SIGNALS.OXIMETRY, SIGNALS.AIR_FLOW, SIGNALS.STATE);
 });
 
 const props = defineProps({
