@@ -49,29 +49,39 @@ export function syncronizeCrosshairs(chart1Ref: any, chart2Ref: any, chart3Ref: 
   const chart2: IChartApi = chart2Ref?.getChart();
   const chart3: IChartApi = chart3Ref?.getChart();
 
-  chart1.subscribeCrosshairMove((param) => {
-    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
-    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
-    const series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
+  let series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
+  let series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
+  let series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
 
-    if (!series1 || !series2 || !series3) return;
-    const mainSeries1 = series1.serie;
-    const mainSeries2 = series2.serie;
-    const mainSeries3 = series3.serie;
+  let mainSeries1: ISeriesApi<"Line"> | undefined = undefined;
+  let mainSeries2: ISeriesApi<"Line"> | undefined = undefined;
+  let mainSeries3: ISeriesApi<"Line"> | undefined = undefined;
+
+  const checkSeries = () => {
+    if (!series1) {
+      series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
+      mainSeries1 = series1?.serie;
+    }
+    if (!series2) {
+      series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
+      mainSeries2 = series2?.serie;
+    }
+    if (!series3) {
+      series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
+      mainSeries3 = series3?.serie;
+    }
+  };
+  chart1.subscribeCrosshairMove((param) => {
+    checkSeries();
+    if (!mainSeries1 || !mainSeries2 || !mainSeries3) return;
 
     const dataPoint = getCrosshairDataPoint(mainSeries1, param);
     syncCrosshair(chart2, mainSeries2, dataPoint);
     syncCrosshair(chart3, mainSeries3, dataPoint);
   });
   chart2.subscribeCrosshairMove((param) => {
-    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
-    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
-    const series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
-
-    if (!series1 || !series2 || !series3) return;
-    const mainSeries1 = series1.serie;
-    const mainSeries2 = series2.serie;
-    const mainSeries3 = series3.serie;
+    checkSeries();
+    if (!mainSeries1 || !mainSeries2 || !mainSeries3) return;
 
     const dataPoint = getCrosshairDataPoint(mainSeries2, param);
     syncCrosshair(chart1, mainSeries1, dataPoint);
@@ -79,14 +89,8 @@ export function syncronizeCrosshairs(chart1Ref: any, chart2Ref: any, chart3Ref: 
   });
 
   chart3.subscribeCrosshairMove((param) => {
-    const series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
-    const series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
-    const series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
-
-    if (!series1 || !series2 || !series3) return;
-    const mainSeries1 = series1.serie;
-    const mainSeries2 = series2.serie;
-    const mainSeries3 = series3.serie;
+    checkSeries();
+    if (!mainSeries1 || !mainSeries2 || !mainSeries3) return;
 
     const dataPoint = getCrosshairDataPoint(mainSeries3, param);
     syncCrosshair(chart1, mainSeries1, dataPoint);
