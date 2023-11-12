@@ -17,12 +17,16 @@ import { findNearestTime } from "./helpers/nearest";
 
 class BoxPaneRenderer implements ISeriesPrimitivePaneRenderer {
   _x: Coordinate | null = null;
+  _y: number;
   _end: Coordinate | null = null;
+  _height: number | undefined;
   _options: BoxOptions;
-  constructor(x: Coordinate | null, end: Coordinate | null, options: BoxOptions) {
+  constructor(x: Coordinate | null, end: Coordinate | null, y: number, options: BoxOptions, height?: number) {
     this._x = x;
+    this._y = y;
     this._end = end;
     this._options = options;
+    this._height = height;
   }
   draw(target: CanvasRenderingTarget2D) {
     target.useBitmapCoordinateSpace((scope) => {
@@ -31,7 +35,7 @@ class BoxPaneRenderer implements ISeriesPrimitivePaneRenderer {
       const position = positionsBox(this._x, this._end, scope.horizontalPixelRatio);
       // positionsLine(this._x, scope.horizontalPixelRatio, this._options.width);
       ctx.fillStyle = this._options.color;
-      ctx.fillRect(position.position, 0, position.length, scope.bitmapSize.height);
+      ctx.fillRect(position.position, this._y, position.length, this._height ?? scope.bitmapSize.height);
     });
   }
 }
@@ -39,13 +43,17 @@ class BoxPaneRenderer implements ISeriesPrimitivePaneRenderer {
 class BoxPaneView implements ISeriesPrimitivePaneView {
   _source: Box;
   _x: Coordinate | null = null;
+  _y: number;
   _end: Coordinate | null = null;
+  _height: number | undefined;
   _data: LineData[];
   _options: BoxOptions;
 
   constructor(source: Box, options: BoxOptions, data: LineData[]) {
     this._source = source;
     this._options = options;
+    this._y = source._y;
+    this._height = source._height;
     this._data = data;
   }
   update() {
@@ -62,20 +70,24 @@ class BoxPaneView implements ISeriesPrimitivePaneView {
     }
   }
   renderer() {
-    return new BoxPaneRenderer(this._x, this._end, this._options);
+    return new BoxPaneRenderer(this._x, this._end, this._y, this._options, this._height);
   }
 }
 
 class BoxTimeAxisView implements ISeriesPrimitiveAxisView {
   _source: Box;
   _x: Coordinate | null = null;
+  _y: number;
   _end: Coordinate | null = null;
   _data: LineData[];
+  _height: number | undefined;
   _options: BoxOptions;
 
   constructor(source: Box, options: BoxOptions, data: LineData[]) {
     this._source = source;
+    this._y = source._y;
     this._options = options;
+    this._height = source._height;
     this._data = data;
   }
   update() {
@@ -134,11 +146,22 @@ export class Box implements ISeriesPrimitive<Time> {
   _data: LineData[];
   _series: ISeriesApi<keyof SeriesOptionsMap>;
   _time: Time;
+  _y: number;
   _end: Time;
+  _height: number | undefined;
   _paneViews: BoxPaneView[];
   _timeAxisViews: BoxTimeAxisView[];
 
-  constructor(chart: IChartApi, series: ISeriesApi<SeriesType>, data: LineData[], time: Time, end: Time, options?: Partial<BoxOptions>) {
+  constructor(
+    chart: IChartApi,
+    series: ISeriesApi<SeriesType>,
+    data: LineData[],
+    time: Time,
+    end: Time,
+    verticalOffset: number,
+    height?: number,
+    options?: Partial<BoxOptions>,
+  ) {
     const boxOptions: BoxOptions = {
       ...defaultOptions,
       ...options,
@@ -148,6 +171,8 @@ export class Box implements ISeriesPrimitive<Time> {
     this._series = series;
     this._time = time;
     this._end = end;
+    this._y = verticalOffset;
+    this._height = height;
     this._paneViews = [new BoxPaneView(this, boxOptions, data)];
     this._timeAxisViews = [new BoxTimeAxisView(this, boxOptions, data)];
   }

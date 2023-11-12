@@ -5,7 +5,17 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { DeepPartial, IChartApi, ISeriesApi, LineStyleOptions, SeriesOptionsCommon, TimeChartOptions, UTCTimestamp, createChart } from "lightweight-charts";
+import {
+  CreatePriceLineOptions,
+  DeepPartial,
+  IChartApi,
+  ISeriesApi,
+  LineStyleOptions,
+  SeriesOptionsCommon,
+  TimeChartOptions,
+  UTCTimestamp,
+  createChart,
+} from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
@@ -20,11 +30,8 @@ const props = defineProps({
   },
 });
 
-// Lightweight Charts™ instances are stored as normal JS variables
-// If you need to use a ref then it is recommended that you use `shallowRef` instead
 let series: Serie<"Line">[] = [];
 let chart: IChartApi | null = null;
-
 const chartContainer = ref();
 
 const getChart = () => {
@@ -127,7 +134,6 @@ watch(
     );
 
     Promise.all(promises).then(() => {
-      chart?.timeScale().fitContent();
       chart?.timeScale().setVisibleRange({
         from: chartsStore.timeAxis[0] as UTCTimestamp,
         to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
@@ -135,40 +141,19 @@ watch(
       const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
       const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
 
+      const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
+
       if (oxymetrySeries) {
         oxymetrySeries.priceScale().applyOptions({
           autoScale: true,
         });
-        oxymetrySeries.createPriceLine({
-          color: "#0077b6",
-          price: 90,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          lineWidth: 1,
-        });
-        oxymetrySeries.createPriceLine({
-          color: "#0077b6",
-          price: 80,
-          lineStyle: 2,
-          lineWidth: 1,
-          axisLabelVisible: true,
-        });
+
+        oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90 });
+        oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80 });
       }
       if (heartRateSeries) {
-        heartRateSeries.createPriceLine({
-          color: "rgb(190, 34, 34)",
-          price: 75,
-          lineStyle: 2,
-          lineWidth: 1,
-          axisLabelVisible: true,
-        });
-        heartRateSeries.createPriceLine({
-          color: "rgb(190, 34, 34)",
-          price: 60,
-          lineStyle: 2,
-          lineWidth: 1,
-          axisLabelVisible: true,
-        });
+        heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: 75 });
+        heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: 60 });
       }
     });
   },

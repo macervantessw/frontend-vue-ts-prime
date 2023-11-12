@@ -5,28 +5,20 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
-import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
 import { cloneDeep } from "lodash";
-import { VertLine } from "./plugins/vertical-line";
 import { Event } from "../../interfaces";
-import { showRespiratoryEvents, showStateEvents } from "../../utilities/chart.utilities";
+import { showStateEvents } from "../../utilities/chart.utilities";
 
 const chartsStore = useChartsStore();
-const vertline = ref(null as VertLine | null);
-// Lightweight Charts™ instances are stored as normal JS variables
-// If you need to use a ref then it is recommended that you use `shallowRef` instead
 let series: ISeriesApi<"Line">[] = [];
 let chart: IChartApi | null = null;
 
 const chartContainer = ref();
 const props = defineProps({
   stateEvents: {
-    type: Object as PropType<Event[]> | undefined,
-    required: true,
-  },
-  respiratoryEvents: {
     type: Object as PropType<Event[]> | undefined,
     required: true,
   },
@@ -67,25 +59,6 @@ onMounted(() => {
       y: param.point.y,
       time: param.time as Time,
     };
-    if (chart) {
-      if (vertline.value) series[0].detachPrimitive(vertline.value);
-      vertline.value = new VertLine(chart, series[0], param.time as Time, {
-        showLabel: false,
-        color: "hsla(180, 4.00%, 44.10%, 0.60)",
-        width: 40,
-      });
-      series[0].attachPrimitive(vertline.value);
-      series[0].setMarkers([
-        {
-          time: param.time as Time,
-          position: "inBar",
-          shape: "circle",
-          color: "hsla(0, 79.70%, 44.50%, 0.01)",
-          size: 1,
-        },
-      ]);
-      vertline.value.updateAllViews();
-    }
   });
 });
 
@@ -109,11 +82,23 @@ watch(
     const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
     serie?.setData(timeSeries);
     series?.push(serie as ISeriesApi<"Line">);
-    chart?.timeScale().fitContent();
-
-    showRespiratoryEvents(chart, series[0], timeSeries, props.respiratoryEvents);
-    showStateEvents(chart, series[0], timeSeries, props.stateEvents, undefined, 15);
+    chart?.timeScale().setVisibleRange({
+      from: chartsStore.timeAxis[0] as UTCTimestamp,
+      to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
+    });
+    showStateEvents(chart, series[0], timeSeries, props.stateEvents, 20, 30);
   },
+);
+
+watch(
+  () => chartsStore.selection,
+  (newVal) => {
+    chart?.timeScale().setVisibleRange({
+      from: (Number(newVal.time) - 5 * 60 * 1000) as UTCTimestamp,
+      to: (Number(newVal.time) + 5 * 60 * 1000) as UTCTimestamp,
+    });
+  },
+  { deep: true },
 );
 </script>
 

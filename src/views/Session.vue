@@ -1,5 +1,8 @@
 <template>
   <div class="w-full h-full flex flex-column p-2 gap-3">
+    <div class="card chart-container h-10rem shadow-2">
+      <StateChart ref="oxymetryChart" :state-events="stateEvents" />
+    </div>
     <div class="card chart-container h-20rem shadow-2">
       <OxymetryChart ref="oxymetryChart" :files="zippedFiles" />
     </div>
@@ -26,9 +29,11 @@ import JSZip from "jszip";
 
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
-import { IChartApi, ISeriesApi, Range } from "lightweight-charts";
+import { IChartApi, Range } from "lightweight-charts";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
-import { Event, Serie, Session } from "../interfaces";
+import { Event, Session } from "../interfaces";
+import { syncronizeCrosshairs } from "../utilities/chart.utilities";
+import StateChart from "../components/Charts/StateChart.vue";
 
 const oxymetryChart = ref();
 const respiratoryChart = ref();
@@ -49,43 +54,9 @@ onMounted(() => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
-  function getCrosshairDataPoint(series: ISeriesApi<"Line">, param: any) {
-    if (!param.time) {
-      return null;
-    }
-    const dataPoint = param.seriesData.get(series);
-    return dataPoint || null;
-  }
-
-  function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: any) {
-    if (dataPoint) {
-      chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
-      return;
-    }
-    chart.clearCrosshairPosition();
-  }
-  oxChart.subscribeCrosshairMove((param) => {
-    const respiratorySeries = respiratoryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.AIR_FLOW);
-    const oxymetrySeries = oxymetryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.OXIMETRY);
-    if (!oxymetrySeries || !respiratorySeries) return;
-    const mainSeries1 = oxymetrySeries.serie;
-    const mainSeries2 = respiratorySeries.serie;
-    const dataPoint = getCrosshairDataPoint(mainSeries1, param);
-    syncCrosshair(resChart, mainSeries2, dataPoint);
-  });
-  resChart.subscribeCrosshairMove((param) => {
-    const respiratorySeries = respiratoryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.AIR_FLOW);
-    const oxymetrySeries = oxymetryChart.value?.getSeries().find((serie: Serie<"Line">) => serie.id === SIGNALS.OXIMETRY);
-
-    if (!oxymetrySeries || !respiratorySeries) return;
-    const mainSeries1 = oxymetrySeries.serie;
-    const mainSeries2 = respiratorySeries.serie;
-    const dataPoint = getCrosshairDataPoint(mainSeries2, param);
-    syncCrosshair(oxChart, mainSeries1, dataPoint);
-  });
+  syncronizeCrosshairs(oxymetryChart.value, respiratoryChart.value);
 });
-// const { current } = useMagicKeys();
-// const keys = useMagicKeys();
+
 const props = defineProps({
   file: {
     type: Object as PropType<StorageReference>,

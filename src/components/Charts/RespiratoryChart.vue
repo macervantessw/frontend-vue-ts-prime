@@ -135,7 +135,6 @@ watch(
     promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
 
     Promise.all(promises).then(() => {
-      chart?.timeScale().fitContent();
       chart?.timeScale().setVisibleRange({
         from: chartsStore.timeAxis[0] as UTCTimestamp,
         to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
