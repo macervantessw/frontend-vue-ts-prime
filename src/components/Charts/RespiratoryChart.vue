@@ -14,8 +14,6 @@ import { Serie, Event } from "../../interfaces";
 import dayjs from "dayjs";
 import { showRespiratoryEvents } from "../../utilities/chart.utilities";
 
-// import { SessionHighlighting } from "./plugins/session-highlighting";
-
 const chartsStore = useChartsStore();
 const props = defineProps({
   files: {
@@ -191,6 +189,15 @@ watch(
     });
   },
 );
+
+// watch(
+//   () => chartsStore.selection.range,
+//   (newVal) => {
+//     if (!newVal || !chart || !chart.timeScale()) return;
+//     chart.timeScale().setVisibleLogicalRange(newVal);
+//   },
+//   { deep: true },
+// );
 
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {

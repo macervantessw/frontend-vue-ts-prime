@@ -1,16 +1,16 @@
 <template>
   <div class="w-full h-full flex flex-column p-2 gap-3">
-    <div class="card chart-container h-10rem shadow-2">
-      <StateChart ref="stateChartRef" :state-events="stateEvents" />
+    <div class="card chart-container h-10rem w-full shadow-2">
+      <StateChart ref="stateChartRef" :state-events="stateEvents" class="w-full" />
     </div>
-    <div class="card chart-container h-20rem shadow-2">
-      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" />
+    <div class="card chart-container h-20rem w-full shadow-2">
+      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" />
     </div>
-    <div class="card chart-container h-20rem shadow-2">
-      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
+    <div class="card chart-container h-20rem w-full shadow-2">
+      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" class="w-full" />
     </div>
-    <div class="card chart-container h-10rem shadow-2">
-      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" />
+    <div class="card chart-container h-10rem w-full shadow-2">
+      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" class="w-full" />
     </div>
   </div>
 </template>
@@ -29,7 +29,7 @@ import JSZip from "jszip";
 
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
-import { IChartApi, Range } from "lightweight-charts";
+import { IChartApi, Range, Time } from "lightweight-charts";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
 import { Event, Session } from "../interfaces";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
@@ -38,10 +38,12 @@ import StateChart from "../components/Charts/StateChart.vue";
 const oxymetryChartRef = ref();
 const respiratoryChartRef = ref();
 const stateChartRef = ref();
+const miniMapChart = ref();
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const sessionInfo = ref({} as Session);
 const stateEvents = ref([] as Event[]);
+const fromIndexRef = ref(-999);
 
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChartRef.value?.getChart();
@@ -51,16 +53,28 @@ onMounted(() => {
   oxChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    // miniMapChart.value?.drawBox(timeRange as Range<number>);
   });
 
   resChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    const fromIndex = Math.floor(timeRange?.from as number);
+    const toIndex = Math.floor(timeRange?.to as number);
+
+    if (fromIndex - fromIndexRef.value > 200 || fromIndexRef.value - fromIndex > 200) {
+      fromIndexRef.value = fromIndex;
+      const from = miniMapChart.value?.getSeries()[0].data()[fromIndex];
+      const to = miniMapChart.value?.getSeries()[0].data()[toIndex];
+
+      if (from?.time && to?.time) miniMapChart.value?.drawBox({ from: from.time as Time, to: to.time as Time });
+    }
   });
 
   stateChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    // miniMapChart.value?.drawBox(timeRange as Range<number>);
   });
 
   syncronizeCrosshairs(oxymetryChartRef.value, respiratoryChartRef.value, stateChartRef.value, SIGNALS.OXIMETRY, SIGNALS.AIR_FLOW, SIGNALS.STATE);

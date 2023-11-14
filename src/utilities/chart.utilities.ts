@@ -31,7 +31,7 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
     if (event.eventType === 1) {
       color = "hsla(97, 85%, 52%, 1)";
       offset = vertOffset + (height ?? 0);
-    } else if (event.eventType === 103) color = "hsla(286, 45%, 36%, 0.2)";
+    }
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;
     const box = new Box(chart, serie, data, from as Time, to as Time, offset, height, {

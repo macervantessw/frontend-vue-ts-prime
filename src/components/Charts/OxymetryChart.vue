@@ -171,12 +171,10 @@ function generateLineSeries(signal: string, name: string, options: DeepPartial<L
 }
 
 watch(
-  () => chartsStore.selection,
+  () => chartsStore.selection.range,
   (newVal) => {
-    chart?.timeScale().setVisibleRange({
-      from: (Number(newVal.time) - 5 * 60 * 1000) as UTCTimestamp,
-      to: (Number(newVal.time) + 5 * 60 * 1000) as UTCTimestamp,
-    });
+    if (!newVal || !chart || !chart.timeScale()) return;
+    chart.timeScale().setVisibleRange(newVal);
   },
   { deep: true },
 );

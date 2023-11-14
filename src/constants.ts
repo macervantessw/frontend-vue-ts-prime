@@ -17,7 +17,7 @@ export const MAX_SAMPLES = 3000;
 export const CHART_MOVEMENT = 10000;
 
 export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
-  autoSize: false,
+  autoSize: true,
   leftPriceScale: {
     visible: false,
     autoScale: false,

@@ -72,16 +72,14 @@ watch(
   },
 );
 
-watch(
-  () => chartsStore.selection,
-  (newVal) => {
-    chart?.timeScale().setVisibleRange({
-      from: (Number(newVal.time) - 5 * 60 * 1000) as UTCTimestamp,
-      to: (Number(newVal.time) + 5 * 60 * 1000) as UTCTimestamp,
-    });
-  },
-  { deep: true },
-);
+// watch(
+//   () => chartsStore.selection.range,
+//   (newVal) => {
+//     if (!newVal || !chart || !chart.timeScale()) return;
+//     chart.timeScale().setVisibleLogicalRange(newVal);
+//   },
+//   { deep: true },
+// );
 </script>
 
 <style scoped>
