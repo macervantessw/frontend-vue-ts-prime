@@ -1,16 +1,19 @@
 <template>
   <div class="w-full h-full flex flex-column p-2 gap-3">
-    <div class="card chart-container h-10rem w-full shadow-2">
+    <div class="card card-small chart-container w-full shadow-2">
       <StateChart ref="stateChartRef" :state-events="stateEvents" class="w-full" />
     </div>
-    <div class="card chart-container h-20rem w-full shadow-2">
+    <div class="card chart-container h-full w-full shadow-2">
       <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" />
     </div>
-    <div class="card chart-container h-20rem w-full shadow-2">
-      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" class="w-full" />
+    <div class="card chart-container h-full w-full shadow-2">
+      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="respiratoryEvents" class="w-full" />
     </div>
-    <div class="card chart-container h-10rem w-full shadow-2">
-      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="sessionInfo?.Data?.RespiratoryEvents" class="w-full" />
+    <div class="card card-small chart-container h-full w-full shadow-2">
+      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="respiratoryEvents" class="w-full" />
+    </div>
+    <div>
+      <VideoPlayer :options="videoOptions" />
     </div>
   </div>
 </template>
@@ -21,6 +24,7 @@ import { StorageReference, getBytes } from "firebase/storage";
 import { PropType, defineProps, onBeforeMount, onMounted, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
+import VideoPlayer from "../components/Video/VideoPlayer.vue";
 //import { ASAP, DataPoint } from "downsample";
 // import { CHART_MOVEMENT } from "../constants";
 // import { useMagicKeys, whenever } from "@vueuse/core";
@@ -43,8 +47,19 @@ const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const sessionInfo = ref({} as Session);
 const stateEvents = ref([] as Event[]);
+const respiratoryEvents = ref([] as Event[]);
 const fromIndexRef = ref(-999);
-
+const videoOptions = ref({
+  autoplay: false,
+  controls: true,
+  height: "250",
+  sources: [
+    {
+      src: "https://vjs.zencdn.net/v/oceans.mp4",
+      type: "video/mp4",
+    },
+  ],
+});
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChartRef.value?.getChart();
   const resChart: IChartApi = respiratoryChartRef.value?.getChart();
@@ -101,6 +116,7 @@ onBeforeMount(() => {
   sessionsStore.fetchSessionInfo(usersStore.userId, props.patientId, props.sessionId).then((session: Session) => {
     sessionInfo.value = session;
     stateEvents.value = session?.Data?.StateEvents;
+    respiratoryEvents.value = session?.Data?.RespiratoryEvents;
   });
   downloadFileAndUncompress().then(async (files) => {
     if (files) zippedFiles.value = files;
@@ -146,5 +162,14 @@ async function downloadFileAndUncompress() {
   background: var(--surface-card);
   padding: 5px;
   border-radius: 4px;
+  height: 100%;
+  max-height: 20rem;
+  min-height: 10rem;
+  flex-grow: 20;
+}
+.card-small {
+  max-height: 10rem;
+  min-height: 5rem;
+  flex-grow: 10;
 }
 </style>
