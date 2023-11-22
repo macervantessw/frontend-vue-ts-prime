@@ -18,7 +18,7 @@ import {
 } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
-import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
+import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
 import { Serie } from "../../interfaces";
 import JSZip from "jszip";
 
@@ -43,15 +43,7 @@ const getSeries = () => {
 
 defineExpose({ getSeries, getChart });
 
-// Auto resizes the chart when the browser window is resized.
-const resizeHandler = () => {
-  if (!chart || !chartContainer.value) return;
-  const dimensions = chartContainer.value.getBoundingClientRect();
-  chart.resize(dimensions.width, dimensions.height);
-};
-
 onMounted(() => {
-  // Create the Lightweight Charts Instance using the container ref.
   const options: DeepPartial<TimeChartOptions> = {
     leftPriceScale: {
       visible: true,
@@ -71,7 +63,6 @@ onUnmounted(() => {
   if (series) {
     series = [];
   }
-  window.removeEventListener("resize", resizeHandler);
 });
 
 watch(
@@ -136,7 +127,7 @@ watch(
     Promise.all(promises).then(() => {
       chart?.timeScale().setVisibleRange({
         from: chartsStore.timeAxis[0] as UTCTimestamp,
-        to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
+        to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
       });
       const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
       const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;

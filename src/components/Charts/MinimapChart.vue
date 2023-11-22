@@ -5,9 +5,9 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
-import { IChartApi, ISeriesApi, LineData, MouseEventParams, Range, Time, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, Range, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
-import { CHART_OPTIONS, LINE_OPTIONS } from "../../constants";
+import { CHART_OPTIONS, LINE_OPTIONS, VISIBLE_HALF, VISIBLE_MINUTES } from "../../constants";
 import { cloneDeep } from "lodash";
 import { Event } from "../../interfaces";
 import { showRespiratoryEvents, showStateEvents } from "../../utilities/chart.utilities";
@@ -43,8 +43,14 @@ defineExpose({ getSeries, getChart, drawBox });
 // Auto resizes the chart when the browser window is resized.
 const resizeHandler = () => {
   if (!chart || !chartContainer.value) return;
+  chart.timeScale().fitContent();
   const dimensions = chartContainer.value.getBoundingClientRect();
-  chart.resize(dimensions.width, dimensions.height);
+  chart.resize(dimensions.width, dimensions.height, true);
+  chart.timeScale().setVisibleRange({
+    from: chartsStore.timeAxis[0] as UTCTimestamp,
+    to: chartsStore.timeAxis[chartsStore.timeAxis.length - 1] as UTCTimestamp,
+  });
+  setSelectionBox(chartsStore.timeAxis[0] as UTCTimestamp);
 };
 
 onMounted(() => {
@@ -61,23 +67,12 @@ onMounted(() => {
 
   chart.subscribeClick((param: MouseEventParams) => {
     if (!param.point || !param.time) return;
-    const from = Number(param.time) - 5 * 60 * 1000;
-    const to = Number(param.time) + 5 * 60 * 1000;
-    chartsStore.selection = {
-      x: param.point.x,
-      y: param.point.y,
-      range: { from: from as Time, to: to as Time },
-    };
-    drawBox({ from: from as Time, to: to as Time });
+    setSelectionBox(param.time);
   });
+
+  window.addEventListener("resize", resizeHandler);
 });
 
-// watch(
-//   () => chartsStore.selection.range,
-//   (newVal) => {
-//     if (newVal) drawBox({ from: newVal.from, to: newVal.to });
-//   },
-// );
 onUnmounted(() => {
   if (chart) {
     chart.remove();
@@ -100,10 +95,26 @@ watch(
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
 
-    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents);
+    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 35, 25, false);
     showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 15);
   },
 );
+
+function setSelectionBox(time: Time) {
+  let from = Number(time) - VISIBLE_HALF * 60 * 1000;
+  let to = Number(time) + VISIBLE_HALF * 60 * 1000;
+  if (from < chartsStore.timeAxis[0]) {
+    from = chartsStore.timeAxis[0];
+    to = from + VISIBLE_MINUTES * 60 * 1000;
+  } else if (to > chartsStore.timeAxis[chartsStore.timeAxis.length - 1]) {
+    to = chartsStore.timeAxis[chartsStore.timeAxis.length - 1];
+    from = to - VISIBLE_MINUTES * 60 * 1000;
+  }
+  chartsStore.selection = {
+    range: { from: from as Time, to: to as Time },
+  };
+  drawBox({ from: from as Time, to: to as Time });
+}
 
 function drawBox(timeRange: Range<Time>) {
   if (box.value) series[0].detachPrimitive(box.value);

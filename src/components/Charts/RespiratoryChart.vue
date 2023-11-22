@@ -8,7 +8,7 @@ import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType
 import { IChartApi, ISeriesApi, LineData, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
-import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS } from "../../constants";
+import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
 import JSZip from "jszip";
 import { Serie, Event } from "../../interfaces";
 import dayjs from "dayjs";
@@ -43,15 +43,7 @@ const getSeries = () => {
 
 defineExpose({ getChart, getSeries });
 
-// Auto resizes the chart when the browser window is resized.
-const resizeHandler = () => {
-  if (!chart || !chartContainer.value) return;
-  const dimensions = chartContainer.value.getBoundingClientRect();
-  chart.resize(dimensions.width, dimensions.height);
-};
-
 onMounted(() => {
-  // Create the Lightweight Charts Instance using the container ref.
   chart = createChart(chartContainer.value, CHART_OPTIONS);
 
   const toolTipWidth = 96;
@@ -119,7 +111,6 @@ onUnmounted(() => {
   if (series) {
     series = [];
   }
-  window.removeEventListener("resize", resizeHandler);
 });
 
 watch(
@@ -135,7 +126,7 @@ watch(
     Promise.all(promises).then(() => {
       chart?.timeScale().setVisibleRange({
         from: chartsStore.timeAxis[0] as UTCTimestamp,
-        to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
+        to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
       });
 
       const airFlowSeries = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
@@ -189,16 +180,6 @@ watch(
     });
   },
 );
-
-// watch(
-//   () => chartsStore.selection.range,
-//   (newVal) => {
-//     if (!newVal || !chart || !chart.timeScale()) return;
-//     chart.timeScale().setVisibleLogicalRange(newVal);
-//   },
-//   { deep: true },
-// );
-
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {

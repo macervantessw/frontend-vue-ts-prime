@@ -7,7 +7,7 @@
           {{ file.name.split("_")[0] }}
         </p>
       </div>
-      <div class="flex-grow-1">
+      <div class="flex-grow-1 overflow-auto">
         <Session v-if="selectedFile" :file="selectedFile" :patient-id="patientId" :session-id="selectedFile.name.split('_')[0]" />
       </div>
     </div>

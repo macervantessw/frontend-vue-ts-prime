@@ -11,10 +11,11 @@ export const SIGNALS = {
   BASAL_OXIMETRY: "OA_OximetryBasalSignal.dat",
   OXIMETRY: "OA_OximetrySignal.dat",
   STATE: "STATE",
+  AUDIO: "AA_AudioSignal.dat",
 };
 
-export const MAX_SAMPLES = 3000;
-export const CHART_MOVEMENT = 10000;
+export const VISIBLE_MINUTES = 10;
+export const VISIBLE_HALF = VISIBLE_MINUTES / 2;
 
 export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   autoSize: true,
@@ -61,6 +62,9 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   },
 
   timeScale: {
+    fixLeftEdge: true,
+    lockVisibleTimeRangeOnResize: true,
+    borderVisible: false,
     uniformDistribution: true,
     minBarSpacing: 0.05,
     tickMarkFormatter: (time: number) => {

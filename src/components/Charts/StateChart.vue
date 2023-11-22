@@ -7,7 +7,7 @@
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
 import { IChartApi, ISeriesApi, LineData, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
-import { CHART_OPTIONS, LINE_OPTIONS, SIGNALS } from "../../constants";
+import { CHART_OPTIONS, LINE_OPTIONS, SIGNALS, VISIBLE_MINUTES } from "../../constants";
 import { Event, Serie } from "../../interfaces";
 import { showStateEvents } from "../../utilities/chart.utilities";
 
@@ -32,13 +32,6 @@ const getSeries = () => {
 
 defineExpose({ getSeries, getChart });
 
-// Auto resizes the chart when the browser window is resized.
-const resizeHandler = () => {
-  if (!chart || !chartContainer.value) return;
-  const dimensions = chartContainer.value.getBoundingClientRect();
-  chart.resize(dimensions.width, dimensions.height);
-};
-
 onMounted(() => {
   chart = createChart(chartContainer.value, CHART_OPTIONS);
 });
@@ -51,7 +44,6 @@ onUnmounted(() => {
   if (series) {
     series = [];
   }
-  window.removeEventListener("resize", resizeHandler);
 });
 
 watch(
@@ -65,21 +57,12 @@ watch(
     series?.push({ name: SIGNALS.STATE, serie: serie as ISeriesApi<"Line">, id: SIGNALS.STATE });
     chart?.timeScale().setVisibleRange({
       from: chartsStore.timeAxis[0] as UTCTimestamp,
-      to: (chartsStore.timeAxis[0] + 10 * 60 * 1000) as UTCTimestamp,
+      to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
     });
 
     if (serie) showStateEvents(chart, serie, timeSeries, props.stateEvents, 20, 30);
   },
 );
-
-// watch(
-//   () => chartsStore.selection.range,
-//   (newVal) => {
-//     if (!newVal || !chart || !chart.timeScale()) return;
-//     chart.timeScale().setVisibleLogicalRange(newVal);
-//   },
-//   { deep: true },
-// );
 </script>
 
 <style scoped>

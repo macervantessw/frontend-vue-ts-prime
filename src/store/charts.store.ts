@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 export const useChartsStore = defineStore("Charts", {
   state: () => ({
     xaxis: {} as { min: number; max: number },
-    selection: {} as { x: number; y: number; range: Range<Time> },
+    selection: {} as { range: Range<Time> },
     timeAxis: [] as number[],
     reducedTimeAxis: [] as number[],
   }),

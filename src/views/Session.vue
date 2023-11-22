@@ -10,70 +10,76 @@
       <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="respiratoryEvents" class="w-full" />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
+      <AudioChart ref="audioChartRef" :files="zippedFiles" class="w-full" />
+    </div>
+    <div class="card card-small chart-container h-full w-full shadow-2">
       <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="respiratoryEvents" class="w-full" />
     </div>
-    <div>
+    <!-- <div>
       <VideoPlayer :options="videoOptions" />
-    </div>
+    </div> -->
   </div>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts" setup>
-import { StorageReference, getBytes } from "firebase/storage";
+// import { CHART_MOVEMENT } from "../constants";
+// import { useMagicKeys, whenever } from "@vueuse/core";
+// import VideoPlayer from "../components/Video/VideoPlayer.vue";
+//import { ASAP, DataPoint } from "downsample";
+import { Event, Session } from "../interfaces";
+import { IChartApi, Range, Time } from "lightweight-charts";
 import { PropType, defineProps, onBeforeMount, onMounted, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
-import VideoPlayer from "../components/Video/VideoPlayer.vue";
-//import { ASAP, DataPoint } from "downsample";
-// import { CHART_MOVEMENT } from "../constants";
-// import { useMagicKeys, whenever } from "@vueuse/core";
-import { useChartsStore, useSessionsStore, useUsersStore } from "../store";
-import JSZip from "jszip";
-
-import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
-import OxymetryChart from "../components/Charts/OxymetryChart.vue";
-import { IChartApi, Range, Time } from "lightweight-charts";
-import MinimapChart from "../components/Charts/MinimapChart.vue";
-import { Event, Session } from "../interfaces";
+import { StorageReference, getBytes } from "firebase/storage";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
+import { useChartsStore, useSessionsStore, useUsersStore } from "../store";
+import AudioChart from "../components/Charts/AudioChart.vue";
+import JSZip from "jszip";
+import MinimapChart from "../components/Charts/MinimapChart.vue";
+import OxymetryChart from "../components/Charts/OxymetryChart.vue";
+import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
 
+const audioChartRef = ref();
+const fromIndexRef = ref(-999);
+const miniMapChart = ref();
 const oxymetryChartRef = ref();
 const respiratoryChartRef = ref();
-const stateChartRef = ref();
-const miniMapChart = ref();
-const sessionsStore = useSessionsStore();
-const usersStore = useUsersStore();
-const sessionInfo = ref({} as Session);
-const stateEvents = ref([] as Event[]);
 const respiratoryEvents = ref([] as Event[]);
-const fromIndexRef = ref(-999);
-const videoOptions = ref({
-  autoplay: false,
-  controls: true,
-  height: "250",
-  sources: [
-    {
-      src: "https://vjs.zencdn.net/v/oceans.mp4",
-      type: "video/mp4",
-    },
-  ],
-});
+const sessionInfo = ref({} as Session);
+const sessionsStore = useSessionsStore();
+const stateChartRef = ref();
+const stateEvents = ref([] as Event[]);
+const usersStore = useUsersStore();
+// const videoOptions = ref({
+//   autoplay: false,
+//   controls: true,
+//   height: "250",
+//   sources: [
+//     {
+//       src: "https://vjs.zencdn.net/v/oceans.mp4",
+//       type: "video/mp4",
+//     },
+//   ],
+// });
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChartRef.value?.getChart();
-  const resChart: IChartApi = respiratoryChartRef.value?.getChart();
+  const respiratoryChart: IChartApi = respiratoryChartRef.value?.getChart();
   const stateChart: IChartApi = stateChartRef.value?.getChart();
+  const audioChart: IChartApi = audioChartRef.value?.getChart();
 
   oxChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
-    resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    // miniMapChart.value?.drawBox(timeRange as Range<number>);
+    audioChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
-  resChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+  respiratoryChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    audioChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     const fromIndex = Math.floor(timeRange?.from as number);
     const toIndex = Math.floor(timeRange?.to as number);
 
@@ -88,11 +94,26 @@ onMounted(() => {
 
   stateChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    resChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    // miniMapChart.value?.drawBox(timeRange as Range<number>);
+    respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    audioChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
-  syncronizeCrosshairs(oxymetryChartRef.value, respiratoryChartRef.value, stateChartRef.value, SIGNALS.OXIMETRY, SIGNALS.AIR_FLOW, SIGNALS.STATE);
+  audioChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+    oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+  });
+
+  syncronizeCrosshairs(
+    oxymetryChartRef.value,
+    respiratoryChartRef.value,
+    stateChartRef.value,
+    audioChartRef.value,
+    SIGNALS.OXIMETRY,
+    SIGNALS.AIR_FLOW,
+    SIGNALS.STATE,
+    SIGNALS.AUDIO,
+  );
 });
 
 const props = defineProps({
