@@ -5,12 +5,13 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { BaselineStyleOptions, DeepPartial, IChartApi, ISeriesApi, SeriesOptionsCommon, UTCTimestamp, createChart } from "lightweight-charts";
+import { BaselineData, BaselineStyleOptions, DeepPartial, IChartApi, ISeriesApi, SeriesOptionsCommon, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
 import JSZip from "jszip";
-import { Serie } from "../../interfaces";
+import { Event, Serie } from "../../interfaces";
+import { showSnoringEvents } from "../../utilities/chart.utilities";
 
 const chartsStore = useChartsStore();
 const props = defineProps({
@@ -18,10 +19,10 @@ const props = defineProps({
     type: Object as PropType<Record<string, JSZip.JSZipObject>>,
     required: true,
   },
-  // snoreEvents: {
-  //   type: Object as PropType<Event[]> | undefined,
-  //   required: true,
-  // },
+  snoringEvents: {
+    type: Object as PropType<Event[]> | undefined,
+    required: true,
+  },
 });
 let series: Serie<"Baseline">[] = [];
 let chart: IChartApi | null = null;
@@ -135,7 +136,7 @@ function generateLineSeries(signal: string, name: string, options: DeepPartial<B
       const serie = chart?.addBaselineSeries({ ...LINE_OPTIONS, ...options });
       serie?.setData(data as any);
       series?.push({ name: name, serie: serie as ISeriesApi<"Baseline">, id: signal });
-      //showSnoreEvents(chart, serie, data as LineData<Time>[], props.snoreEvents);
+      showSnoringEvents(chart, serie, data as BaselineData<Time>[], props.snoringEvents);
       resolve();
     });
   });

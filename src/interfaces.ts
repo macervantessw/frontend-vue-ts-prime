@@ -26,6 +26,7 @@ export interface Event {
 }
 export interface SessionData {
   RespiratoryEvents: Event[];
+  SnoringEvents: Event[];
   StateEvents: Event[];
 }
 export interface Session {

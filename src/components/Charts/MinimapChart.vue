@@ -10,7 +10,7 @@ import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, VISIBLE_HALF, VISIBLE_MINUTES } from "../../constants";
 import { cloneDeep } from "lodash";
 import { Event } from "../../interfaces";
-import { showRespiratoryEvents, showStateEvents } from "../../utilities/chart.utilities";
+import { showRespiratoryEvents, showSnoringEvents, showStateEvents } from "../../utilities/chart.utilities";
 import { Box } from "./plugins/box";
 
 const chartsStore = useChartsStore();
@@ -26,6 +26,10 @@ const props = defineProps({
     required: true,
   },
   respiratoryEvents: {
+    type: Object as PropType<Event[]> | undefined,
+    required: true,
+  },
+  snoringEvents: {
     type: Object as PropType<Event[]> | undefined,
     required: true,
   },
@@ -95,8 +99,9 @@ watch(
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
 
-    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 35, 25, false);
+    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 30, 20, false);
     showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 15);
+    showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 50, 20);
   },
 );
 

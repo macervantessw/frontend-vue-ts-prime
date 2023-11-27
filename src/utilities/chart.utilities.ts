@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, SeriesOptionsMap, Time } from "lightweight-charts";
 import { Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
 
@@ -42,6 +42,28 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
       color = "hsla(97, 85%, 52%, 1)";
       offset = vertOffset + (height ?? 0);
     }
+    const from = event.startTime * 1000;
+    const to = event.endTime * 1000;
+    const box = new Box(chart, serie, data, from as Time, to as Time, offset, height, {
+      showLabel: false,
+      color: color,
+      width: 40,
+    });
+    serie.attachPrimitive(box);
+  });
+}
+
+export function showSnoringEvents(
+  chart: IChartApi | null,
+  serie: ISeriesApi<keyof SeriesOptionsMap> | undefined,
+  data: LineData[],
+  events: Event[],
+  offset = 0,
+  height?: number,
+) {
+  if (!events || !chart || !serie) return;
+  events.forEach((event) => {
+    const color = "rgba(49, 63, 71, 0.188)";
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;
     const box = new Box(chart, serie, data, from as Time, to as Time, offset, height, {

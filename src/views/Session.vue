@@ -10,10 +10,10 @@
       <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="respiratoryEvents" class="w-full" />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
-      <AudioChart ref="audioChartRef" :files="zippedFiles" class="w-full" />
+      <AudioChart ref="audioChartRef" :files="zippedFiles" :snoring-events="snoringEvents" class="w-full" />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
-      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="respiratoryEvents" class="w-full" />
+      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="respiratoryEvents" :snoring-events="snoringEvents" class="w-full" />
     </div>
     <!-- <div>
       <VideoPlayer :options="videoOptions" />
@@ -52,6 +52,7 @@ const sessionInfo = ref({} as Session);
 const sessionsStore = useSessionsStore();
 const stateChartRef = ref();
 const stateEvents = ref([] as Event[]);
+const snoringEvents = ref([] as Event[]);
 const usersStore = useUsersStore();
 // const videoOptions = ref({
 //   autoplay: false,
@@ -138,6 +139,7 @@ onBeforeMount(() => {
     sessionInfo.value = session;
     stateEvents.value = session?.Data?.StateEvents;
     respiratoryEvents.value = session?.Data?.RespiratoryEvents;
+    snoringEvents.value = session?.Data?.SnoringEvents;
   });
   downloadFileAndUncompress().then(async (files) => {
     if (files) zippedFiles.value = files;
