@@ -18,6 +18,9 @@ export const VISIBLE_MINUTES = 10;
 export const VISIBLE_HALF = VISIBLE_MINUTES / 2;
 
 export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
+  layout: {
+    background: { color: "#ffffff00" },
+  },
   autoSize: true,
   leftPriceScale: {
     visible: false,

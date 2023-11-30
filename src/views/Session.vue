@@ -163,13 +163,14 @@ async function downloadFileAndUncompress() {
 </script>
 <style>
 .card {
-  background: var(--surface-card);
+  background: #ffffff00;
   padding: 5px;
   border-radius: 4px;
   height: 100%;
   max-height: 20rem;
   min-height: 10rem;
   flex-grow: 20;
+  backdrop-filter: blur(6px);
 }
 .card-small {
   max-height: 10rem;
