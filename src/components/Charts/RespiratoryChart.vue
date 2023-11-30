@@ -21,7 +21,7 @@ const props = defineProps({
     required: true,
   },
   respiratoryEvents: {
-    type: Object as PropType<Event[]> | undefined,
+    type: Object as PropType<Event[] | undefined> | undefined,
     required: true,
   },
 });
@@ -186,7 +186,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: color });
       serie?.setData(data as any);
       series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
-      if (signal === SIGNALS.AIR_FLOW && serie) showRespiratoryEvents(chart, serie, data as LineData<Time>[], props.respiratoryEvents);
+      if (props.respiratoryEvents) if (signal === SIGNALS.AIR_FLOW && serie) showRespiratoryEvents(chart, serie, data as LineData<Time>[], props.respiratoryEvents);
       resolve();
     });
   });

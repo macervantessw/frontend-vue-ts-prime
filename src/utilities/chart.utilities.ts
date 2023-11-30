@@ -8,7 +8,7 @@ export function showRespiratoryEvents(
   chart: IChartApi | null,
   serie: ISeriesApi<"Line">,
   data: LineData[],
-  events: Event[],
+  events: Event[] | undefined,
   vertOffset = 0,
   height?: number,
   showDiscarded = true,
@@ -33,7 +33,7 @@ export function showRespiratoryEvents(
   });
 }
 
-export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line">, data: LineData[], events: Event[], vertOffset = 0, height?: number) {
+export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line">, data: LineData[], events: Event[] | undefined, vertOffset = 0, height?: number) {
   if (!events || !chart || !serie) return;
   events.forEach((event) => {
     let offset = vertOffset;
@@ -57,7 +57,7 @@ export function showSnoringEvents(
   chart: IChartApi | null,
   serie: ISeriesApi<keyof SeriesOptionsMap> | undefined,
   data: LineData[],
-  events: Event[],
+  events: Event[] | undefined,
   offset = 0,
   height?: number,
 ) {

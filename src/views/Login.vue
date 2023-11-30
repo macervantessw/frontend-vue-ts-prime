@@ -86,7 +86,7 @@ const logIn = () => {
       if (user) {
         usersStore.getUserFromDatabase(user.uid).then((user: User) => {
           usersStore.user = user;
-          router.replace("/home");
+          router.replace("/");
         });
       }
     })
@@ -103,5 +103,8 @@ const logIn = () => {
 <style>
 .login-panel {
   width: min(90%, 15rem);
+}
+#login-button {
+  border-radius: 20px;
 }
 </style>

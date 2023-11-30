@@ -18,7 +18,7 @@ let chart: IChartApi | null = null;
 const chartContainer = ref();
 const props = defineProps({
   stateEvents: {
-    type: Object as PropType<Event[]> | undefined,
+    type: Object as PropType<Event[] | undefined>,
     required: true,
   },
 });

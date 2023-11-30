@@ -25,20 +25,45 @@ export interface Event {
   sampleIndex?: number;
 }
 export interface SessionData {
-  RespiratoryEvents: Event[];
+  RespiratoryEvents?: Event[] | undefined;
   SnoringEvents: Event[];
   StateEvents: Event[];
 }
 export interface Session {
+  SessionId: string;
+  Age: number;
   Data: SessionData;
-  FileVersion: string;
+  DeviceId: string;
+  Device: string;
+  EngineType: string;
+  FrameRate: number;
+  Gender: number;
+  Height: number;
   Lang: string;
+  Name: string;
+  NumHistoryFrames: number;
+  NumIntegratedFrames: number;
+  Sensitivity: number;
+  SessionAwakeTime: number;
+  SessionCentralApneas: number;
+  SessionDuration: number;
+  SessionEndTime: number;
+  SessionIAH: string;
+  SessionNumAwakes: number;
+  SessionNumRespEvents: number;
+  SessionSleepTime: number;
+  SessionStartTime: number;
+  Surname: string;
+  TimeZoneOffset: number;
+  Type: string;
   PAtientAge: number;
   PatientBMI: number;
   PatientHeight: number;
   PatientName: string;
-  PatientWeigth: string;
-  SessionDevice: string;
-  SessionType: string;
-  UserID: string;
+  PatientSurname: string;
+  PatientWeigth: number;
+}
+
+export interface SessionResponse {
+  [key: string]: Session;
 }

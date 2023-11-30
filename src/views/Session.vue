@@ -1,19 +1,25 @@
 <template>
-  <div class="w-full h-full flex flex-column p-2 gap-3">
+  <div class="w-full h-full flex flex-column p-4 pt-6 gap-3">
     <div class="card card-small chart-container w-full shadow-2">
-      <StateChart ref="stateChartRef" :state-events="stateEvents" class="w-full" />
+      <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
       <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
-      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="respiratoryEvents" class="w-full" />
+      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents" class="w-full" />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
-      <AudioChart ref="audioChartRef" :files="zippedFiles" :snoring-events="snoringEvents" class="w-full" />
+      <AudioChart ref="audioChartRef" :files="zippedFiles" :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents" class="w-full" />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
-      <MinimapChart ref="miniMapChart" :state-events="stateEvents" :respiratory-events="respiratoryEvents" :snoring-events="snoringEvents" class="w-full" />
+      <MinimapChart
+        ref="miniMapChart"
+        :state-events="sessionsStore.selectedSession?.Data.StateEvents"
+        :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
+        :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
+        class="w-full"
+      />
     </div>
     <!-- <div>
       <VideoPlayer :options="videoOptions" />
@@ -23,18 +29,13 @@
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts" setup>
-// import { CHART_MOVEMENT } from "../constants";
-// import { useMagicKeys, whenever } from "@vueuse/core";
-// import VideoPlayer from "../components/Video/VideoPlayer.vue";
-//import { ASAP, DataPoint } from "downsample";
-import { Event, Session } from "../interfaces";
 import { IChartApi, Range, Time } from "lightweight-charts";
-import { PropType, defineProps, onBeforeMount, onMounted, ref } from "vue";
+import { onBeforeMount, onMounted, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS } from "../constants";
-import { StorageReference, getBytes } from "firebase/storage";
+import { getBytes } from "firebase/storage";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
-import { useChartsStore, useSessionsStore, useUsersStore } from "../store";
+import { useChartsStore, useSessionsStore } from "../store";
 import AudioChart from "../components/Charts/AudioChart.vue";
 import JSZip from "jszip";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
@@ -47,13 +48,11 @@ const fromIndexRef = ref(-999);
 const miniMapChart = ref();
 const oxymetryChartRef = ref();
 const respiratoryChartRef = ref();
-const respiratoryEvents = ref([] as Event[]);
-const sessionInfo = ref({} as Session);
+// const respiratoryEvents = ref([] as Event[]);
 const sessionsStore = useSessionsStore();
 const stateChartRef = ref();
-const stateEvents = ref([] as Event[]);
-const snoringEvents = ref([] as Event[]);
-const usersStore = useUsersStore();
+// const stateEvents = ref([] as Event[]);
+// const snoringEvents = ref([] as Event[]);
 // const videoOptions = ref({
 //   autoplay: false,
 //   controls: true,
@@ -117,30 +116,10 @@ onMounted(() => {
   );
 });
 
-const props = defineProps({
-  file: {
-    type: Object as PropType<StorageReference>,
-    required: true,
-  },
-  patientId: {
-    type: String,
-    required: true,
-  },
-  sessionId: {
-    type: String,
-    required: true,
-  },
-});
 const zippedFiles = ref({} as { [key: string]: JSZip.JSZipObject });
 const chartsStore = useChartsStore();
 
 onBeforeMount(() => {
-  sessionsStore.fetchSessionInfo(usersStore.userId, props.patientId, props.sessionId).then((session: Session) => {
-    sessionInfo.value = session;
-    stateEvents.value = session?.Data?.StateEvents;
-    respiratoryEvents.value = session?.Data?.RespiratoryEvents;
-    snoringEvents.value = session?.Data?.SnoringEvents;
-  });
   downloadFileAndUncompress().then(async (files) => {
     if (files) zippedFiles.value = files;
     if (!zippedFiles.value) return;
@@ -173,8 +152,10 @@ onBeforeMount(() => {
 // }
 
 async function downloadFileAndUncompress() {
-  if (!props.file) return;
-  const bytes = await getBytes(props.file);
+  if (!sessionsStore.selectedSession) return;
+  const file = await sessionsStore.fetchSessionFile(sessionsStore.selectedSession.DeviceId, sessionsStore.selectedSession.SessionId);
+  if (!file) return;
+  const bytes = await getBytes(file);
   const blob = new Blob([bytes], { type: "application/zip" });
   const zippedFiles = await uncompressFile(blob);
   return zippedFiles;

@@ -31,7 +31,7 @@ function toggleMenu(event: Event) {
 </script>
 <template>
   <div class="navbar flex align-items-center justify-content-between w-full">
-    <div class="navbar-left h-3rem w-6rem ml-3 cursor-pointer" @click="router.push('/home')">
+    <div class="navbar-left h-3rem w-6rem ml-3 cursor-pointer" @click="router.push('/')">
       <img src="../assets/logo.png" alt="logo" class="h-full" />
     </div>
     <div class="navbar-right flex align-items-center cursor-pointer" @click="toggleMenu">

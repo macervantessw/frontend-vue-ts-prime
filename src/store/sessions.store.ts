@@ -3,11 +3,19 @@ import { useUsersStore } from "./users.store";
 import { ref as fireRef, listAll, StorageReference } from "firebase/storage";
 import { ref as dbRef, get, child, DatabaseReference } from "firebase/database";
 import { db, storage } from "../firebase/firebaseInit";
-import { Session } from "../interfaces";
+import { Session, SessionResponse } from "../interfaces";
+import { useLocalStorage } from "@vueuse/core";
 
 export const useSessionsStore = defineStore("Session", {
   state: () => ({
     patients: [] as string[],
+    sessions: [] as Session[],
+    selectedSession: useLocalStorage<Session | null>("selectedSession", null, {
+      serializer: {
+        read: (v: string) => (v ? JSON.parse(v) : null),
+        write: (v: Session) => JSON.stringify(v),
+      },
+    }),
   }),
   getters: {},
   actions: {
@@ -29,13 +37,28 @@ export const useSessionsStore = defineStore("Session", {
       }
       return [];
     },
-    async fetchSessionFile(patientId: string, fileName: string): Promise<StorageReference | null> {
+    async fetchSessionFile(deviceId: string, sessionId: string): Promise<StorageReference | undefined> {
       const usersStore = useUsersStore();
       if (usersStore.userId) {
-        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${patientId}/${fileName}`);
-        return sessionRef;
+        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${deviceId}`);
+        const list = await listAll(sessionRef);
+        return list.items.find((itemRef) => itemRef.name === `${sessionId}_R.zip`);
       }
-      return null;
+      return undefined;
+    },
+    fetchAllSessions(): void {
+      const usersStrore = useUsersStore();
+      const ref: DatabaseReference = dbRef(db);
+      get(child(ref, `users/${usersStrore.userId}/Sessions/`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const response: SessionResponse = snapshot.val();
+            this.sessions = Object.keys(response).map((key) => {
+              return { ...response[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1] };
+            });
+          } else console.log("No data available");
+        })
+        .catch((error) => console.error(error));
     },
 
     async fetchSessionInfo(userId: string, patientId: string, sessionId: string): Promise<Session> {

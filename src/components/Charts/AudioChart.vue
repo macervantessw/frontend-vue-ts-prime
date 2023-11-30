@@ -20,7 +20,7 @@ const props = defineProps({
     required: true,
   },
   snoringEvents: {
-    type: Object as PropType<Event[]> | undefined,
+    type: Object as PropType<Event[] | undefined>,
     required: true,
   },
 });

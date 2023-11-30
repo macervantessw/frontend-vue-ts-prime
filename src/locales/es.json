@@ -32,5 +32,11 @@
   "Respiratory view": "Vista de respiración",
   "wrong-email": "Correo electrónico o contraseña incorrectos",
   "too-many-requests": "Demasiados intentos, inténtelo de nuevo en unos minutos o restablezca su contraseña.",
-  "Logout": "Cerrar sessión"
+  "Logout": "Cerrar sessión",
+  "Session": "Sesión",
+  "Patient": "Paciente",
+  "Age": "Edad",
+  "Weight": "Peso",
+  "Height": "Altura",
+  "view-analysys": "VER ANÁLISIS"
 }

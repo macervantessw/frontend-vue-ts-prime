@@ -3,18 +3,13 @@ import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
-import PatientSessions from "../views/PatientSessions.vue";
 import Home from "../views/Home.vue";
 import { useSessionsStore, useUsersStore } from "../store";
+import SessionsTable from "../components/SessionsTable.vue";
 
 const routes = [
   {
     path: "/",
-    redirect: "/home",
-  },
-  {
-    path: "/home",
-    name: "home",
     component: Home,
     meta: {
       requiresAuth: true,
@@ -23,23 +18,35 @@ const routes = [
       const sessionsStore = useSessionsStore();
       sessionsStore.fetchAllPatients();
     },
-  },
-  {
-    path: "/patientSessions/:patientId",
-    meta: {
-      requiresAuth: true,
-    },
-    name: "patientSessions",
-    component: PatientSessions,
-  },
-  {
-    path: "/session/:sessionId",
-    meta: {
-      requiresAuth: true,
-    },
-    name: "session",
-    component: () => import("../views/Session.vue"),
-    props: true,
+    children: [
+      {
+        path: "",
+        meta: {
+          requiresAuth: true,
+        },
+        component: SessionsTable,
+        props: true,
+      },
+      {
+        path: "/session/:sessionId",
+        meta: {
+          requiresAuth: true,
+          transition: "slide",
+        },
+        name: "session",
+        component: () => import("../views/Session.vue"),
+        props: true,
+      },
+      {
+        path: "/sessionSummary/:sessionId",
+        meta: {
+          requiresAuth: true,
+        },
+        name: "sessionSummary",
+        component: () => import("../views/SessionSummary.vue"),
+        props: true,
+      },
+    ],
   },
   {
     path: "/signup",

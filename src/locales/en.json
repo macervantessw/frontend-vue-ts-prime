@@ -28,5 +28,11 @@
   "Respiratory view": "Respiratory view",
   "wrong-email": "Wrong email or password",
   "too-many-requests": "Too many requests, please try again in a few minutes or reset your password.",
-  "Logout": "Logout"
+  "Logout": "Logout",
+  "Session": "Session",
+  "Patient": "Patient",
+  "Age": "Age",
+  "Weight": "Weight",
+  "Height": "Height",
+  "view-analysys": "VIEW ANALYSYS"
 }
