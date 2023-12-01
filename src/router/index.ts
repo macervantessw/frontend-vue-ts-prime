@@ -5,7 +5,6 @@ import Signup from "../views/Signup.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 import Home from "../views/Home.vue";
 import { useSessionsStore, useUsersStore } from "../store";
-import SessionsTable from "../components/SessionsTable.vue";
 
 const routes = [
   {
@@ -24,8 +23,8 @@ const routes = [
         meta: {
           requiresAuth: true,
         },
-        component: SessionsTable,
-        props: true,
+        name: "sessionSummary",
+        component: () => import("../views/SessionSummary.vue"),
       },
       {
         path: "/session/:sessionId",
@@ -44,7 +43,6 @@ const routes = [
         },
         name: "sessionSummary",
         component: () => import("../views/SessionSummary.vue"),
-        props: true,
       },
     ],
   },

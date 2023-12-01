@@ -30,11 +30,10 @@ export interface SessionData {
   StateEvents: Event[];
 }
 export interface Session {
-  SessionId: string;
   Age: number;
   Data: SessionData;
-  DeviceId: string;
   Device: string;
+  DeviceId: string;
   EngineType: string;
   FrameRate: number;
   Gender: number;
@@ -43,12 +42,19 @@ export interface Session {
   Name: string;
   NumHistoryFrames: number;
   NumIntegratedFrames: number;
+  PAtientAge: number;
+  PatientBMI: number;
+  PatientHeight: number;
+  PatientName: string;
+  PatientSurname: string;
+  PatientWeigth: number;
   Sensitivity: number;
   SessionAwakeTime: number;
   SessionCentralApneas: number;
   SessionDuration: number;
   SessionEndTime: number;
   SessionIAH: string;
+  SessionId: string;
   SessionNumAwakes: number;
   SessionNumRespEvents: number;
   SessionSleepTime: number;
@@ -56,12 +62,7 @@ export interface Session {
   Surname: string;
   TimeZoneOffset: number;
   Type: string;
-  PAtientAge: number;
-  PatientBMI: number;
-  PatientHeight: number;
-  PatientName: string;
-  PatientSurname: string;
-  PatientWeigth: number;
+  Weight: number;
 }
 
 export interface SessionResponse {

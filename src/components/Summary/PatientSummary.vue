@@ -14,31 +14,31 @@ const { selectedSession } = storeToRefs(sessionsStore);
       <div class="flex align-items-center">
         <Icon :icon="'material-symbols:person'" class="mr-2" /><span>{{ $t("Name") }} </span>
       </div>
-      <span class="chip">{{ selectedSession?.PatientName }}</span>
+      <span class="chip">{{ selectedSession?.PatientName || selectedSession?.Name }}</span>
     </div>
     <div class="wrapper" style="background-color: #d2f2f9">
       <div class="flex align-items-center">
         <Icon :icon="'ic:baseline-cake'" class="mr-2" />
         <span>{{ $t("Age") }} </span>
       </div>
-      <span class="chip">{{ selectedSession?.PAtientAge }} </span>
+      <span class="chip">{{ selectedSession?.PAtientAge || selectedSession?.Age }} </span>
     </div>
     <div class="wrapper" style="background-color: #d2f9e8">
       <div class="flex align-items-center">
         <Icon :icon="'icon-park-solid:weight'" class="mr-2" />
         <span>{{ $t("Weight") }} </span>
       </div>
-      <span class="chip">{{ selectedSession?.PatientWeigth }}Kg </span>
+      <span class="chip">{{ selectedSession?.PatientWeigth || selectedSession?.Weight }}Kg </span>
     </div>
     <div class="wrapper" style="background-color: #f6f9d2">
       <div class="flex align-items-center">
         <Icon :icon="'fluent:ruler-32-filled'" class="mr-2" /><span>{{ $t("Height") }} </span>
       </div>
-      <span class="chip">{{ selectedSession?.PatientHeight }}cm </span>
+      <span class="chip">{{ selectedSession?.PatientHeight || selectedSession?.Height }}cm </span>
     </div>
     <div class="wrapper" style="background-color: #fbc4ab">
       <div class="flex align-items-center"><Icon :icon="'lucide:scale'" class="mr-2" /><span>BMI </span></div>
-      <span class="chip">{{ selectedSession?.PatientBMI.toFixed(2) }} </span>
+      <span class="chip">{{ selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : "" }} </span>
     </div>
   </div>
 </template>

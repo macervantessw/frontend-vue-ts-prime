@@ -1,20 +1,35 @@
 <template>
   <div class="sessions flex flex-column h-full w-full">
     <NavigationBar />
-    <div class="home w-full h-full flex justify-content-center p-5">
-      <router-view v-slot="{ Component, route }">
-        <transition :name="'fade'" :mode="'out-in'">
-          <component :is="Component" :key="route.path" />
-        </transition>
-      </router-view>
+    <div class="flex h-full w-full">
+      <SideMenu>
+        <div>
+          <MenuItem v-for="(session, index) in sessionsSorted" :key="index" :session="session" />
+        </div>
+      </SideMenu>
+      <div class="home w-full h-full flex justify-content-center p-5">
+        <router-view v-slot="{ Component, route }">
+          <transition :name="'fade'" :mode="'out-in'" :duration="100">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </router-view>
+      </div>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import { useSessionsStore } from "../store";
-import { onBeforeMount } from "vue";
+import { computed, onBeforeMount } from "vue";
 import NavigationBar from "../components/NavigationBar.vue";
+import MenuItem from "../components/MenuItem.vue";
+import SideMenu from "../components/SideMenu.vue";
 const sessionsStore = useSessionsStore();
+
+const sessionsSorted = computed(() => {
+  return sessionsStore.sessions.toSorted((a, b) => {
+    return Number(b.SessionId) - Number(a.SessionId);
+  });
+});
 
 onBeforeMount(async () => {
   sessionsStore.fetchAllPatients();

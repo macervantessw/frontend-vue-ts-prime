@@ -44,7 +44,7 @@ const rowSelected = (event: DataTableRowSelectEvent) => {
     <Column field="PatientHeight" header="Height" />
     <Column field="PatientBMI" header="BMI">
       <template #body="{ data }">
-        <span>{{ data.PatientBMI.toFixed(2) }}</span>
+        <span>{{ data.PatientBMI ? data.PatientBMI.toFixed(2) : "" }}</span>
       </template></Column
     >
     <Column field="PatientWeigth" header="Patient Weigth" />
