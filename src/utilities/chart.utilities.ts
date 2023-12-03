@@ -37,10 +37,13 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
   if (!events || !chart || !serie) return;
   events.forEach((event) => {
     let offset = vertOffset;
-    let color = "#5586f3";
+    let color = "hsl(221, 87%, 64%)";
     if (event.eventType === 1) {
-      color = "#68b0a7";
+      color = "hsl(173, 31%, 55%)";
       offset = vertOffset + (height ?? 0);
+    } else if (event.eventType > 1) {
+      color = "hsl(30, 87%, 65%)";
+      offset = vertOffset + (height ?? 0) * 2;
     }
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;

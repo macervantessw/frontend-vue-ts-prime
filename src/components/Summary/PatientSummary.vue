@@ -9,7 +9,7 @@ const { selectedSession } = storeToRefs(sessionsStore);
 
 <template>
   <div>
-    <h2 class="mt-0 font-bold text-3xl text-900">{{ $t("Patient") }}</h2>
+    <h2 class="mt-0 font-bold text-3xl text-primary">{{ $t("Patient") }}</h2>
     <div class="wrapper" style="background-color: #d2e1f9">
       <div class="flex align-items-center">
         <Icon :icon="'material-symbols:person'" class="mr-2" /><span>{{ $t("Name") }} </span>
