@@ -37,6 +37,7 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
   if (!events || !chart || !serie) return;
   events.forEach((event) => {
     let offset = vertOffset;
+    let h = height;
     let color = "hsl(232, 87%, 64%)";
     if (event.eventType === STATES.SLEEPING) {
       color = "hsl(172, 31%, 55%)";
@@ -44,14 +45,14 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
     } else if (event.eventType === STATES.UNKNOWN) {
       color = "hsl(197, 54%, 52%)";
       offset = vertOffset;
-      height = height ? height * 2 : undefined;
+      h = height ? height * 2 : undefined;
     } else if (event.eventType === STATES.MICROAWAKE) {
       color = "hsl(30, 87%, 65%)";
       offset = vertOffset;
     }
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;
-    const box = new Box(chart, serie, data, from as Time, to as Time, offset, height, {
+    const box = new Box(chart, serie, data, from as Time, to as Time, offset, h, {
       showLabel: false,
       color: color,
       width: 40,

@@ -9,9 +9,12 @@ import {
   CreatePriceLineOptions,
   DeepPartial,
   IChartApi,
+  IPriceLine,
   ISeriesApi,
   LineStyleOptions,
+  LogicalRange,
   SeriesOptionsCommon,
+  Time,
   TimeChartOptions,
   UTCTimestamp,
   createChart,
@@ -22,6 +25,8 @@ import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../con
 import { Serie } from "../../interfaces";
 import JSZip from "jszip";
 
+let priceLines: IPriceLine[] = [];
+const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
 const chartsStore = useChartsStore();
 const props = defineProps({
   files: {
@@ -53,6 +58,9 @@ onMounted(() => {
     },
   };
   chart = createChart(chartContainer.value, { ...CHART_OPTIONS, ...options });
+  chart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+    setHeartRateLines(timeRange);
+  });
 });
 
 onUnmounted(() => {
@@ -130,9 +138,6 @@ watch(
         to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
       });
       const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
-      const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
-
-      const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
 
       if (oxymetrySeries) {
         oxymetrySeries.priceScale().applyOptions({
@@ -141,10 +146,6 @@ watch(
 
         oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90 });
         oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80 });
-      }
-      if (heartRateSeries) {
-        heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: 75 });
-        heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: 60 });
       }
     });
   },
@@ -166,9 +167,42 @@ watch(
   (newVal) => {
     if (!newVal || !chart || !chart.timeScale()) return;
     chart.timeScale().setVisibleRange(newVal);
+
+    //setHeartRateLines(chart.timeScale().getVisibleLogicalRange());
   },
   { deep: true },
 );
+
+const setHeartRateLines = (timeRange: LogicalRange | null) => {
+  if (!timeRange) return;
+
+  const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
+  if (heartRateSeries) {
+    const portion = heartRateSeries
+      ?.data()
+      .slice(timeRange.from, timeRange.to + 1)
+      .map((item: any) => item.value);
+    // const maxValue = Math.max(...portion);
+    // const minValue = Math.min(...portion);
+    if (priceLines[0]) heartRateSeries.removePriceLine(priceLines[0]);
+    if (priceLines[1]) heartRateSeries.removePriceLine(priceLines[1]);
+    priceLines = [];
+    const max = Math.max(...portion);
+    const min = Math.min(...portion);
+
+    priceLines.push(heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: max }));
+    priceLines.push(heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: min }));
+    heartRateSeries.setMarkers([
+      {
+        time: 0 as Time,
+        position: "inBar",
+        shape: "circle",
+        color: "hsla(0, 79.70%, 44.50%, 0.01)",
+        size: 1,
+      },
+    ]);
+  }
+};
 </script>
 
 <style scoped>
