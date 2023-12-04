@@ -32,9 +32,10 @@ const setChartData = () => {
   if (totalTime !== undefined && sleepTime !== undefined && awakeTime !== undefined) otherTime.value = totalTime - sleepTime - awakeTime;
 
   return {
+    labels: ["Sleep Time", "Awake Time", "Others"],
     datasets: [
       {
-        data: [sleepTime, awakeTime, otherTime.value],
+        data: [(sleepTime || 0) / 60, (awakeTime || 0) / 60, otherTime.value / 60],
         backgroundColor: ["#5586f3", "#68b0a7", "#f3a658"],
         hoverBackgroundColor: ["hsl(221, 87%, 70%)", "hsl(173, 31%, 65%)", "hsl(30, 87%, 72%)"],
       },
@@ -43,16 +44,13 @@ const setChartData = () => {
 };
 
 const setChartOptions = () => {
-  const documentStyle = getComputedStyle(document.documentElement);
-  const textColor = documentStyle.getPropertyValue("--text-color");
-
   return {
+    borderWidth: 0,
+    hoverBorderWidth: 2,
+    cutout: "60%",
     plugins: {
       legend: {
-        labels: {
-          cutout: "70%",
-          color: textColor,
-        },
+        display: false,
       },
     },
   };

@@ -14,6 +14,13 @@ export const SIGNALS = {
   AUDIO: "AA_AudioSignal.dat",
 };
 
+export const STATES = {
+  AWAKE: 0,
+  SLEEPING: 1,
+  UNKNOWN: 2,
+  MICROAWAKE: 3,
+};
+
 export const VISIBLE_MINUTES = 10;
 export const VISIBLE_HALF = VISIBLE_MINUTES / 2;
 

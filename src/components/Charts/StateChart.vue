@@ -60,7 +60,7 @@ watch(
       to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
     });
 
-    if (serie) showStateEvents(chart, serie, timeSeries, props.stateEvents, 20, 30);
+    if (serie) showStateEvents(chart, serie, timeSeries, props.stateEvents, 10, 20);
   },
 );
 </script>

@@ -2,7 +2,7 @@
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, SeriesOptionsMap, Time } from "lightweight-charts";
 import { Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
-
+import { STATES } from "../constants";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function showRespiratoryEvents(
   chart: IChartApi | null,
@@ -37,13 +37,17 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
   if (!events || !chart || !serie) return;
   events.forEach((event) => {
     let offset = vertOffset;
-    let color = "hsl(221, 87%, 64%)";
-    if (event.eventType === 1) {
-      color = "hsl(173, 31%, 55%)";
+    let color = "hsl(232, 87%, 64%)";
+    if (event.eventType === STATES.SLEEPING) {
+      color = "hsl(172, 31%, 55%)";
       offset = vertOffset + (height ?? 0);
-    } else if (event.eventType > 1) {
+    } else if (event.eventType === STATES.UNKNOWN) {
+      color = "hsl(197, 54%, 52%)";
+      offset = vertOffset;
+      height = height ? height * 2 : undefined;
+    } else if (event.eventType === STATES.MICROAWAKE) {
       color = "hsl(30, 87%, 65%)";
-      offset = vertOffset + (height ?? 0) * 2;
+      offset = vertOffset;
     }
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;
