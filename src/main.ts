@@ -11,7 +11,6 @@ import Ripple from "primevue/ripple";
 import i18n from "./i18n";
 import { createPinia } from "pinia";
 import ToastService from "primevue/toastservice";
-
 const app = createApp(App);
 const pinia = createPinia();
 

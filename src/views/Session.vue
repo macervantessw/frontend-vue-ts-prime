@@ -4,7 +4,7 @@
       <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
-      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" />
+      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" @wheel="wheelHandler" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
       <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents" class="w-full" />
@@ -64,6 +64,7 @@ const stateChartRef = ref();
 //     },
 //   ],
 // });
+
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChartRef.value?.getChart();
   const respiratoryChart: IChartApi = respiratoryChartRef.value?.getChart();
@@ -160,6 +161,10 @@ async function downloadFileAndUncompress() {
   const zippedFiles = await uncompressFile(blob);
   return zippedFiles;
 }
+
+const wheelHandler = (e: any) => {
+  console.log(e);
+};
 </script>
 <style>
 .card {

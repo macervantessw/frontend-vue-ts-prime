@@ -50,17 +50,13 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
       bottom: 0,
     },
   },
-
   handleScroll: {
+    pressedMouseMove: true,
     mouseWheel: true,
-    vertTouchDrag: true,
-    pressedMouseMove: false,
   },
   handleScale: {
     axisPressedMouseMove: true,
     mouseWheel: false,
-    pinch: true,
-    axisDoubleClickReset: false,
   },
   kineticScroll: {
     mouse: true,

@@ -6,6 +6,7 @@ import i18n from "../i18n";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
 import router from "../router";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
+import AhiSummary from "../components/Summary/AhiSummary.vue";
 
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
@@ -21,6 +22,7 @@ const goToSession = () => {
     <div class="pt-4 w-full grid gap-3">
       <PatientSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
       <SleepSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
+      <AhiSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
     </div>
     <Button :label="t('view-analysys')" class="btn-go border-round-3xl" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
