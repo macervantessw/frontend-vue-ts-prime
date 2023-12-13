@@ -76,7 +76,7 @@ const chartOptions: ApexOptions = {
     <div class="flex justify-content-between mt-4 px-3">
       <div class="flex flex-column align-items-center">
         <span class="text-lg">{{ $t("Apnea/Hipoap.") }}</span>
-        <span class="text-3xl" style="font-weight: 900; color: #5586f3">{{ "X" }}</span>
+        <span class="text-3xl" style="font-weight: 900; color: #5586f3">{{ selectedSession?.SessionNumRespEvents }}</span>
       </div>
       <div class="flex flex-column align-items-center">
         <span class="text-lg">{{ $t("Central") }}</span>
@@ -84,7 +84,9 @@ const chartOptions: ApexOptions = {
       </div>
       <div class="flex flex-column align-items-center">
         <span class="text-lg">{{ $t("Total") }}</span>
-        <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{ selectedSession?.SessionCentralApneas }}</span>
+        <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{
+          selectedSession?.SessionCentralApneas || 0 + (selectedSession?.SessionNumRespEvents || 0)
+        }}</span>
       </div>
     </div>
   </div>
