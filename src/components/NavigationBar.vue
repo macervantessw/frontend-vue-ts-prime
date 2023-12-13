@@ -7,6 +7,7 @@ import { ref } from "vue";
 import { auth } from "../firebase/firebaseInit";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
+import { version } from "../../package.json";
 
 const { t } = i18n.global;
 const usersStore = useUsersStore();
@@ -44,6 +45,7 @@ function toggleMenu(event: Event) {
       <div class="h-3rem w-6rem ml-3 cursor-pointer" @click="router.push('/')">
         <img src="../assets/logo.png" alt="logo" class="h-full" />
       </div>
+      <div class="flex align-items-end ml-5">{{ version }}</div>
     </div>
     <div class="navbar-right flex align-items-center cursor-pointer" @click="toggleMenu">
       <Avatar :label="usersStore.userInitials" class="mr-2" size="large" style="border-radius: 4px; background-color: #2196f3; color: #ffffff" />

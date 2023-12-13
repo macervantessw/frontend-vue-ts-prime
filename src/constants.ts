@@ -21,6 +21,7 @@ export const STATES = {
   MICROAWAKE: 3,
 };
 
+export const DOWNSAMPLE_RATIO = 5;
 export const VISIBLE_MINUTES = 10;
 export const VISIBLE_HALF = VISIBLE_MINUTES / 2;
 

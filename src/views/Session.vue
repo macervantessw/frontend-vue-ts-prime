@@ -1,16 +1,28 @@
 <template>
   <div class="w-full h-full flex flex-column p-4 pt-6 gap-3">
     <div class="card card-small chart-container w-full shadow-2">
-      <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full" />
+      <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full" @wheel.prevent="wheelHandler" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
-      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" @wheel="wheelHandler" />
+      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" @wheel.prevent="wheelHandler" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
-      <RespiratoryChart ref="respiratoryChartRef" :files="zippedFiles" :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents" class="w-full" />
+      <RespiratoryChart
+        ref="respiratoryChartRef"
+        :files="zippedFiles"
+        :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
+        class="w-full"
+        @wheel.prevent="wheelHandler"
+      />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
-      <AudioChart ref="audioChartRef" :files="zippedFiles" :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents" class="w-full" />
+      <AudioChart
+        ref="audioChartRef"
+        :files="zippedFiles"
+        :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
+        class="w-full"
+        @wheel.prevent="wheelHandler"
+      />
     </div>
     <div class="card card-small chart-container h-full w-full shadow-2">
       <MinimapChart
@@ -19,6 +31,7 @@
         :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
         :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
         class="w-full"
+        @wheel.prevent="wheelHandler"
       />
     </div>
     <!-- <div>
@@ -32,7 +45,7 @@
 import { IChartApi, Range, Time } from "lightweight-charts";
 import { onBeforeMount, onMounted, ref } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
-import { SIGNALS } from "../constants";
+import { SIGNALS, DOWNSAMPLE_RATIO } from "../constants";
 import { getBytes } from "firebase/storage";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
 import { useChartsStore, useSessionsStore } from "../store";
@@ -89,7 +102,15 @@ onMounted(() => {
       const from = miniMapChart.value?.getSeries()[0].data()[fromIndex];
       const to = miniMapChart.value?.getSeries()[0].data()[toIndex];
 
-      if (from?.time && to?.time) miniMapChart.value?.drawBox({ from: from.time as Time, to: to.time as Time });
+      if (from?.time && to?.time) {
+        miniMapChart.value?.drawBox({ from: from.time as Time, to: to.time as Time });
+        chartsStore.selection = {
+          range: {
+            from: from.time as Time,
+            to: to.time as Time,
+          },
+        };
+      }
     }
   });
 
@@ -128,7 +149,7 @@ onBeforeMount(() => {
     const timeAxisUnzipped = await zippedFiles.value[SIGNALS.BASETIME].async("uint8array");
     const timeAxis: number[] = readDatFile(timeAxisUnzipped);
     timeAxis.splice(-2000);
-    chartsStore.timeAxis = timeAxis.filter((_, index) => index % 3 === 0);
+    chartsStore.timeAxis = timeAxis.filter((_, index) => index % DOWNSAMPLE_RATIO === 0);
     chartsStore.reducedTimeAxis = timeAxis.filter((_, index) => index % 10 === 0);
   });
 });
@@ -163,7 +184,9 @@ async function downloadFileAndUncompress() {
 }
 
 const wheelHandler = (e: any) => {
-  console.log(e);
+  const increment = e.deltaY * 50;
+  chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
+  chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
 };
 </script>
 <style>
