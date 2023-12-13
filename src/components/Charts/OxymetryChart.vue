@@ -1,5 +1,6 @@
 <template>
-  <div ref="chartContainer" class="lw-chart"></div>
+  <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+  <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
@@ -24,6 +25,7 @@ import { getData } from "../../utilities/file.utilities";
 import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
 import { Serie } from "../../interfaces";
 import JSZip from "jszip";
+import Skeleton from "primevue/skeleton";
 
 let priceLines: IPriceLine[] = [];
 const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
@@ -147,6 +149,8 @@ watch(
         oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90 });
         oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80 });
       }
+      console.log("Oxymetry has been rendered");
+      chartsStore.oxymetryChartRendered = true;
     });
   },
 );

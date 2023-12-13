@@ -1,5 +1,6 @@
 <template>
-  <div ref="chartContainer" class="lw-chart"></div>
+  <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+  <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
@@ -12,6 +13,7 @@ import { cloneDeep } from "lodash";
 import { Event } from "../../interfaces";
 import { showRespiratoryEvents, showSnoringEvents, showStateEvents } from "../../utilities/chart.utilities";
 import { Box } from "./plugins/box";
+import Skeleton from "primevue/skeleton";
 
 const chartsStore = useChartsStore();
 const timeSeries = ref([] as LineData[]);
@@ -96,6 +98,8 @@ watch(
     });
     const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
     serie?.setData(timeSeries.value);
+    console.log("MinimapChart has been rendered");
+    chartsStore.minimapChartRendered = true;
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
 

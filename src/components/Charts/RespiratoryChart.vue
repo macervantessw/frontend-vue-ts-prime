@@ -1,5 +1,6 @@
 <template>
-  <div ref="chartContainer" class="lw-chart relative"></div>
+  <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+  <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
@@ -13,6 +14,7 @@ import JSZip from "jszip";
 import { Serie, Event } from "../../interfaces";
 import dayjs from "dayjs";
 import { showRespiratoryEvents } from "../../utilities/chart.utilities";
+import Skeleton from "primevue/skeleton";
 
 const chartsStore = useChartsStore();
 const props = defineProps({
@@ -68,7 +70,6 @@ onMounted(() => {
     ) {
       toolTip.style.display = "none";
     } else {
-      // time will be in the same format that we supplied to setData.
       // thus it will be YYYY-MM-DD
       const dateStr: any = param.time;
       toolTip.style.display = "block";
@@ -177,6 +178,8 @@ watch(
           autoScale: true,
         });
       }
+      console.log("Respiratory Chart has been rendered");
+      chartsStore.respiratoryChartRendered = true;
     });
   },
 );

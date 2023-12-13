@@ -5,17 +5,17 @@
       <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
     </div>
     <div class="card card-small chart-container w-full shadow-2">
-      <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full" @wheel.prevent="wheelHandler" />
+      <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full h-full relative" @wheel.prevent="wheelHandler" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
-      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full" @wheel.prevent="wheelHandler" />
+      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full h-full relative" @wheel.prevent="wheelHandler" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
       <RespiratoryChart
         ref="respiratoryChartRef"
         :files="zippedFiles"
         :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
-        class="w-full"
+        class="w-full h-full relative"
         @wheel.prevent="wheelHandler"
       />
     </div>
@@ -24,7 +24,7 @@
         ref="audioChartRef"
         :files="zippedFiles"
         :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
-        class="w-full"
+        class="w-full h-full relative"
         @wheel.prevent="wheelHandler"
       />
     </div>
@@ -34,7 +34,7 @@
         :state-events="sessionsStore.selectedSession?.Data.StateEvents"
         :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
         :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
-        class="w-full"
+        class="w-full h-full relative"
         @wheel.prevent="wheelHandler"
       />
     </div>
@@ -202,7 +202,6 @@ const wheelHandler = (e: any) => {
 <style>
 .card {
   background: #ffffff00;
-  padding: 5px;
   border-radius: 4px;
   height: 100%;
   max-height: 20rem;

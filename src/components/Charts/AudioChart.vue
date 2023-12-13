@@ -1,5 +1,6 @@
 <template>
-  <div ref="chartContainer" class="lw-chart relative"></div>
+  <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+  <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
@@ -12,6 +13,7 @@ import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../con
 import JSZip from "jszip";
 import { Event, Serie } from "../../interfaces";
 import { showSnoringEvents } from "../../utilities/chart.utilities";
+import Skeleton from "primevue/skeleton";
 
 const chartsStore = useChartsStore();
 const props = defineProps({
@@ -127,6 +129,8 @@ watch(
           invertScale: true,
         });
       }
+      console.log("Audio has been rendered");
+      chartsStore.audioChartRendered = true;
     });
   },
 );

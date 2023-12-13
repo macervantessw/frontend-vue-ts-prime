@@ -28,6 +28,7 @@ const goToSessionSummary = () => {
   <div class="m-2">
     <router-link
       class="menuitem p-2 shadow-1 flex w-full justify-content-between cursor-pointer"
+      :class="{ active: $route.params.sessionId === session.SessionId }"
       active-class="active shadow-4"
       :to="`/sessionSummary/${session.SessionId}`"
       @click="goToSessionSummary()"

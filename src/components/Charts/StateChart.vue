@@ -1,5 +1,6 @@
 <template>
-  <div ref="chartContainer" class="lw-chart"></div>
+  <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+  <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
@@ -10,6 +11,7 @@ import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, SIGNALS, VISIBLE_MINUTES } from "../../constants";
 import { Event, Serie } from "../../interfaces";
 import { showStateEvents } from "../../utilities/chart.utilities";
+import Skeleton from "primevue/skeleton";
 
 const chartsStore = useChartsStore();
 let series: Serie<"Line">[] = [];
@@ -54,6 +56,8 @@ watch(
     });
     const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
     serie?.setData(timeSeries);
+    console.log("State has been rendered");
+    chartsStore.stateChartRendered = true;
     series?.push({ name: SIGNALS.STATE, serie: serie as ISeriesApi<"Line">, id: SIGNALS.STATE });
     chart?.timeScale().setVisibleRange({
       from: chartsStore.timeAxis[0] as UTCTimestamp,
