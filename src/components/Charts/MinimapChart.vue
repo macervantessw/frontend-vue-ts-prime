@@ -1,6 +1,8 @@
 <template>
-  <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
-  <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
+  <div>
+    <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+    <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
+  </div>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
