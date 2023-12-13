@@ -43,12 +43,12 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
       color = "hsl(172, 31%, 55%)";
       offset = vertOffset + (height ?? 0);
     } else if (event.eventType === STATES.UNKNOWN) {
-      color = "hsl(197, 54%, 52%)";
+      color = "hsl(30, 87%, 65%)";
       offset = vertOffset;
       h = height ? height * 2 : undefined;
     } else if (event.eventType === STATES.MICROAWAKE) {
-      color = "hsl(30, 87%, 65%)";
-      offset = vertOffset;
+      color = "hsl(197, 54%, 52%)";
+      offset = vertOffset + (height ?? 0);
     }
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;
@@ -70,6 +70,7 @@ export function showSnoringEvents(
   height?: number,
 ) {
   if (!events || !chart || !serie) return;
+  events = events.filter((event) => event.eventType === 10);
   events.forEach((event) => {
     const color = "rgba(49, 63, 71, 0.188)";
     const from = event.startTime * 1000;
