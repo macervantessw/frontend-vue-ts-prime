@@ -1,5 +1,9 @@
 <template>
-  <div class="w-full h-full flex flex-column p-4 pt-6 gap-3">
+  <div class="w-full h-full flex flex-column p-4 pt-0 gap-3">
+    <div>
+      <h1 class="m-0 text-800">{{ selectedSession?.PatientName || selectedSession?.Name }} {{ selectedSession?.Surname || selectedSession?.PatientSurname }}</h1>
+      <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
+    </div>
     <div class="card card-small chart-container w-full shadow-2">
       <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full" @wheel.prevent="wheelHandler" />
     </div>
@@ -55,6 +59,8 @@ import MinimapChart from "../components/Charts/MinimapChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
+import { storeToRefs } from "pinia";
+import dayjs from "dayjs";
 
 const audioChartRef = ref();
 const fromIndexRef = ref(-999);
@@ -64,6 +70,7 @@ const respiratoryChartRef = ref();
 // const respiratoryEvents = ref([] as Event[]);
 const sessionsStore = useSessionsStore();
 const stateChartRef = ref();
+const { selectedSession } = storeToRefs(sessionsStore);
 // const stateEvents = ref([] as Event[]);
 // const snoringEvents = ref([] as Event[]);
 // const videoOptions = ref({
@@ -77,7 +84,10 @@ const stateChartRef = ref();
 //     },
 //   ],
 // });
-
+const sessionDate = () => {
+  const date = dayjs.unix(Number(selectedSession.value?.SessionId));
+  return date.format("DD/MM/YYYY HH:mm");
+};
 onMounted(() => {
   const oxChart: IChartApi = oxymetryChartRef.value?.getChart();
   const respiratoryChart: IChartApi = respiratoryChartRef.value?.getChart();
