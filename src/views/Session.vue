@@ -38,16 +38,15 @@
         @wheel.prevent="wheelHandler"
       />
     </div>
-    <!-- <div>
-      <VideoPlayer :options="videoOptions" />
-    </div> -->
+
+    <VideoPlayer v-if="!!videoLink" :options="videoOptions" />
   </div>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts" setup>
 import { IChartApi, Range, Time } from "lightweight-charts";
-import { onBeforeMount, onMounted, ref } from "vue";
+import { onBeforeMount, onMounted, ref, computed } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS, DOWNSAMPLE_RATIO } from "../constants";
 import { getBytes } from "firebase/storage";
@@ -61,6 +60,7 @@ import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
 import { storeToRefs } from "pinia";
 import dayjs from "dayjs";
+import VideoPlayer from "../components/video/VideoPlayer.vue";
 
 const audioChartRef = ref();
 const fromIndexRef = ref(-999);
@@ -73,17 +73,21 @@ const stateChartRef = ref();
 const { selectedSession } = storeToRefs(sessionsStore);
 // const stateEvents = ref([] as Event[]);
 // const snoringEvents = ref([] as Event[]);
-// const videoOptions = ref({
-//   autoplay: false,
-//   controls: true,
-//   height: "250",
-//   sources: [
-//     {
-//       src: "https://vjs.zencdn.net/v/oceans.mp4",
-//       type: "video/mp4",
-//     },
-//   ],
-// });
+const videoLink = ref(undefined as string | undefined);
+const videoOptions = computed(() => {
+  return {
+    autoplay: false,
+    controls: true,
+    height: "250",
+    sources: [
+      {
+        src: videoLink.value,
+        type: "video/mp4",
+      },
+    ],
+  };
+});
+
 const sessionDate = () => {
   const date = dayjs.unix(Number(selectedSession.value?.SessionId));
   return date.format("DD/MM/YYYY HH:mm");
@@ -162,6 +166,11 @@ onBeforeMount(() => {
     chartsStore.timeAxis = timeAxis.filter((_, index) => index % DOWNSAMPLE_RATIO === 0);
     chartsStore.reducedTimeAxis = timeAxis.filter((_, index) => index % 10 === 0);
   });
+  if (selectedSession.value) {
+    sessionsStore.fetchSessionVideo(selectedSession.value.DeviceId, selectedSession.value?.SessionId, selectedSession.value?.userId).then((link) => {
+      videoLink.value = link;
+    });
+  }
 });
 
 // whenever(keys.ArrowRight, () => {
@@ -185,7 +194,11 @@ onBeforeMount(() => {
 
 async function downloadFileAndUncompress() {
   if (!sessionsStore.selectedSession) return;
-  const file = await sessionsStore.fetchSessionFile(sessionsStore.selectedSession.DeviceId, sessionsStore.selectedSession.SessionId);
+  const file = await sessionsStore.fetchSessionFile(
+    sessionsStore.selectedSession.DeviceId,
+    sessionsStore.selectedSession.SessionId,
+    sessionsStore.selectedSession.userId,
+  );
   if (!file) return;
   const bytes = await getBytes(file);
   const blob = new Blob([bytes], { type: "application/zip" });

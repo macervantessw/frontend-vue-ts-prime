@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useUsersStore } from "./users.store";
-import { ref as fireRef, listAll, StorageReference } from "firebase/storage";
+import { ref as fireRef, getDownloadURL, listAll, StorageReference } from "firebase/storage";
 import { ref as dbRef, get, child, DatabaseReference } from "firebase/database";
 import { db, storage } from "../firebase/firebaseInit";
 import { Session, SessionResponse } from "../interfaces";
@@ -37,12 +37,26 @@ export const useSessionsStore = defineStore("Session", {
       }
       return [];
     },
-    async fetchSessionFile(deviceId: string, sessionId: string): Promise<StorageReference | undefined> {
+    async fetchSessionFile(deviceId: string, sessionId: string, userId?: string): Promise<StorageReference | undefined> {
       const usersStore = useUsersStore();
-      if (usersStore.userId) {
-        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${deviceId}`);
+      if (!userId) userId = usersStore.userId;
+      if (userId) {
+        const sessionRef = fireRef(storage, `Sessions/${userId}/${deviceId}`);
         const list = await listAll(sessionRef);
         return list.items.find((itemRef) => itemRef.name === `${sessionId}_R.zip`);
+      }
+      return undefined;
+    },
+    async fetchSessionVideo(deviceId: string, sessionId: string, userId?: string) {
+      const usersStore = useUsersStore();
+      if (!userId) userId = usersStore.userId;
+      if (userId) {
+        const sessionRef = fireRef(storage, `Sessions/${userId}/${deviceId}`);
+        const list = await listAll(sessionRef);
+        const videoRef = list.items.find((itemRef) => itemRef.name === `${sessionId}_M.mp4`);
+        if (!videoRef) return undefined;
+        const downloadURL = await getDownloadURL(videoRef);
+        return downloadURL;
       }
       return undefined;
     },
