@@ -75,6 +75,7 @@ onMounted(() => {
 
   chart.subscribeClick((param: MouseEventParams) => {
     if (!param.point || !param.time) return;
+    chartsStore.setCurrentTime(param.time as UTCTimestamp);
     setSelectionBox(param.time);
   });
 
@@ -121,6 +122,7 @@ function setSelectionBox(time: Time) {
     to = chartsStore.timeAxis[chartsStore.timeAxis.length - 1];
     from = to - VISIBLE_MINUTES * 60 * 1000;
   }
+
   chartsStore.selection = {
     range: { from: from as Time, to: to as Time },
   };

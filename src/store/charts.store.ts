@@ -7,6 +7,7 @@ export const useChartsStore = defineStore("Charts", {
     selection: {} as { range: Range<Time> },
     timeAxis: [] as number[],
     reducedTimeAxis: [] as number[],
+    currentTime: 0,
     oxymetryChartRendered: false,
     stateChartRendered: false,
     audioChartRendered: false,
@@ -25,6 +26,9 @@ export const useChartsStore = defineStore("Charts", {
       this.audioChartRendered = false;
       this.minimapChartRendered = false;
       this.respiratoryChartRendered = false;
+    },
+    setCurrentTime(time: number) {
+      this.currentTime = (time - this.timeAxis[0]) / 1000;
     },
   },
 });

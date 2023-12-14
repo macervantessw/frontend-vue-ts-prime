@@ -7,7 +7,7 @@
     <div class="card card-small chart-container w-full shadow-2">
       <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full h-full relative" @wheel.prevent="wheelHandler" />
     </div>
-    <div class="card chart-container h-full w-full shadow-2">
+    <div class="card chart-container h-full w-full shadow-2" style="max-height: 15rem; min-height: 7rem">
       <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full h-full relative" @wheel.prevent="wheelHandler" />
     </div>
     <div class="card chart-container h-full w-full shadow-2">
@@ -19,7 +19,7 @@
         @wheel.prevent="wheelHandler"
       />
     </div>
-    <div class="card card-small chart-container h-full w-full shadow-2">
+    <div class="card card-small chart-container h-full w-full shadow-2" style="max-height: 7rem; min-height: 4rem">
       <AudioChart
         ref="audioChartRef"
         :files="zippedFiles"
@@ -28,7 +28,7 @@
         @wheel.prevent="wheelHandler"
       />
     </div>
-    <div class="card card-small chart-container h-full w-full shadow-2">
+    <div class="card card-small chart-container h-full w-full shadow-2" style="max-height: 7rem; min-height: 4rem">
       <MinimapChart
         ref="miniMapChart"
         :state-events="sessionsStore.selectedSession?.Data.StateEvents"
@@ -39,7 +39,9 @@
       />
     </div>
 
-    <VideoPlayer v-if="!!videoLink" :options="videoOptions" />
+    <div style="height: 12rem">
+      <VideoPlayer v-if="!!videoLink" :options="videoOptions" />
+    </div>
   </div>
 </template>
 
