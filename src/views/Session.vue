@@ -45,22 +45,22 @@
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts" setup>
+import { getBytes } from "firebase/storage";
 import { IChartApi, Range, Time } from "lightweight-charts";
 import { onBeforeMount, onMounted, ref, computed } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
 import { SIGNALS, DOWNSAMPLE_RATIO } from "../constants";
-import { getBytes } from "firebase/storage";
+import { storeToRefs } from "pinia";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
 import { useChartsStore, useSessionsStore } from "../store";
 import AudioChart from "../components/Charts/AudioChart.vue";
+import dayjs from "dayjs";
 import JSZip from "jszip";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
-import { storeToRefs } from "pinia";
-import dayjs from "dayjs";
-import VideoPlayer from "../components/video/VideoPlayer.vue";
+import VideoPlayer from "../components/Video/VideoPlayer.vue";
 
 const audioChartRef = ref();
 const fromIndexRef = ref(-999);

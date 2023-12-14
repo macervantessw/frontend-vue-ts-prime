@@ -2,10 +2,11 @@
 import { PropType } from "vue";
 import { Session } from "../interfaces";
 import dayjs from "dayjs";
-import { useMainStore, useSessionsStore } from "../store";
+import { useMainStore, useSessionsStore, useChartsStore } from "../store";
 
 const sessionsStore = useSessionsStore();
 const mainStore = useMainStore();
+const chartsStore = useChartsStore();
 
 const props = defineProps({
   session: {
@@ -22,6 +23,7 @@ const sessionDate = () => {
 const goToSessionSummary = () => {
   sessionsStore.selectedSession = props.session;
   mainStore.menuVisible = false;
+  chartsStore.setNotRendered();
 };
 </script>
 <template>

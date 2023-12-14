@@ -18,5 +18,13 @@ export const useChartsStore = defineStore("Charts", {
       return state.oxymetryChartRendered && state.stateChartRendered && state.audioChartRendered && state.minimapChartRendered && state.respiratoryChartRendered;
     },
   },
-  actions: {},
+  actions: {
+    setNotRendered() {
+      this.oxymetryChartRendered = false;
+      this.stateChartRendered = false;
+      this.audioChartRendered = false;
+      this.minimapChartRendered = false;
+      this.respiratoryChartRendered = false;
+    },
+  },
 });

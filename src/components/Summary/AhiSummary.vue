@@ -69,13 +69,13 @@ const chartOptions: ApexOptions = {
 </script>
 <template>
   <div>
-    <h2 class="mt-0 mb-1 font-bold text-3xl text-primary">{{ $t("AHI") }}</h2>
+    <h2 class="mt-0 mb-1 font-bold text-3xl text-primary">AHI</h2>
     <div class="w-full flex justify-content-center">
       <VueApexCharts height="312px" type="radialBar" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
     <div class="flex justify-content-between mt-4 px-3">
       <div class="flex flex-column align-items-center">
-        <span class="text-lg">{{ $t("Apnea/Hipoap.") }}</span>
+        <span class="text-lg">Apnea/Hipoap.</span>
         <span class="text-3xl" style="font-weight: 900; color: #5586f3">{{ selectedSession?.SessionNumRespEvents }}</span>
       </div>
       <div class="flex flex-column align-items-center">
