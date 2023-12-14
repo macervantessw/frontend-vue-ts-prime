@@ -3,6 +3,7 @@ import { IChartApi, ISeriesApi, LineData, MouseEventParams, SeriesOptionsMap, Ti
 import { Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
 import { STATES } from "../constants";
+import { useChartsStore } from "../store";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function showRespiratoryEvents(
   chart: IChartApi | null,
@@ -94,6 +95,7 @@ export function syncronizeCrosshairs(
   mainSerie3Id: string,
   mainSerie4Id: string,
 ) {
+  const chartsStore = useChartsStore();
   const chart1: IChartApi = chart1Ref?.getChart();
   const chart2: IChartApi = chart2Ref?.getChart();
   const chart3: IChartApi = chart3Ref?.getChart();
@@ -135,6 +137,7 @@ export function syncronizeCrosshairs(
     syncCrosshair(chart2, mainSeries2, dataPoint);
     syncCrosshair(chart3, mainSeries3, dataPoint);
     syncCrosshair(chart4, mainSeries4, dataPoint);
+    chartsStore.setCurrentTime(dataPoint?.time as number);
   });
   chart2.subscribeCrosshairMove((param) => {
     checkSeries();
@@ -144,6 +147,7 @@ export function syncronizeCrosshairs(
     syncCrosshair(chart1, mainSeries1, dataPoint);
     syncCrosshair(chart3, mainSeries3, dataPoint);
     syncCrosshair(chart4, mainSeries4, dataPoint);
+    chartsStore.setCurrentTime(dataPoint?.time as number);
   });
 
   chart3.subscribeCrosshairMove((param) => {
@@ -154,6 +158,7 @@ export function syncronizeCrosshairs(
     syncCrosshair(chart1, mainSeries1, dataPoint);
     syncCrosshair(chart2, mainSeries2, dataPoint);
     syncCrosshair(chart4, mainSeries4, dataPoint);
+    chartsStore.setCurrentTime(dataPoint?.time as number);
   });
 
   chart4.subscribeCrosshairMove((param) => {
@@ -164,6 +169,7 @@ export function syncronizeCrosshairs(
     syncCrosshair(chart1, mainSeries1, dataPoint);
     syncCrosshair(chart2, mainSeries2, dataPoint);
     syncCrosshair(chart3, mainSeries3, dataPoint);
+    chartsStore.setCurrentTime(dataPoint?.time as number);
   });
 }
 
