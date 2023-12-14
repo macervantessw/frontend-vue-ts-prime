@@ -1,0 +1,27 @@
+name: Slack Notification
+
+on: [push]
+
+jobs:
+  slack-notification:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get commit message
+      id: commit
+      run: echo "::set-output name=message::$(git log --format=%B -n 1 ${{ github.event.after }})"
+      shell: bash
+
+    - name: Get package version
+      id: package
+      run: echo "::set-output name=version::$(jq -r .version package.json)"
+      shell: bash
+
+    - name: Notify Slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: 'Commit Message: ${{ steps.commit.outputs.message }}\nPackage Version: ${{ steps.package.outputs.version }}'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TOKEN }}
