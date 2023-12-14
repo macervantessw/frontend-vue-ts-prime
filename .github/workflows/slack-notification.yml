@@ -1,6 +1,10 @@
 name: Slack Notification
 
-on: [push]
+on: 
+  push:
+    branches:
+      -  'master'
+      -  'development' 
 
 jobs:
   slack-notification:
