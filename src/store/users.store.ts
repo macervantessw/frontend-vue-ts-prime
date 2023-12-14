@@ -25,6 +25,9 @@ export const useUsersStore = defineStore("Users", {
       if (!this.user) return "";
       return this.user.name[0] + this.user.lastName[0];
     },
+    isAdmin(): boolean {
+      return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2";
+    },
   },
   actions: {
     loginUserWithEmailAndPassword(email: string, password: string, rememberMe: boolean) {

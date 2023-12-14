@@ -49,16 +49,36 @@ export const useSessionsStore = defineStore("Session", {
     fetchAllSessions(): void {
       const usersStrore = useUsersStore();
       const ref: DatabaseReference = dbRef(db);
-      get(child(ref, `users/${usersStrore.userId}/Sessions/`))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            const response: SessionResponse = snapshot.val();
-            this.sessions = Object.keys(response).map((key) => {
-              return { ...response[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1] };
-            });
-          } else console.log("No data available");
-        })
-        .catch((error) => console.error(error));
+      if (usersStrore.isAdmin) {
+        get(child(ref, `users/`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const response: any = snapshot.val();
+              for (const user in response) {
+                if (response[user].Sessions) {
+                  const res = response[user].Sessions;
+                  const sessions = Object.keys(res).map((key) => {
+                    return { ...res[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1], userId: user };
+                  });
+                  this.sessions.push(...sessions);
+                }
+              }
+            } else console.log("No data available");
+          })
+          .catch((error) => console.error(error));
+      } else {
+        get(child(ref, `users/${usersStrore.userId}/Sessions/`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              const response: SessionResponse = snapshot.val();
+              this.sessions = Object.keys(response).map((key) => {
+                return { ...response[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1], userId: usersStrore.userId };
+              });
+            } else console.log("No data available");
+          })
+          .catch((error) => console.error(error));
+      }
     },
 
     async fetchSessionInfo(userId: string, patientId: string, sessionId: string): Promise<Session> {

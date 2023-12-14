@@ -63,6 +63,7 @@ export interface Session {
   TimeZoneOffset: number;
   Type: string;
   Weight: number;
+  userId: string;
 }
 
 export interface SessionResponse {

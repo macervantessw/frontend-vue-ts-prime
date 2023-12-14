@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMainStore } from "../store";
+import { useMainStore, useUsersStore } from "../store";
 import { storeToRefs } from "pinia";
 import { useWindowSize } from "@vueuse/core";
 import { computed } from "vue";
@@ -8,6 +8,7 @@ const { width } = useWindowSize();
 
 const mainStore = useMainStore();
 const { menuVisible } = storeToRefs(mainStore);
+const usersStore = useUsersStore();
 
 const visible = computed(() => {
   return width.value > 768 || menuVisible.value;
@@ -16,7 +17,7 @@ const visible = computed(() => {
 
 <template>
   <Transition name="slidemenu">
-    <div v-if="visible" class="sidemenu flex flex-column h-full fixed md:relative z-5">
+    <div v-if="visible" class="sidemenu flex flex-column h-full fixed md:relative z-5" :class="{ wide: usersStore.isAdmin }">
       <slot />
     </div>
   </Transition>
@@ -28,6 +29,10 @@ const visible = computed(() => {
   width: 20rem;
   min-width: 20rem;
   border-right: 1px solid var(--surface-border);
+}
+.sidemenu.wide {
+  width: 25rem;
+  min-width: 25rem;
 }
 .slidemenu-enter-active,
 .slidemenu-leave-active {

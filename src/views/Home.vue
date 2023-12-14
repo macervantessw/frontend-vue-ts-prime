@@ -3,7 +3,18 @@
     <NavigationBar />
     <div class="flex h-full w-full">
       <SideMenu>
-        <div>
+        <div v-if="usersStore.isAdmin">
+          <Accordion>
+            <AccordionTab v-for="(user, index) in sessionsGrouped" :key="index" :header="index.toString()">
+              <Accordion>
+                <AccordionTab v-for="(device, index) in user" :key="index" :header="index.toString()">
+                  <MenuItem v-for="(session, index) in device" :key="index" :session="session" />
+                </AccordionTab>
+              </Accordion>
+            </AccordionTab>
+          </Accordion>
+        </div>
+        <div v-else>
           <MenuItem v-for="(session, index) in sessionsSorted" :key="index" :session="session" />
         </div>
       </SideMenu>
@@ -18,17 +29,36 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { useSessionsStore } from "../store";
+import { useSessionsStore, useUsersStore } from "../store";
 import { computed, onBeforeMount } from "vue";
 import NavigationBar from "../components/NavigationBar.vue";
 import MenuItem from "../components/MenuItem.vue";
 import SideMenu from "../components/SideMenu.vue";
+import Accordion from "primevue/accordion";
+import AccordionTab from "primevue/accordiontab";
+
 const sessionsStore = useSessionsStore();
+const usersStore = useUsersStore();
 
 const sessionsSorted = computed(() => {
   return sessionsStore.sessions.toSorted((a, b) => {
     return Number(b.SessionId) - Number(a.SessionId);
   });
+});
+
+const sessionsGrouped = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const grouped: any = {};
+  sessionsStore.sessions.forEach((session) => {
+    if (grouped[session.userId]) {
+      if (grouped[session.userId][session.DeviceId]) grouped[session.userId][session.DeviceId].push(session);
+      else grouped[session.userId][session.DeviceId] = [session];
+    } else {
+      grouped[session.userId] = {};
+      grouped[session.userId][session.DeviceId] = [session];
+    }
+  });
+  return grouped;
 });
 
 onBeforeMount(async () => {
@@ -54,5 +84,12 @@ onBeforeMount(async () => {
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(100%);
+}
+.p-accordion .p-accordion-content {
+  padding: 5px 0 0 10px !important;
+}
+span.p-accordion-header-text {
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
