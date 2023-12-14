@@ -24,4 +24,4 @@ jobs:
         status: ${{ job.status }}
         text: 'Commit Message: ${{ steps.commit.outputs.message }}\nPackage Version: ${{ steps.package.outputs.version }}'
       env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
