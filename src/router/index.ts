@@ -77,7 +77,7 @@ router.beforeEach(async (to, from, next) => {
       usersStore.userId = user.uid;
       next();
     } else {
-      next("/login");
+      next({ name: "login", query: { redirectFrom: to.fullPath } });
     }
   } else {
     next();

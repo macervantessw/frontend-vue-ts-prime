@@ -34,21 +34,21 @@
 <script setup lang="ts">
 import Checkbox from "primevue/checkbox";
 import Button from "primevue/button";
-import { RouterLink } from "vue-router";
+import { RouterLink, RouteLocationRaw } from "vue-router";
 import { ref, computed } from "vue";
 import i18n from "../i18n";
 import { useVuelidate } from "@vuelidate/core";
 import { required, email } from "@vuelidate/validators";
 import TextInputWithLabel from "../components/TextInputWithLabel.vue";
 import PasswordInput from "../components/PasswordInput.vue";
-import { useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { useMessagesStore, useUsersStore } from "../store";
 import { User } from "../interfaces";
 import { User as FireUser } from "firebase/auth";
-
+import router from "../router";
 const messagesStore = useMessagesStore();
 const usersStore = useUsersStore();
-const router = useRouter();
+const route = useRoute();
 
 let emailInput = ref("");
 let password = ref("");
@@ -86,7 +86,7 @@ const logIn = () => {
       if (user) {
         usersStore.getUserFromDatabase(user.uid).then((user: User) => {
           usersStore.user = user;
-          router.replace("/");
+          router.push((route.query.redirectFrom as RouteLocationRaw) || "/");
         });
       }
     })
