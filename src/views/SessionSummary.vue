@@ -28,7 +28,7 @@ const goToSession = () => {
       <SleepSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
       <AhiSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
     </div>
-    <Button :label="t('view-analysys')" class="btn-go border-round-3xl" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
+    <Button :label="t('view-analysys')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
 </template>
 <style>
@@ -47,13 +47,10 @@ const goToSession = () => {
   font-size: 1.75rem;
   font-weight: 700;
   cursor: pointer;
-
-  transition: all 0.3s ease;
-}
-.btn-go {
   border: 2px solid rgb(255, 255, 255);
   z-index: 1;
   color: white;
+  transition: all 0.3s ease;
 }
 
 .btn-go:after {
