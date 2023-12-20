@@ -23,7 +23,7 @@ const goToSession = () => {
 <template>
   <div class="flex flex-column h-full w-full">
     <h1 class="w-full text-primary">{{ $t("Session") }} {{ sessionsStore.selectedSession?.SessionId }}</h1>
-    <div class="pt-4 w-full grid gap-3">
+    <div class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
       <PatientSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
       <SleepSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
       <AhiSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
@@ -37,7 +37,7 @@ const goToSession = () => {
   border: 1px solid rgba(204, 204, 204, 0.15);
   backdrop-filter: blur(6px);
   border-radius: 10px;
-  max-width: 30rem;
+  max-width: 32rem;
 }
 .btn-go {
   position: absolute;

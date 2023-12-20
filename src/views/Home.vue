@@ -22,7 +22,7 @@
           </Accordion>
         </div>
       </SideMenu>
-      <div class="home w-full h-full flex justify-content-center p-5">
+      <div class="home w-full h-full flex justify-content-center p-2 sm:p-5">
         <router-view v-slot="{ Component, route }">
           <transition :name="'fade'" :mode="'out-in'" :duration="100">
             <component :is="Component" :key="route.path" />
