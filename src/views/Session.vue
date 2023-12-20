@@ -39,9 +39,7 @@
       />
     </div>
 
-    <div style="height: 12rem">
-      <VideoPlayer v-if="!!videoLink" :options="videoOptions" />
-    </div>
+    <VideoPlayer v-if="!!videoLink" :options="videoOptions" style="height: 24rem; width: 32rem" />
   </div>
 </template>
 
@@ -79,6 +77,7 @@ const videoLink = ref(undefined as string | undefined);
 const videoOptions = computed(() => {
   return {
     autoplay: false,
+    fill: true,
     controls: true,
     height: "250",
     sources: [

@@ -4,9 +4,9 @@
     <div class="flex h-full w-full">
       <SideMenu>
         <div v-if="usersStore.isAdmin">
-          <Accordion>
+          <Accordion :active-index="0">
             <AccordionTab v-for="(user, index) in sessionsGrouped" :key="index" :header="index.toString()">
-              <Accordion>
+              <Accordion :active-index="0">
                 <AccordionTab v-for="(device, index) in user" :key="index" :header="index.toString()">
                   <MenuItem v-for="(session, index) in device" :key="index" :session="session" />
                 </AccordionTab>
@@ -15,7 +15,11 @@
           </Accordion>
         </div>
         <div v-else>
-          <MenuItem v-for="(session, index) in sessionsSorted" :key="index" :session="session" />
+          <Accordion :active-index="0">
+            <AccordionTab v-for="(device, index) in groupedByDevice" :key="index" :header="index.toString()">
+              <MenuItem v-for="(session, index) in device" :key="index" :session="session" />
+            </AccordionTab>
+          </Accordion>
         </div>
       </SideMenu>
       <div class="home w-full h-full flex justify-content-center p-5">
@@ -40,10 +44,14 @@ import AccordionTab from "primevue/accordiontab";
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 
-const sessionsSorted = computed(() => {
-  return sessionsStore.sessions.toSorted((a, b) => {
-    return Number(b.SessionId) - Number(a.SessionId);
+const groupedByDevice = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const grouped: any = {};
+  sessionsStore.sessions.forEach((session) => {
+    if (grouped[session.DeviceId]) grouped[session.DeviceId].push(session);
+    else grouped[session.DeviceId] = [session];
   });
+  return grouped;
 });
 
 const sessionsGrouped = computed(() => {

@@ -15,12 +15,20 @@ const props = defineProps({
 
 const videoPlayer = ref();
 const player = ref<Player>();
+const isMinimized = ref(false);
 
 onMounted(() => {
   const options = {
     ...props.options,
   };
   player.value = videojs(videoPlayer.value, options);
+  player.value.on("enterpictureinpicture", () => {
+    isMinimized.value = true;
+  });
+
+  player.value.on("leavepictureinpicture", () => {
+    isMinimized.value = false;
+  });
 });
 
 onBeforeUnmount(() => {
@@ -28,7 +36,6 @@ onBeforeUnmount(() => {
     player.value.dispose();
   }
 });
-
 watch(
   () => chartsStore.currentTime,
   (currentTime: number) => {
@@ -39,6 +46,18 @@ watch(
 );
 </script>
 <template>
-  <video ref="videoPlayer" class="video-js"></video>
+  <div ref="videoContainer" :class="{ minimized: isMinimized }">
+    <video ref="videoPlayer" class="video-js" :class="{ minimized: isMinimized }"></video>
+  </div>
 </template>
-<style></style>
+<style>
+.minimized {
+  width: 30rem !important;
+  height: 30px !important;
+  min-height: 0;
+}
+.video-js {
+  width: 100%;
+  height: 100%;
+}
+</style>

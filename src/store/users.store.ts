@@ -26,7 +26,7 @@ export const useUsersStore = defineStore("Users", {
       return this.user.name[0] + this.user.lastName[0];
     },
     isAdmin(): boolean {
-      return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2" || this.userId === "W3kgbH7b6ueZImJwiNqtMXUA4Ni1";
+      return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2";
     },
   },
   actions: {

@@ -1,6 +1,6 @@
 import { Range, Time } from "lightweight-charts";
 import { defineStore } from "pinia";
-
+import { useSessionsStore } from "./sessions.store";
 export const useChartsStore = defineStore("Charts", {
   state: () => ({
     xaxis: {} as { min: number; max: number },
@@ -28,7 +28,8 @@ export const useChartsStore = defineStore("Charts", {
       this.respiratoryChartRendered = false;
     },
     setCurrentTime(time: number) {
-      this.currentTime = (time - this.timeAxis[0]) / 1000;
+      const sessionsStore = useSessionsStore();
+      this.currentTime = time / 1000 - (sessionsStore.selectedSession?.SessionStartTime || this.timeAxis[0] / 1000);
     },
   },
 });
