@@ -40,5 +40,7 @@
   "Total": "Total",
   "Others": "Others",
   "Awake time": "Awake time",
-  "Sleep Time": "Sleep Time"
+  "Sleep Time": "Sleep Time",
+  "ERR_BAD_REQUEST": "ERR_BAD_REQUEST",
+  "Permission denied": "Permission denied"
 }

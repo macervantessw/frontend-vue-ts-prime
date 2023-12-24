@@ -2,10 +2,14 @@ import { defineStore } from "pinia";
 import { useUsersStore } from "./users.store";
 import { ref as fireRef, getDownloadURL, listAll, StorageReference } from "firebase/storage";
 import { ref as dbRef, get, child, DatabaseReference } from "firebase/database";
-import { db, storage } from "../firebase/firebaseInit";
+import app, { db, storage } from "../firebase/firebaseInit";
 import { Session, SessionResponse } from "../interfaces";
 import { useLocalStorage } from "@vueuse/core";
+import { useMessagesStore } from "./messages.store";
+import axios from "axios";
+import i18n from "../i18n";
 
+const { t } = i18n.global;
 export const useSessionsStore = defineStore("Session", {
   state: () => ({
     patients: [] as string[],
@@ -19,15 +23,15 @@ export const useSessionsStore = defineStore("Session", {
   }),
   getters: {},
   actions: {
-    fetchAllPatients() {
-      const usersStore = useUsersStore();
-      if (usersStore.userId) {
-        const patientsRef = fireRef(storage, `Sessions/${usersStore.userId}`);
-        listAll(patientsRef).then((res) => {
-          this.patients = res.prefixes.map((folderRef) => folderRef.name);
-        });
-      }
-    },
+    // fetchAllPatients() {
+    //   const usersStore = useUsersStore();
+    //   if (usersStore.userId) {
+    //     const patientsRef = fireRef(storage, `Sessions/${usersStore.userId}`);
+    //     listAll(patientsRef).then((res) => {
+    //       this.patients = res.prefixes.map((folderRef) => folderRef.name);
+    //     });
+    //   }
+    // },
     async fetchPatientSessions(patientId: string): Promise<StorageReference[]> {
       const usersStore = useUsersStore();
       if (usersStore.userId) {
@@ -60,15 +64,17 @@ export const useSessionsStore = defineStore("Session", {
       }
       return undefined;
     },
-    fetchAllSessions(): void {
+    async fetchAllSessions(): Promise<void> {
+      const messagesStore = useMessagesStore();
       const usersStrore = useUsersStore();
       const ref: DatabaseReference = dbRef(db);
       if (usersStrore.isAdmin) {
-        get(child(ref, `users/`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const response: any = snapshot.val();
+        if (usersStrore.authToken) {
+          axios
+            .get(`${app.options.databaseURL}/users.json?auth=${usersStrore.authToken}`)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .then((response: any) => {
+              response = response.data;
               for (const user in response) {
                 if (response[user].Sessions) {
                   const res = response[user].Sessions;
@@ -78,20 +84,53 @@ export const useSessionsStore = defineStore("Session", {
                   this.sessions.push(...sessions);
                 }
               }
-            } else console.log("No data available");
-          })
-          .catch((error) => console.error(error));
+            })
+            .catch((error) => messagesStore.setErrorMessage(t(error.response.data.error ?? error.code)));
+        } else {
+          get(child(ref, `users/`))
+            .then((snapshot) => {
+              if (snapshot.exists()) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const response: any = snapshot.val();
+                for (const user in response) {
+                  if (response[user].Sessions) {
+                    const res = response[user].Sessions;
+                    const sessions = Object.keys(res).map((key) => {
+                      return { ...res[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1], userId: user };
+                    });
+                    this.sessions.push(...sessions);
+                  }
+                }
+              } else console.log("No data available");
+            })
+            .catch((error) => console.error(error));
+        }
       } else {
-        get(child(ref, `users/${usersStrore.userId}/Sessions/`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              const response: SessionResponse = snapshot.val();
+        if (usersStrore.authToken && usersStrore.userId) {
+          axios
+            .get(`${app.options.databaseURL}/users/Sessions.json?auth=${usersStrore.authToken}`)
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .then((response: any) => {
+              response = response.data;
+              console.log("sessions", response);
               this.sessions = Object.keys(response).map((key) => {
                 return { ...response[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1], userId: usersStrore.userId };
               });
-            } else console.log("No data available");
-          })
-          .catch((error) => console.error(error));
+            })
+            .catch((error) => messagesStore.setErrorMessage(t(error.response.data.error ?? error.code)));
+        } else {
+          get(child(ref, `users/${usersStrore.userId}/Sessions/`))
+            .then((snapshot) => {
+              if (snapshot.exists()) {
+                const response: SessionResponse = snapshot.val();
+                this.sessions = Object.keys(response).map((key) => {
+                  return { ...response[key], DeviceId: key.split("\\")[0], SessionId: key.split("\\")[1], userId: usersStrore.userId };
+                });
+              } else console.log("No data available");
+            })
+            .catch((error) => console.error(error));
+        }
       }
     },
 

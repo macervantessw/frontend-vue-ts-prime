@@ -32,20 +32,21 @@
 </template>
 
 <script setup lang="ts">
-import Checkbox from "primevue/checkbox";
-import Button from "primevue/button";
-import { RouterLink, RouteLocationRaw } from "vue-router";
 import { ref, computed } from "vue";
-import i18n from "../i18n";
-import { useVuelidate } from "@vuelidate/core";
 import { required, email } from "@vuelidate/validators";
-import TextInputWithLabel from "../components/TextInputWithLabel.vue";
-import PasswordInput from "../components/PasswordInput.vue";
-import { useRoute } from "vue-router";
+import { RouterLink, RouteLocationRaw } from "vue-router";
 import { useMessagesStore, useUsersStore } from "../store";
 import { User } from "../interfaces";
 import { User as FireUser } from "firebase/auth";
+import { useRoute } from "vue-router";
+import { useVuelidate } from "@vuelidate/core";
+import Button from "primevue/button";
+import Checkbox from "primevue/checkbox";
+import i18n from "../i18n";
+import PasswordInput from "../components/PasswordInput.vue";
 import router from "../router";
+import TextInputWithLabel from "../components/TextInputWithLabel.vue";
+
 const messagesStore = useMessagesStore();
 const usersStore = useUsersStore();
 const route = useRoute();

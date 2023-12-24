@@ -70,7 +70,7 @@ const sessionsGrouped = computed(() => {
 });
 
 onBeforeMount(async () => {
-  sessionsStore.fetchAllPatients();
+  // sessionsStore.fetchAllPatients();
   sessionsStore.fetchAllSessions();
 });
 </script>

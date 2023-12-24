@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onBeforeMount } from "vue";
+import { computed } from "vue";
 import { useSessionsStore } from "../../store";
 import { storeToRefs } from "pinia";
 import dayjs from "dayjs";
@@ -13,13 +13,12 @@ dayjs.extend(relativeTime);
 
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
-const otherTime = ref(0);
 
-const series = ref([] as number[]);
+// const series = ref([] as number[]);
 
-onBeforeMount(() => {
-  series.value = setSeries();
-});
+// onBeforeMount(() => {
+//   series.value = setSeries();
+// });
 const chartOptions: ApexOptions = {
   dataLabels: {
     enabled: false,
@@ -65,15 +64,15 @@ const chartOptions: ApexOptions = {
   },
 };
 
-const setSeries = () => {
+const series = computed(() => {
   const sleepTime = selectedSession.value?.SessionSleepTime;
   const totalTime = selectedSession.value?.SessionDuration;
   const awakeTime = selectedSession.value?.SessionAwakeTime;
 
-  if (totalTime !== undefined && sleepTime !== undefined && awakeTime !== undefined) otherTime.value = totalTime - sleepTime - awakeTime;
+  const otherTime = totalTime !== undefined && sleepTime !== undefined && awakeTime !== undefined ? totalTime - sleepTime - awakeTime : 0;
 
-  return [(sleepTime || 0) / 60, (awakeTime || 0) / 60, otherTime.value / 60];
-};
+  return [(sleepTime || 0) / 60, (awakeTime || 0) / 60, otherTime / 60];
+});
 
 const getMinutes = (time: number | undefined) => {
   if (time === undefined) return 0;
@@ -97,7 +96,7 @@ const getMinutes = (time: number | undefined) => {
       </div>
       <div class="flex flex-column align-items-center">
         <span class="text-lg">{{ $t("Others") }}</span>
-        <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{ getMinutes(otherTime) }} min</span>
+        <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{ getMinutes(series[2] * 60) }} min</span>
       </div>
     </div>
   </div>

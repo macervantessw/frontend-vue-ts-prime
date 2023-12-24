@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { ApexOptions } from "apexcharts";
+import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import VueApexCharts from "vue3-apexcharts";
 import { useSessionsStore } from "../../store";
 
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
-const series = [Number(selectedSession.value?.SessionIAH || 0) * 2];
+const series = computed(() => [Number(selectedSession.value?.SessionIAH || 0) * 2]);
 
-const getColor = () => {
+const getColor = computed(() => {
   const iah = Number(selectedSession.value?.SessionIAH || 0);
   if (iah < 10) {
     return ["#68b0a7"];
@@ -17,55 +17,57 @@ const getColor = () => {
   } else {
     return ["#f36868"];
   }
-};
-const chartOptions: ApexOptions = {
-  plotOptions: {
-    radialBar: {
-      startAngle: -135,
-      endAngle: 135,
-      hollow: {
-        size: "55%",
-      },
-      track: {
-        background: "#DDD",
-        dropShadow: {
-          enabled: true,
-          top: 2,
-          left: 0,
-          blur: 4,
-          opacity: 0.15,
+});
+const chartOptions = computed(() => {
+  return {
+    plotOptions: {
+      radialBar: {
+        startAngle: -135,
+        endAngle: 135,
+        hollow: {
+          size: "55%",
         },
-      },
-      dataLabels: {
-        show: true,
-        name: {
-          offsetY: -10,
-          show: true,
-          color: "#333",
-          fontSize: "20px",
-        },
-        value: {
-          formatter: function (val) {
-            return (Number(val) / 2).toFixed(2);
+        track: {
+          background: "#DDD",
+          dropShadow: {
+            enabled: true,
+            top: 2,
+            left: 0,
+            blur: 4,
+            opacity: 0.15,
           },
-          offsetY: 5,
-          fontSize: "25px",
-          fontFamily: "Helvetica, Arial, sans-serif",
-          fontWeight: 900,
+        },
+        dataLabels: {
           show: true,
+          name: {
+            offsetY: -10,
+            show: true,
+            color: "#333",
+            fontSize: "20px",
+          },
+          value: {
+            formatter: function (val: string) {
+              return (Number(val) / 2).toFixed(2);
+            },
+            offsetY: 5,
+            fontSize: "25px",
+            fontFamily: "Helvetica, Arial, sans-serif",
+            fontWeight: 900,
+            show: true,
+          },
         },
       },
     },
-  },
-  fill: {
-    colors: getColor(),
-  },
-  stroke: {
-    lineCap: "butt",
-  },
+    fill: {
+      colors: getColor.value,
+    },
+    stroke: {
+      lineCap: "butt",
+    },
 
-  labels: ["Events/h"],
-};
+    labels: ["Events/h"],
+  };
+});
 </script>
 <template>
   <div>

@@ -4,7 +4,9 @@ import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 import Home from "../views/Home.vue";
-import { useSessionsStore, useUsersStore } from "../store";
+import { useUsersStore } from "../store";
+import { getIdToken } from "firebase/auth";
+import { auth } from "../firebase/firebaseInit";
 
 const routes = [
   {
@@ -13,10 +15,10 @@ const routes = [
     meta: {
       requiresAuth: true,
     },
-    beforeEnter: async () => {
-      const sessionsStore = useSessionsStore();
-      sessionsStore.fetchAllPatients();
-    },
+    // beforeEnter: async () => {
+    //   const sessionsStore = useSessionsStore();
+    //   // sessionsStore.fetchAllPatients();
+    // },
     children: [
       {
         path: "",
@@ -74,7 +76,15 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth) {
     const user = await usersStore.getCurrentUser();
     if (user) {
+      if (auth.currentUser)
+        getIdToken(auth.currentUser, true).then((token) => {
+          console.log(token);
+        });
       usersStore.userId = user.uid;
+      next();
+    } else if (to.query.token && to.query.userId) {
+      usersStore.authToken = to.query.token as string;
+      usersStore.userId = to.query.userId as string;
       next();
     } else {
       next({ name: "login", query: { redirectFrom: to.fullPath } });

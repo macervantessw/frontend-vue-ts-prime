@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { watch } from "vue";
 import { useSessionsStore } from "../store";
 import Button from "primevue/button";
 import i18n from "../i18n";
@@ -11,10 +12,20 @@ import { useRoute } from "vue-router";
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const route = useRoute();
+
 if (route.params.sessionId) {
   const session = sessionsStore.sessions.find((session) => session.SessionId === route.params.sessionId);
   if (session) sessionsStore.selectedSession = session;
 }
+
+watch(
+  () => sessionsStore.sessions,
+  (sessions) => {
+    const session = sessions.find((session) => session.SessionId === route.params.sessionId);
+    if (session) sessionsStore.selectedSession = session;
+  },
+  { deep: true },
+);
 
 const goToSession = () => {
   router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
