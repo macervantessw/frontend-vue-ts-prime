@@ -4,7 +4,7 @@ import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 import Home from "../views/Home.vue";
-import { useUsersStore } from "../store";
+import { useSessionsStore, useUsersStore } from "../store";
 import { getIdToken } from "firebase/auth";
 import { auth } from "../firebase/firebaseInit";
 
@@ -72,6 +72,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const usersStore = useUsersStore();
+  const sessionsStore = useSessionsStore();
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   if (requiresAuth) {
     const user = await usersStore.getCurrentUser();
@@ -83,6 +84,7 @@ router.beforeEach(async (to, from, next) => {
       usersStore.userId = user.uid;
       next();
     } else if (to.query.token && to.query.userId) {
+      sessionsStore.selectedSession = null;
       usersStore.authToken = to.query.token as string;
       usersStore.userId = to.query.userId as string;
       next();
