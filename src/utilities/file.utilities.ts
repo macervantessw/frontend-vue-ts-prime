@@ -34,18 +34,27 @@ export function readDatFile(file: Uint8Array): number[] {
 
   //iterate over the rest of the file and convert to int
   const data = [];
+  let allZero = true;
   for (let i = 8; i < file.length; i += samplingRate) {
     const sample = file.slice(i, i + samplingRate).reduce((acc, curr, index) => {
       return acc + curr * Math.pow(256, index);
     }, 0);
+    if (sample !== 0) allZero = false;
     data.push(sample);
   }
+  if (allZero) throw new Error("All samples are zero");
+
   return data;
 }
 
 export async function getData(files: Record<string, JSZip.JSZipObject>, timeAxis: number[], fileName: string, invertValues = false) {
   const dataUnzipped = await files[fileName].async("uint8array");
-  let data = readDatFile(dataUnzipped);
+  let data: number[] = [];
+  try {
+    data = readDatFile(dataUnzipped);
+  } catch (error) {
+    return [];
+  }
   data = data.filter((_e, index) => index % DOWNSAMPLE_RATIO === 0);
   return timeAxis.map((element, index) => {
     return { time: element, value: invertValues ? data[index] * -1 : data[index] };

@@ -4,40 +4,43 @@
       <h1 class="m-0 text-800">{{ selectedSession?.PatientName || selectedSession?.Name }} {{ selectedSession?.Surname || selectedSession?.PatientSurname }}</h1>
       <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
     </div>
-    <div class="card card-small chart-container w-full shadow-2">
-      <StateChart ref="stateChartRef" :state-events="sessionsStore.selectedSession?.Data.StateEvents" class="w-full h-full relative" @wheel.prevent="wheelHandler" />
-    </div>
-    <div class="card chart-container h-full w-full shadow-2" style="max-height: 15rem; min-height: 7rem">
-      <OxymetryChart ref="oxymetryChartRef" :files="zippedFiles" class="w-full h-full relative" @wheel.prevent="wheelHandler" />
-    </div>
-    <div class="card chart-container h-full w-full shadow-2">
-      <RespiratoryChart
-        ref="respiratoryChartRef"
-        :files="zippedFiles"
-        :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
-        class="w-full h-full relative"
-        @wheel.prevent="wheelHandler"
-      />
-    </div>
-    <div class="card card-small chart-container h-full w-full shadow-2" style="max-height: 7rem; min-height: 4rem">
-      <AudioChart
-        ref="audioChartRef"
-        :files="zippedFiles"
-        :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
-        class="w-full h-full relative"
-        @wheel.prevent="wheelHandler"
-      />
-    </div>
-    <div class="card card-small chart-container h-full w-full shadow-2" style="max-height: 7rem; min-height: 4rem">
-      <MinimapChart
-        ref="miniMapChart"
-        :state-events="sessionsStore.selectedSession?.Data.StateEvents"
-        :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
-        :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
-        class="w-full h-full relative"
-        @wheel.prevent="wheelHandler"
-      />
-    </div>
+    <StateChart
+      ref="stateChartRef"
+      :state-events="sessionsStore.selectedSession?.Data.StateEvents"
+      class="card card-small chart-container w-full shadow-2 relative"
+      @wheel.prevent="wheelHandler"
+    />
+    <OxymetryChart
+      ref="oxymetryChartRef"
+      style="max-height: 15rem; min-height: 7rem"
+      :files="zippedFiles"
+      class="card chart-container h-full w-full shadow-2 relative"
+      @wheel.prevent="wheelHandler"
+    />
+    <RespiratoryChart
+      ref="respiratoryChartRef"
+      :files="zippedFiles"
+      :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
+      class="card chart-container h-full w-full shadow-2 relative"
+      @wheel.prevent="wheelHandler"
+    />
+    <AudioChart
+      ref="audioChartRef"
+      :files="zippedFiles"
+      :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
+      style="max-height: 7rem; min-height: 4rem"
+      class="card card-small chart-container h-full w-full shadow-2 relative"
+      @wheel.prevent="wheelHandler"
+    />
+    <MinimapChart
+      ref="miniMapChart"
+      :state-events="sessionsStore.selectedSession?.Data.StateEvents"
+      :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
+      :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
+      class="card card-small chart-container h-full w-full shadow-2 relative"
+      style="max-height: 7rem; min-height: 4rem"
+      @wheel.prevent="wheelHandler"
+    />
 
     <VideoPlayer v-if="!!videoLink" :options="videoOptions" style="height: 24rem; width: 32rem" />
   </div>

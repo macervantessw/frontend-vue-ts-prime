@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="{ 'max-h-0 min-h-0': isEmptySeries }">
     <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
   </div>
@@ -30,6 +30,7 @@ import JSZip from "jszip";
 import Skeleton from "primevue/skeleton";
 
 let priceLines: IPriceLine[] = [];
+const isEmptySeries = ref(false);
 const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
 const chartsStore = useChartsStore();
 const props = defineProps({
@@ -39,7 +40,7 @@ const props = defineProps({
   },
 });
 
-let series: Serie<"Line">[] = [];
+let series = ref([] as Serie<"Line">[]);
 let chart: IChartApi | null = null;
 const chartContainer = ref();
 
@@ -47,7 +48,7 @@ const getChart = () => {
   return chart;
 };
 const getSeries = () => {
-  return series;
+  return series.value;
 };
 
 defineExpose({ getSeries, getChart });
@@ -72,8 +73,8 @@ onUnmounted(() => {
     chart.remove();
     chart = null;
   }
-  if (series) {
-    series = [];
+  if (series.value) {
+    series.value = [];
   }
 });
 
@@ -136,33 +137,40 @@ watch(
       }),
     );
 
-    Promise.all(promises).then(() => {
-      chart?.timeScale().setVisibleRange({
-        from: chartsStore.timeAxis[0] as UTCTimestamp,
-        to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
-      });
-      const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
-
-      if (oxymetrySeries) {
-        oxymetrySeries.priceScale().applyOptions({
-          autoScale: true,
+    Promise.all(promises)
+      .then(() => {
+        chart?.timeScale().setVisibleRange({
+          from: chartsStore.timeAxis[0] as UTCTimestamp,
+          to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
         });
+        const oxymetrySeries = series.value.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
 
-        oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90 });
-        oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80 });
-      }
-      console.log("Oxymetry has been rendered");
-      chartsStore.oxymetryChartRendered = true;
-    });
+        if (oxymetrySeries) {
+          oxymetrySeries.priceScale().applyOptions({
+            autoScale: true,
+          });
+
+          oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90 });
+          oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80 });
+        }
+        console.log("Oxymetry has been rendered");
+      })
+      .catch(() => {
+        isEmptySeries.value = true;
+      })
+      .finally(() => {
+        chartsStore.oxymetryChartRendered = true;
+      });
   },
 );
 
 function generateLineSeries(signal: string, name: string, options: DeepPartial<LineStyleOptions & SeriesOptionsCommon>): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
+      if (data.length === 0) reject();
       const serie = chart?.addLineSeries({ ...LINE_OPTIONS, ...options });
       serie?.setData(data as any);
-      series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
+      series.value?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
       resolve();
     });
   });
@@ -182,7 +190,7 @@ watch(
 const setHeartRateLines = (timeRange: LogicalRange | null) => {
   if (!timeRange) return;
 
-  const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
+  const heartRateSeries = series.value.find((s) => s.id === SIGNALS.HR)?.serie;
   if (heartRateSeries) {
     const portion = heartRateSeries
       ?.data()
