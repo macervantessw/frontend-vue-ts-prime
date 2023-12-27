@@ -5,14 +5,15 @@ import Menu from "primevue/menu";
 import i18n from "../i18n";
 import { ref } from "vue";
 import { auth } from "../firebase/firebaseInit";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { version } from "../../package.json";
-
 const { t } = i18n.global;
+
 const usersStore = useUsersStore();
 const menu = ref();
 const router = useRouter();
+const route = useRoute();
 const { menuVisible } = storeToRefs(useMainStore());
 const userItems = [
   {
@@ -34,7 +35,7 @@ function toggleMenu(event: Event) {
 }
 </script>
 <template>
-  <div class="navbar flex align-items-center justify-content-between w-full">
+  <div v-if="!route.query.token" class="navbar flex align-items-center justify-content-between w-full">
     <div class="navbar-left flex">
       <div class="flex align-items-center mr-4 md:hidden relative">
         <Transition name="fade">
