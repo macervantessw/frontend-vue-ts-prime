@@ -108,7 +108,7 @@ export const useSessionsStore = defineStore("Session", {
       } else {
         if (usersStrore.authToken && usersStrore.userId) {
           axios
-            .get(`${app.options.databaseURL}/users/Sessions.json?auth=${usersStrore.authToken}`)
+            .get(`${app.options.databaseURL}/users/${usersStrore.userId}/Sessions.json?auth=${usersStrore.authToken}`)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .then((response: any) => {

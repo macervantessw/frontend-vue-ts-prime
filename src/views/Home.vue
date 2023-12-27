@@ -2,7 +2,7 @@
   <div class="sessions flex flex-column h-full w-full">
     <NavigationBar />
     <div class="flex h-full w-full">
-      <SideMenu>
+      <SideMenu v-if="!route.query.token">
         <div v-if="usersStore.isAdmin">
           <Accordion :active-index="0">
             <AccordionTab v-for="(user, index) in sessionsGrouped" :key="index" :header="index.toString()">
@@ -40,9 +40,11 @@ import MenuItem from "../components/MenuItem.vue";
 import SideMenu from "../components/SideMenu.vue";
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
+import { useRoute } from "vue-router";
 
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
+const route = useRoute();
 
 const groupedByDevice = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
