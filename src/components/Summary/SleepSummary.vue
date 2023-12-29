@@ -89,6 +89,15 @@ const getMinutes = (time: number | undefined) => {
   if (time === undefined) return 0;
   return dayjs.duration(time, "seconds").asMinutes().toFixed(0);
 };
+
+const sleepLatency = () => {
+  const numAwakes = selectedSession.value?.SessionNumAwakes;
+  const totalTime = selectedSession.value?.SessionDuration;
+  if (numAwakes === undefined || totalTime === undefined) return 0;
+  const totalHours = dayjs.duration(totalTime, "seconds").asHours();
+
+  return numAwakes / totalHours;
+};
 </script>
 <template>
   <div>
@@ -96,18 +105,27 @@ const getMinutes = (time: number | undefined) => {
     <div class="w-full flex justify-content-center py-5">
       <VueApexCharts type="donut" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
-    <div class="flex justify-content-between mt-4 px-3">
-      <div class="flex flex-column align-items-center">
+    <div class="grid justify-content-center mt-4 px-3 text-900">
+      <div class="flex flex-column align-items-center col-4">
         <span class="text-lg">{{ $t("Sleep Time") }}</span>
         <span class="text-3xl" style="font-weight: 900; color: #5586f3">{{ getMinutes(selectedSession?.SessionSleepTime) }} min </span>
       </div>
-      <div class="flex flex-column align-items-center">
+      <div class="flex flex-column align-items-center col-4">
         <span class="text-lg">{{ $t("Awake time") }}</span>
         <span class="text-3xl" style="font-weight: 900; color: #68b0a7">{{ getMinutes(selectedSession?.SessionAwakeTime) }} min </span>
       </div>
-      <div class="flex flex-column align-items-center">
+      <div class="flex flex-column align-items-center col-4">
         <span class="text-lg">{{ $t("Others") }}</span>
         <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{ getMinutes(series[2] * 60) }} min</span>
+      </div>
+      <div class="flex flex-column align-items-center col-4">
+        <span class="text-lg">{{ $t("Num. Awakes") }}</span>
+        <span class="text-3xl text-700" style="font-weight: 900">{{ selectedSession?.SessionNumAwakes }}</span>
+      </div>
+      <div class="flex flex-column align-items-center col-4">
+        <span class="text-lg text-900">{{ $t("Sleep latency") }}</span>
+        <span class="text-3xl text-700" style="font-weight: 900">{{ sleepLatency().toFixed(2) }}</span>
+        <span class="text-xs" style="margin-top: -5px">{{ $t("Awakes/h") }}</span>
       </div>
     </div>
   </div>
