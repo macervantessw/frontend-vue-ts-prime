@@ -7,10 +7,12 @@ import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import VueApexCharts from "vue3-apexcharts";
 import { ApexOptions } from "apexcharts";
+import i18n from "../../i18n";
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
+const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 
@@ -23,6 +25,7 @@ const chartOptions: ApexOptions = {
   dataLabels: {
     enabled: false,
   },
+  labels: [t("Sleep Time"), t("Awake time"), t("Others")],
   tooltip: {
     enabled: true,
     y: {
@@ -37,13 +40,18 @@ const chartOptions: ApexOptions = {
         labels: {
           show: true,
           name: {
-            show: false,
+            show: true,
+            color: "#333",
           },
           value: {
             show: true,
             fontSize: "25px",
             fontFamily: "Helvetica, Arial, sans-serif",
             fontWeight: 900,
+            formatter: function (w) {
+              const percentage = Number(w).toFixed(0);
+              return percentage + "min";
+            },
           },
           total: {
             show: true,
@@ -52,6 +60,9 @@ const chartOptions: ApexOptions = {
               const percentage = ((totals[0] / (totals[0] + totals[1] + totals[2])) * 100).toFixed(1);
               return percentage + "%";
             },
+            label: t("Total asleep"),
+            fontWeight: 900,
+            fontFamily: "Helvetica, Arial, sans-serif",
           },
         },
       },
