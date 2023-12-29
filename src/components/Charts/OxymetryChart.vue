@@ -168,6 +168,7 @@ function generateLineSeries(signal: string, name: string, options: DeepPartial<L
   return new Promise((resolve, reject) => {
     getData(props.files, chartsStore.timeAxis, signal).then((data) => {
       if (data.length === 0) reject();
+      if (data.every((item: any) => item.value === 0)) isEmptySeries.value = true;
       const serie = chart?.addLineSeries({ ...LINE_OPTIONS, ...options });
       serie?.setData(data as any);
       series.value?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });

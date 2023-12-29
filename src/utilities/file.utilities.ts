@@ -34,16 +34,12 @@ export function readDatFile(file: Uint8Array): number[] {
 
   //iterate over the rest of the file and convert to int
   const data = [];
-  let allZero = true;
   for (let i = 8; i < file.length; i += samplingRate) {
     const sample = file.slice(i, i + samplingRate).reduce((acc, curr, index) => {
       return acc + curr * Math.pow(256, index);
     }, 0);
-    if (sample !== 0) allZero = false;
     data.push(sample);
   }
-  if (allZero) throw new Error("All samples are zero");
-
   return data;
 }
 
