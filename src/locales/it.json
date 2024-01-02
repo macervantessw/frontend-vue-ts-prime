@@ -46,5 +46,9 @@
   "Awake time": "Tempo di veglia",
   "Sleep Time": "Tempo di sonno",
   "Permission denied": "Autorizzazione negata",
-  "Total asleep": "Totale addormentati"
+  "Total asleep": "Totale addormentati",
+  "Num": {
+    " Awakes": ""
+  },
+  "min": "min"
 }

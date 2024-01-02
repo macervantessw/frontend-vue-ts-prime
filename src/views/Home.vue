@@ -1,7 +1,7 @@
 <template>
   <div class="sessions flex flex-column h-full w-full">
     <NavigationBar />
-    <div class="flex h-full w-full">
+    <div class="flex h-full w-full min-h-0">
       <SideMenu v-if="!route.query.token">
         <div v-if="usersStore.isAdmin">
           <Accordion :active-index="0">
@@ -22,13 +22,11 @@
           </Accordion>
         </div>
       </SideMenu>
-      <div class="home w-full h-full flex justify-content-center p-2 sm:p-5">
-        <router-view v-slot="{ Component, route }">
-          <transition :name="'fade'" :mode="'out-in'" :duration="100">
-            <component :is="Component" :key="route.path" />
-          </transition>
-        </router-view>
-      </div>
+      <router-view v-slot="{ Component, route }">
+        <transition :name="'fade'" :mode="'out-in'" :duration="100">
+          <component :is="Component" :key="route.path" class="w-full h-full p-2 sm:p-5 overflow-auto" />
+        </transition>
+      </router-view>
     </div>
   </div>
 </template>
@@ -101,5 +99,10 @@ onBeforeMount(async () => {
 span.p-accordion-header-text {
   white-space: nowrap;
   overflow: hidden;
+}
+.grid {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
 }
 </style>

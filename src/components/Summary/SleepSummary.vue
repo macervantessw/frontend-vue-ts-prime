@@ -90,7 +90,7 @@ const getMinutes = (time: number | undefined) => {
   return dayjs.duration(time, "seconds").asMinutes().toFixed(0);
 };
 
-const sleepLatency = () => {
+const awakesPerHour = () => {
   const numAwakes = selectedSession.value?.SessionNumAwakes;
   const totalTime = selectedSession.value?.SessionDuration;
   if (numAwakes === undefined || totalTime === undefined) return 0;
@@ -123,9 +123,13 @@ const sleepLatency = () => {
         <span class="text-3xl text-700" style="font-weight: 900">{{ selectedSession?.SessionNumAwakes }}</span>
       </div>
       <div class="flex flex-column align-items-center col-4">
-        <span class="text-lg text-900">{{ $t("Sleep latency") }}</span>
-        <span class="text-3xl text-700" style="font-weight: 900">{{ sleepLatency().toFixed(2) }}</span>
+        <span class="text-lg text-900">{{ $t("Awakes dist.") }}</span>
+        <span class="text-3xl text-700" style="font-weight: 900">{{ awakesPerHour().toFixed(2) }}</span>
         <span class="text-xs" style="margin-top: -5px">{{ $t("Awakes/h") }}</span>
+      </div>
+      <div v-if="selectedSession?.SessionSleepLatency" class="flex flex-column al ign-items-center col-4">
+        <span class="text-lg text-900">{{ $t("sleep-latency") }}</span>
+        <span class="text-3xl text-700" style="font-weight: 900">{{ (Number(selectedSession?.SessionSleepLatency) / 60).toFixed(0) }} {{ $t("min") }}</span>
       </div>
     </div>
   </div>

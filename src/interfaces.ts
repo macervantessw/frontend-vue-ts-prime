@@ -56,6 +56,7 @@ export interface Session {
   SessionIAH: string;
   SessionId: string;
   SessionNumAwakes: number;
+  SessionSleepLatency: number;
   SessionNumRespEvents: number;
   SessionSleepTime: number;
   SessionStartTime: number;

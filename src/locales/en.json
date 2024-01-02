@@ -43,5 +43,8 @@
   "Sleep Time": "Sleep Time",
   "ERR_BAD_REQUEST": "ERR_BAD_REQUEST",
   "Permission denied": "Permission denied",
-  "Total asleep": "Total asleep"
+  "Total asleep": "Total asleep",
+  "sleep-latency": "Latency",
+  "minutes": "minutes",
+  "min": "min"
 }

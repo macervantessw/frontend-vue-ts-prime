@@ -32,12 +32,13 @@ const goToSession = () => {
 };
 </script>
 <template>
-  <div v-if="sessionsStore.selectedSession" class="flex flex-column h-full w-full">
-    <h1 class="w-full text-primary">{{ $t("Session") }} {{ sessionsStore.selectedSession?.SessionId }}</h1>
+  <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
+    <h1 class="w-full text-primary m-0">{{ $t("Session") }} {{ sessionsStore.selectedSession?.SessionId }}</h1>
     <div class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
       <PatientSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
       <SleepSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
       <AhiSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
+      <AudioAnalysis class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
     </div>
     <Button :label="t('view-analysys')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
