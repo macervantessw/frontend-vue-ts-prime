@@ -49,5 +49,7 @@
   "min": "min",
   "snoring-analysis": "Snoring analysis",
   "Total snores": "Total snores",
-  "Snores per hour": "Snores per hour"
+  "Snores per hour": "Snores per hour",
+  "Awakes per hour": "Awakes per hour",
+  "others-time": "Others time"
 }

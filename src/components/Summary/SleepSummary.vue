@@ -9,6 +9,7 @@ import VueApexCharts from "vue3-apexcharts";
 import { ApexOptions } from "apexcharts";
 import i18n from "../../i18n";
 import SummaryCard from "./SummaryCard.vue";
+import DataComponent from "../DataComponent.vue";
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -105,32 +106,37 @@ const awakesPerHour = () => {
     <div class="w-full flex justify-content-center py-5">
       <VueApexCharts type="donut" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
-    <div class="grid justify-content-center mt-4 px-3 text-900">
-      <div class="flex flex-column align-items-center col-4">
-        <span class="text-lg">{{ $t("Sleep Time") }}</span>
-        <span class="text-3xl" style="font-weight: 900; color: #5586f3">{{ getMinutes(selectedSession?.SessionSleepTime) }} min </span>
-      </div>
-      <div class="flex flex-column align-items-center col-4">
-        <span class="text-lg">{{ $t("Awake time") }}</span>
-        <span class="text-3xl" style="font-weight: 900; color: #68b0a7">{{ getMinutes(selectedSession?.SessionAwakeTime) }} min </span>
-      </div>
-      <div class="flex flex-column align-items-center col-4">
-        <span class="text-lg">{{ $t("Others") }}</span>
-        <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{ getMinutes(series[2] * 60) }} min</span>
-      </div>
-      <div class="flex flex-column align-items-center col-4">
-        <span class="text-lg">{{ $t("Num. Awakes") }}</span>
-        <span class="text-3xl text-700" style="font-weight: 900">{{ selectedSession?.SessionNumAwakes }}</span>
-      </div>
-      <div class="flex flex-column align-items-center col-4">
-        <span class="text-lg text-900">{{ $t("Awakes dist.") }}</span>
-        <span class="text-3xl text-700" style="font-weight: 900">{{ awakesPerHour().toFixed(2) }}</span>
-        <span class="text-xs" style="margin-top: -5px">{{ $t("Awakes/h") }}</span>
-      </div>
-      <div v-if="selectedSession?.SessionSleepLatency" class="flex flex-column al ign-items-center col-4">
-        <span class="text-lg text-900">{{ $t("sleep-latency") }}</span>
-        <span class="text-3xl text-700" style="font-weight: 900">{{ (Number(selectedSession?.SessionSleepLatency) / 60).toFixed(0) }} {{ $t("min") }}</span>
-      </div>
+    <div class="grid m-0">
+      <DataComponent
+        class="col-12 xl:col-6 p-0 pr-1"
+        :title="$t('Sleep Time')"
+        :value="`${getMinutes(selectedSession?.SessionSleepTime)} min`"
+        icon="icon-park-solid:sleep"
+        color="hsl(221,70%,80%)"
+      />
+
+      <DataComponent
+        class="col-12 xl:col-6 p-0 pr-1"
+        :title="$t('Awake time')"
+        :value="`${getMinutes(selectedSession?.SessionAwakeTime)} min`"
+        icon="mdi:eye"
+        color="hsl(173,50%,80%)"
+      />
+      <DataComponent
+        class="col-12 xl:col-6 p-0 pr-1"
+        :title="$t('others-time')"
+        :value="`${getMinutes(series[2] * 60)} min`"
+        icon="carbon:unknown-filled"
+        color="hsl(30,60%,85%)"
+      />
+      <DataComponent class="col-12 xl:col-6 p-0 pr-1" :title="$t('Num. Awakes')" :value="selectedSession?.SessionNumAwakes" icon="octicon:number-16" />
+      <DataComponent class="col-12 xl:col-6 p-0 pr-1" :title="$t('Awakes per hour')" :value="awakesPerHour().toFixed(2)" icon="ion:time" />
+      <DataComponent
+        class="col-12 xl:col-6 p-0 pr-1"
+        :title="$t('sleep-latency')"
+        :value="`${(Number(selectedSession?.SessionSleepLatency) / 60).toFixed(0)} min`"
+        icon="material-symbols:start"
+      />
     </div>
   </SummaryCard>
 </template>

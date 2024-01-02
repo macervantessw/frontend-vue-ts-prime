@@ -50,5 +50,7 @@
   "min": "min",
   "snoring-analysis": "Análisis de los ronquidos",
   "Total snores": "Ronquidos totales",
-  "Snores per hour": "Ronquidos por hora"
+  "Snores per hour": "Ronquidos por hora",
+  "Awakes per hour": "Despertares por hora",
+  "others-time": "Tiempo otros"
 }

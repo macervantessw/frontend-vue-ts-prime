@@ -53,5 +53,7 @@
   "min": "min",
   "snoring-analysis": "Analisi del russamento",
   "Total snores": "Russamento totale",
-  "Snores per hour": "Russare all'ora"
+  "Snores per hour": "Russare all'ora",
+  "Awakes per hour": "Risvegli all'ora",
+  "others-time": "Altri tempi"
 }

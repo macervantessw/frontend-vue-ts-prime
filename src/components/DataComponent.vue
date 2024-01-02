@@ -16,7 +16,7 @@ defineProps({
   },
   color: {
     type: String,
-    default: () => `hsl(${Math.floor(Math.random() * 360) + 1}, 70%, 90%)`,
+    default: "#d9e8e6",
   },
   iconText: {
     type: String,
@@ -26,13 +26,15 @@ defineProps({
 </script>
 
 <template>
-  <div class="wrapper" :style="{ backgroundColor: color }">
-    <div class="flex align-items-center">
-      <Icon v-if="icon" :icon="icon" class="mr-2" />
-      <div v-else-if="iconText" class="text-xs p-1 border-round border-1 bg-gray-700 text-white mr-2">{{ iconText }}</div>
-      <span>{{ title }} </span>
+  <div>
+    <div class="wrapper" :style="{ backgroundColor: color }">
+      <div class="flex align-items-center">
+        <Icon v-if="icon" :icon="icon" class="mr-2" />
+        <div v-else-if="iconText" class="text-xs p-1 border-round bg-gray-700 text-white mr-2">{{ iconText }}</div>
+        <span class="overflow-hidden white-space-nowrap">{{ title }} </span>
+      </div>
+      <span class="chip">{{ value ?? "-" }}</span>
     </div>
-    <span class="chip">{{ value ?? "-" }}</span>
   </div>
 </template>
 <style></style>

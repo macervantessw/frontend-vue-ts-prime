@@ -51,7 +51,8 @@ const goToSession = () => {
   background-color: #e2e2e241;
   backdrop-filter: blur(4px);
   border-radius: 10px;
-  max-width: 32rem;
+  max-width: 37rem;
+  min-width: 25rem;
 }
 .btn-go {
   position: absolute;

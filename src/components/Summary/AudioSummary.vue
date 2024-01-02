@@ -14,18 +14,8 @@ const snoresPerHour = computed(() => {
 </script>
 <template>
   <SummaryCard :title="t('snoring-analysis')">
-    <DataComponent
-      v-if="selectedSession?.SessionNumSnorings !== undefined"
-      :title="$t('Total snores')"
-      :value="selectedSession?.SessionNumSnorings || 0"
-      icon="mdi:bullhorn-outline"
-    />
-    <DataComponent
-      v-if="selectedSession?.SessionNumSnorings !== undefined"
-      :title="$t('Snores per hour')"
-      :value="snoresPerHour?.toFixed(2) || undefined"
-      icon="game-icons:sound-waves"
-    />
+    <DataComponent :title="$t('Total snores')" :value="selectedSession?.SessionNumSnorings || 0" icon="mdi:bullhorn-outline" />
+    <DataComponent :title="$t('Snores per hour')" :value="snoresPerHour?.toFixed(2) || undefined" icon="game-icons:sound-waves" />
   </SummaryCard>
 </template>
 <style></style>
