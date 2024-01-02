@@ -8,6 +8,8 @@ import router from "../router";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
 import AhiSummary from "../components/Summary/AhiSummary.vue";
 import { useRoute } from "vue-router";
+import AudioSummary from "../components/Summary/AudioSummary.vue";
+import ODISummary from "../components/Summary/ODISummary.vue";
 
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
@@ -35,22 +37,21 @@ const goToSession = () => {
   <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
     <h1 class="w-full text-primary m-0">{{ $t("Session") }} {{ sessionsStore.selectedSession?.SessionId }}</h1>
     <div class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
-      <PatientSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
-      <SleepSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
-      <AhiSummary class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
-      <AudioAnalysis class="summary-card p-4 col-12 md:col-6 lg:col-4 shadow-1 flex flex-column text-xl font-semibold text-700" />
+      <PatientSummary />
+      <SleepSummary />
+      <AhiSummary />
+      <AudioSummary />
+      <ODISummary />
     </div>
     <Button :label="t('view-analysys')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
 </template>
 <style>
 .summary-card {
-  background-color: #e2e2e269;
-  border: 1px solid rgba(204, 204, 204, 0.15);
-  backdrop-filter: blur(6px);
+  background-color: #e2e2e241;
+  backdrop-filter: blur(4px);
   border-radius: 10px;
   max-width: 32rem;
-  min-height: 34rem;
 }
 .btn-go {
   position: absolute;

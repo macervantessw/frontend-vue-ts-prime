@@ -47,5 +47,8 @@
   "Sleep Time": "Tiempo de sueño",
   "Permission denied": "Permiso denegado",
   "Total asleep": "Total dormido",
-  "min": "min"
+  "min": "min",
+  "snoring-analysis": "Análisis de los ronquidos",
+  "Total snores": "Ronquidos totales",
+  "Snores per hour": "Ronquidos por hora"
 }

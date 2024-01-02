@@ -2,14 +2,16 @@
 import { useSessionsStore } from "../../store";
 import { storeToRefs } from "pinia";
 import { Icon } from "@iconify/vue";
+import SummaryCard from "./SummaryCard.vue";
+import i18n from "../../i18n";
 
+const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 </script>
 
 <template>
-  <div>
-    <h2 class="mt-0 font-bold text-3xl text-primary">{{ $t("Patient") }}</h2>
+  <SummaryCard :title="t('Patient')">
     <div class="wrapper" style="background-color: #d2e1f9">
       <div class="flex align-items-center">
         <Icon :icon="'material-symbols:person'" class="mr-2" /><span>{{ $t("Name") }} </span>
@@ -40,7 +42,7 @@ const { selectedSession } = storeToRefs(sessionsStore);
       <div class="flex align-items-center"><Icon :icon="'lucide:scale'" class="mr-2" /><span>BMI </span></div>
       <span class="chip">{{ selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : "" }} </span>
     </div>
-  </div>
+  </SummaryCard>
 </template>
 <style>
 .wrapper {

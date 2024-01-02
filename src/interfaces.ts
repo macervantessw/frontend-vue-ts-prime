@@ -60,6 +60,9 @@ export interface Session {
   SessionNumRespEvents: number;
   SessionSleepTime: number;
   SessionStartTime: number;
+  SessionNumSnorings: number;
+  SessionOxCT80: number;
+  SessionOxCT90: number;
   Surname: string;
   TimeZoneOffset: number;
   Type: string;

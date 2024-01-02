@@ -50,5 +50,8 @@
   "Num": {
     " Awakes": ""
   },
-  "min": "min"
+  "min": "min",
+  "snoring-analysis": "Analisi del russamento",
+  "Total snores": "Russamento totale",
+  "Snores per hour": "Russare all'ora"
 }

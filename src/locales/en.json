@@ -46,5 +46,8 @@
   "Total asleep": "Total asleep",
   "sleep-latency": "Latency",
   "minutes": "minutes",
-  "min": "min"
+  "min": "min",
+  "snoring-analysis": "Snoring analysis",
+  "Total snores": "Total snores",
+  "Snores per hour": "Snores per hour"
 }

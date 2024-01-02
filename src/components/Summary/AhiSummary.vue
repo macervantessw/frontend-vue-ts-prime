@@ -4,6 +4,7 @@ import { storeToRefs } from "pinia";
 import VueApexCharts from "vue3-apexcharts";
 import { useSessionsStore } from "../../store";
 import ProgressBar from "primevue/progressbar";
+import SummaryCard from "./SummaryCard.vue";
 
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
@@ -75,8 +76,7 @@ const chartOptions = computed(() => {
 });
 </script>
 <template>
-  <div>
-    <h2 class="mt-0 mb-1 font-bold text-3xl text-primary">AHI</h2>
+  <SummaryCard title="AHI">
     <div class="w-full flex justify-content-center">
       <VueApexCharts height="312px" type="radialBar" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
@@ -118,7 +118,7 @@ const chartOptions = computed(() => {
         }}</span>
       </div>
     </div>
-  </div>
+  </SummaryCard>
 </template>
 <style>
 .progress-top .p-progressbar-value {

@@ -8,6 +8,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import VueApexCharts from "vue3-apexcharts";
 import { ApexOptions } from "apexcharts";
 import i18n from "../../i18n";
+import SummaryCard from "./SummaryCard.vue";
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -100,8 +101,7 @@ const awakesPerHour = () => {
 };
 </script>
 <template>
-  <div>
-    <h2 class="mt-0 font-bold text-3xl text-primary">{{ $t("Sleep eficiency") }}</h2>
+  <SummaryCard :title="t('Sleep eficiency')">
     <div class="w-full flex justify-content-center py-5">
       <VueApexCharts type="donut" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
@@ -132,6 +132,6 @@ const awakesPerHour = () => {
         <span class="text-3xl text-700" style="font-weight: 900">{{ (Number(selectedSession?.SessionSleepLatency) / 60).toFixed(0) }} {{ $t("min") }}</span>
       </div>
     </div>
-  </div>
+  </SummaryCard>
 </template>
 <style></style>

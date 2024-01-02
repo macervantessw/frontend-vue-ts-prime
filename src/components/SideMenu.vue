@@ -17,7 +17,7 @@ const visible = computed(() => {
 
 <template>
   <Transition name="slidemenu">
-    <div v-if="visible" class="sidemenu flex flex-column h-full fixed md:relative z-5" :class="{ wide: usersStore.isAdmin }">
+    <div v-if="visible" class="sidemenu flex flex-column h-full fixed md:relative z-5 overflow-auto" :class="{ wide: usersStore.isAdmin }">
       <slot />
     </div>
   </Transition>
