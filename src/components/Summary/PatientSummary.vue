@@ -11,7 +11,7 @@ const { selectedSession } = storeToRefs(sessionsStore);
 </script>
 
 <template>
-  <SummaryCard :title="t('Patient')">
+  <SummaryCard :title="t('Patient info')">
     <div class="wrapper" style="background-color: #d2e1f9">
       <div class="flex align-items-center">
         <Icon :icon="'material-symbols:person'" class="mr-2" /><span>{{ $t("Name") }} </span>
