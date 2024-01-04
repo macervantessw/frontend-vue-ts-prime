@@ -55,5 +55,8 @@
   "Oxymertry analysis": "Oximetry analysis",
   "Sleep analysis": "Sleep analysis",
   "respiratory-analysis": "Respiratory analysis",
-  "Patient info": "Patient info"
+  "Patient info": "Patient info",
+  "Start": "Start",
+  "End": "End",
+  "Duration": "Duration"
 }

@@ -10,7 +10,10 @@ import AhiSummary from "../components/Summary/RespiratorySummary.vue";
 import { useRoute } from "vue-router";
 import AudioSummary from "../components/Summary/AudioSummary.vue";
 import ODISummary from "../components/Summary/OximetrySummary.vue";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 
+dayjs.extend(duration);
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const route = useRoute();
@@ -32,17 +35,28 @@ watch(
 const goToSession = () => {
   router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
 };
+
+const formatDate = (date: number) => {
+  return dayjs.unix(date).format("DD/MM/YYYY HH:mm:ss");
+};
+const getDuration = () => {
+  if (!sessionsStore.selectedSession) return;
+  return dayjs.duration(sessionsStore.selectedSession?.SessionEndTime * 1000 - sessionsStore.selectedSession?.SessionStartTime * 1000).format("HH:mm:ss");
+};
 </script>
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
-    <h1 class="w-full text-primary m-0">{{ $t("Session") }} {{ sessionsStore.selectedSession?.SessionId }}</h1>
-    <div class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
+    <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
+    <h3 class="w-full text-primary m-0">{{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
+    <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
+    <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
+    <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
       <PatientSummary />
       <SleepSummary />
       <AhiSummary />
       <AudioSummary />
       <ODISummary />
-    </div>
+    </section>
     <Button :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
 </template>
