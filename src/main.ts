@@ -11,6 +11,8 @@ import Ripple from "primevue/ripple";
 import i18n from "./i18n";
 import { createPinia } from "pinia";
 import ToastService from "primevue/toastservice";
+import Tooltip from "primevue/tooltip";
+
 const app = createApp(App);
 const pinia = createPinia();
 
@@ -21,4 +23,5 @@ app.use(pinia);
 app.use(ToastService);
 app.use(router);
 app.directive("ripple", Ripple);
+app.directive("tooltip", Tooltip);
 app.mount("#app");

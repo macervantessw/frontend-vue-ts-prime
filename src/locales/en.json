@@ -58,5 +58,6 @@
   "Patient info": "Patient info",
   "Start": "Start",
   "End": "End",
-  "Duration": "Duration"
+  "Duration": "Duration",
+  "odi-description": "Average number of times per hour that the blood oxygen level drops by a {num}% from baseline"
 }

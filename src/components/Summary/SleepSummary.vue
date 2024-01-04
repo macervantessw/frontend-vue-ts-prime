@@ -110,7 +110,8 @@ const awakesPerHour = () => {
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
         :title="$t('Sleep Time')"
-        :value="`${getMinutes(selectedSession?.SessionSleepTime)} min`"
+        :value="getMinutes(selectedSession?.SessionSleepTime)"
+        units="min"
         icon="icon-park-solid:sleep"
         color="hsl(221,70%,80%)"
       />
@@ -118,14 +119,16 @@ const awakesPerHour = () => {
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
         :title="$t('Awake time')"
-        :value="`${getMinutes(selectedSession?.SessionAwakeTime)} min`"
+        :value="getMinutes(selectedSession?.SessionAwakeTime)"
+        units="min"
         icon="mdi:eye"
         color="hsl(173,50%,80%)"
       />
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
         :title="$t('others-time')"
-        :value="`${getMinutes(series[2] * 60)} min`"
+        :value="getMinutes(series[2] * 60)"
+        units="min"
         icon="carbon:unknown-filled"
         color="hsl(30,60%,85%)"
       />
@@ -134,7 +137,8 @@ const awakesPerHour = () => {
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
         :title="$t('sleep-latency')"
-        :value="`${(Number(selectedSession?.SessionSleepLatency) / 60).toFixed(0)} min`"
+        :value="Number(selectedSession?.SessionSleepLatency) / 60"
+        units="min"
         icon="material-symbols:start"
       />
     </div>

@@ -55,6 +55,7 @@ const groupedByDevice = computed(() => {
 });
 
 const sessionsGrouped = computed(() => {
+  const startTime = Date.now();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const grouped: any = {};
   sessionsStore.sessions.forEach((session) => {
@@ -66,6 +67,8 @@ const sessionsGrouped = computed(() => {
       grouped[session.userId][session.DeviceId] = [session];
     }
   });
+  const endTime = Date.now();
+  console.log("grouping took ", endTime - startTime);
   return grouped;
 });
 

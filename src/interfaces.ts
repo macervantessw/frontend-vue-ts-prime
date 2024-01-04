@@ -63,6 +63,9 @@ export interface Session {
   SessionNumSnorings: number;
   SessionOxCT80: number;
   SessionOxCT90: number;
+  SessionOxODI4: number;
+  SessionOxODI3: number;
+  SessionOxODI2: number;
   Surname: string;
   TimeZoneOffset: number;
   Type: string;

@@ -59,5 +59,6 @@
   "Patient info": "Información del paciente",
   "Start": "Inicio",
   "End": "Fin",
-  "Duration": "Duración"
+  "Duration": "Duración",
+  "odi-description": "Número medio de veces por hora que el nivel de oxígeno en sangre desciende un 2% con respecto al valor de referencia."
 }
