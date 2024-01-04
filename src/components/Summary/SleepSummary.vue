@@ -102,7 +102,7 @@ const awakesPerHour = () => {
 };
 </script>
 <template>
-  <SummaryCard :title="t('Sleep eficiency')">
+  <SummaryCard :title="t('Sleep analysis')">
     <div class="w-full flex justify-content-center py-5">
       <VueApexCharts type="donut" :options="chartOptions" :series="series"></VueApexCharts>
     </div>

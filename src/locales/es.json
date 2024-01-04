@@ -38,7 +38,7 @@
   "Age": "Edad",
   "Weight": "Peso",
   "Height": "Altura",
-  "view-analysys": "VER ANÁLISIS",
+  "view-analysis": "VER ANÁLISIS",
   "Sleep eficiency": "Eficiencia del sueño",
   "Central": "Central",
   "Total": "Total",
@@ -53,5 +53,7 @@
   "Snores per hour": "Ronquidos por hora",
   "Awakes per hour": "Despertares por hora",
   "others-time": "Tiempo otros",
-  "Oxymertry analysis": "Análisis de oximetría"
+  "Oxymertry analysis": "Análisis de oximetría",
+  "Sleep analysis": "Análisis del sueño",
+  "respiratory-analysis": "Análisis respiratorio"
 }

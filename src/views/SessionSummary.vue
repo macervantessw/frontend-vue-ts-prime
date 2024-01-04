@@ -6,10 +6,10 @@ import i18n from "../i18n";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
 import router from "../router";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
-import AhiSummary from "../components/Summary/AhiSummary.vue";
+import AhiSummary from "../components/Summary/RespiratorySummary.vue";
 import { useRoute } from "vue-router";
 import AudioSummary from "../components/Summary/AudioSummary.vue";
-import ODISummary from "../components/Summary/ODISummary.vue";
+import ODISummary from "../components/Summary/OximetrySummary.vue";
 
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
@@ -43,7 +43,7 @@ const goToSession = () => {
       <AudioSummary />
       <ODISummary />
     </div>
-    <Button :label="t('view-analysys')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
+    <Button :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
 </template>
 <style>
