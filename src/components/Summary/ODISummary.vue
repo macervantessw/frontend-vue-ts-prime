@@ -9,7 +9,7 @@ const { t } = i18n.global;
 const { selectedSession } = storeToRefs(useSessionsStore());
 </script>
 <template>
-  <SummaryCard :title="t('ODI')">
+  <SummaryCard :title="t('Oximertry analysis')">
     <DataComponent title="CT80" :value="selectedSession?.SessionOxCT80 || 0" icon-text="80" />
     <DataComponent title="CT90" :value="selectedSession?.SessionOxCT90 || 0" icon-text="90" />
   </SummaryCard>
