@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useSessionsStore } from "../../store";
 import { storeToRefs } from "pinia";
-import { Icon } from "@iconify/vue";
 import SummaryCard from "./SummaryCard.vue";
 import i18n from "../../i18n";
 import DataComponent from "../DataComponent.vue";
@@ -18,31 +17,16 @@ const getFullName = () => {
 <template>
   <SummaryCard :title="t('Patient info')">
     <DataComponent class="col-12 p-0" :title="$t('Name')" :value="getFullName()" icon="material-symbols:person" color="#d2e1f9" />
-
-    <div class="wrapper" style="background-color: #d2f2f9">
-      <div class="flex align-items-center">
-        <Icon :icon="'ic:baseline-cake'" class="mr-2" />
-        <span>{{ $t("Age") }} </span>
-      </div>
-      <span class="chip">{{ selectedSession?.PAtientAge || selectedSession?.Age }} </span>
-    </div>
-    <div class="wrapper" style="background-color: #d2f9e8">
-      <div class="flex align-items-center">
-        <Icon :icon="'icon-park-solid:weight'" class="mr-2" />
-        <span>{{ $t("Weight") }} </span>
-      </div>
-      <span class="chip">{{ selectedSession?.PatientWeigth || selectedSession?.Weight }}Kg </span>
-    </div>
-    <div class="wrapper" style="background-color: #f6f9d2">
-      <div class="flex align-items-center">
-        <Icon :icon="'fluent:ruler-32-filled'" class="mr-2" /><span>{{ $t("Height") }} </span>
-      </div>
-      <span class="chip">{{ selectedSession?.PatientHeight || selectedSession?.Height }}cm </span>
-    </div>
-    <div class="wrapper" style="background-color: #fbc4ab">
-      <div class="flex align-items-center"><Icon :icon="'lucide:scale'" class="mr-2" /><span>BMI </span></div>
-      <span class="chip">{{ selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : "" }} </span>
-    </div>
+    <DataComponent class="col-12 p-0" :title="$t('Age')" :value="selectedSession?.PAtientAge || selectedSession?.Age" icon="ic:baseline-cake" color="#d2f2f9" />
+    <DataComponent class="col-12 p-0" :title="$t('Weight')" :value="selectedSession?.Weight" icon="icon-park-solid:weight" color="#d2f9e8" />
+    <DataComponent class="col-12 p-0" :title="$t('Height')" :value="selectedSession?.Height" icon="fluent:ruler-32-filled" color="#f6f9d2" />
+    <DataComponent
+      class="col-12 p-0"
+      :title="$t('BMI')"
+      :value="selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : ''"
+      icon="lucide:scale"
+      color="#fbc4ab"
+    />
   </SummaryCard>
 </template>
 <style>
