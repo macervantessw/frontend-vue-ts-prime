@@ -4,7 +4,7 @@ import { Icon } from "@iconify/vue";
 defineProps({
   title: {
     type: String,
-    rquired: true,
+    required: true,
   },
   value: {
     type: [String, Number],

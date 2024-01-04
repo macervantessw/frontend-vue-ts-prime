@@ -4,20 +4,21 @@ import { storeToRefs } from "pinia";
 import { Icon } from "@iconify/vue";
 import SummaryCard from "./SummaryCard.vue";
 import i18n from "../../i18n";
+import DataComponent from "../DataComponent.vue";
 
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
+
+const getFullName = () => {
+  return selectedSession.value?.PatientName || selectedSession.value?.Name + " " + selectedSession.value?.Surname || selectedSession.value?.PatientSurname;
+};
 </script>
 
 <template>
   <SummaryCard :title="t('Patient info')">
-    <div class="wrapper" style="background-color: #d2e1f9">
-      <div class="flex align-items-center">
-        <Icon :icon="'material-symbols:person'" class="mr-2" /><span>{{ $t("Name") }} </span>
-      </div>
-      <span class="chip">{{ selectedSession?.PatientName || selectedSession?.Name }}</span>
-    </div>
+    <DataComponent class="col-12 p-0" :title="$t('Name')" :value="getFullName()" icon="material-symbols:person" color="#d2e1f9" />
+
     <div class="wrapper" style="background-color: #d2f2f9">
       <div class="flex align-items-center">
         <Icon :icon="'ic:baseline-cake'" class="mr-2" />

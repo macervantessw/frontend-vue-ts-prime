@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia";
 import VueApexCharts from "vue3-apexcharts";
 import { useSessionsStore } from "../../store";
 import SummaryCard from "./SummaryCard.vue";
-import AhiLegendBar from "./AhiLegendBar.vue";
+import RespiratoryLegendBar from "./RespiratoryLegendBar.vue";
 
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
@@ -80,7 +80,7 @@ const chartOptions = computed(() => {
     <div class="w-full flex justify-content-center mb-5">
       <VueApexCharts height="312px" type="radialBar" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
-    <AhiLegendBar :iah="iah" />
+    <RespiratoryLegendBar :iah="iah" />
     <div class="flex justify-content-between pt-6 sm:pt-2 px-3 h-full align-items-end">
       <div class="flex flex-1 flex-column align-items-center">
         <span class="text-lg overflow-hidden">Apnea/Hipoap.</span>
