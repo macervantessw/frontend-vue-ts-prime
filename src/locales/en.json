@@ -59,5 +59,6 @@
   "Start": "Start",
   "End": "End",
   "Duration": "Duration",
-  "odi-description": "Average number of times per hour that the blood oxygen level drops by a {num}% from baseline"
+  "odi-description": "Average number of times per hour that the blood oxygen level drops by a {num}% from baseline",
+  "visible-range": "Visible range"
 }

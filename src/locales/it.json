@@ -63,5 +63,6 @@
   "Start": "Inizio",
   "End": "Fine",
   "Duration": "Durata",
-  "odi-description": "Numero medio di volte all'ora in cui il livello di ossigeno nel sangue si abbassa del 2% rispetto al valore di riferimento."
+  "odi-description": "Numero medio di volte all'ora in cui il livello di ossigeno nel sangue si abbassa del 2% rispetto al valore di riferimento.",
+  "visible-range": "Gamma visibile"
 }

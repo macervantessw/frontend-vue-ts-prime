@@ -1,9 +1,14 @@
 <template>
   <div class="w-full h-full flex flex-column p-4 pt-0 gap-3">
-    <div>
-      <h1 class="m-0 text-800">{{ selectedSession?.PatientName || selectedSession?.Name }} {{ selectedSession?.Surname || selectedSession?.PatientSurname }}</h1>
-      <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
-    </div>
+    <section class="flex justify-content-between">
+      <span>
+        <h1 class="m-0 text-800">{{ selectedSession?.PatientName || selectedSession?.Name }} {{ selectedSession?.Surname || selectedSession?.PatientSurname }}</h1>
+        <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
+      </span>
+      <span class="flex align-items-end">
+        <h3 class="m-0 text-600">{{ $t("visible-range") }}: {{ visibleRange }}</h3>
+      </span>
+    </section>
     <StateChart
       ref="stateChartRef"
       :state-events="sessionsStore.selectedSession?.Data.StateEvents"
@@ -50,20 +55,23 @@
 <script lang="ts" setup>
 import { getBytes } from "firebase/storage";
 import { IChartApi, Range, Time } from "lightweight-charts";
-import { onBeforeMount, onMounted, ref, computed } from "vue";
+import { onBeforeMount, onMounted, ref, computed, watch } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
-import { SIGNALS, DOWNSAMPLE_RATIO } from "../constants";
+import { SIGNALS, DOWNSAMPLE_RATIO, VISIBLE_MINUTES } from "../constants";
 import { storeToRefs } from "pinia";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
 import { useChartsStore, useSessionsStore } from "../store";
 import AudioChart from "../components/Charts/AudioChart.vue";
 import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import JSZip from "jszip";
 import MinimapChart from "../components/Charts/MinimapChart.vue";
 import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
 import VideoPlayer from "../components/Video/VideoPlayer.vue";
+
+dayjs.extend(duration);
 
 const audioChartRef = ref();
 const fromIndexRef = ref(-999);
@@ -215,6 +223,20 @@ const wheelHandler = (e: any) => {
   chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
   chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
 };
+
+const visibleRange = ref(VISIBLE_MINUTES + " min");
+
+watch(
+  () => chartsStore.selection.range,
+  (range) => {
+    if (!range.from || !range.to) return;
+    const duration = dayjs.duration(Number(range.to) - Number(range.from));
+    visibleRange.value = `${duration.hours() ? duration.hours() + "h " : ""} ${duration.minutes() ? duration.minutes() + "m " : ""} ${
+      duration.seconds() ? duration.seconds() + "s" : ""
+    }`;
+  },
+  { deep: true },
+);
 </script>
 <style>
 .card {

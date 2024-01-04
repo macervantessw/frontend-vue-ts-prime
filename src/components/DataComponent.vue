@@ -61,7 +61,7 @@ const getFocus = () => {
           v-if="tooltip"
           ref="focusable"
           v-tooltip.focus="tooltip"
-          class="touch-tooltip hidden flex align-items-start"
+          class="touch-tooltip hidden align-items-start"
           tabindex="0"
           style="padding: 2px 5px"
           @click="getFocus()"
