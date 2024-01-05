@@ -1,6 +1,11 @@
 import { Range, Time } from "lightweight-charts";
 import { defineStore } from "pinia";
 import { useSessionsStore } from "./sessions.store";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import { VISIBLE_MINUTES } from "../constants";
+dayjs.extend(duration);
+
 export const useChartsStore = defineStore("Charts", {
   state: () => ({
     xaxis: {} as { min: number; max: number },
@@ -17,6 +22,13 @@ export const useChartsStore = defineStore("Charts", {
   getters: {
     allRendered: (state) => {
       return state.oxymetryChartRendered && state.stateChartRendered && state.audioChartRendered && state.minimapChartRendered && state.respiratoryChartRendered;
+    },
+    selectionRangeDuration: (state) => {
+      if (!state.selection.range?.to || !state.selection.range?.from) return VISIBLE_MINUTES + " min";
+      const duration = dayjs.duration(Number(state.selection.range.to) - Number(state.selection.range.from));
+      return `${duration.hours() ? duration.hours() + "h " : ""} ${duration.minutes() ? duration.minutes() + "m " : ""} ${
+        duration.seconds() ? duration.seconds() + "s" : ""
+      }`;
     },
   },
   actions: {

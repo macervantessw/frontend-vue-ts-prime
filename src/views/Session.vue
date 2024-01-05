@@ -6,7 +6,7 @@
         <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
       </span>
       <span class="flex align-items-end">
-        <h3 class="m-0 text-600">{{ $t("visible-range") }}: {{ visibleRange }}</h3>
+        <h3 class="m-0 text-600">{{ $t("visible-range") }}: {{ chartsStore.selectionRangeDuration }}</h3>
       </span>
     </section>
     <StateChart
@@ -55,9 +55,9 @@
 <script lang="ts" setup>
 import { getBytes } from "firebase/storage";
 import { IChartApi, Range, Time } from "lightweight-charts";
-import { onBeforeMount, onMounted, ref, computed, watch } from "vue";
+import { onBeforeMount, onMounted, ref, computed } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
-import { SIGNALS, DOWNSAMPLE_RATIO, VISIBLE_MINUTES } from "../constants";
+import { SIGNALS, DOWNSAMPLE_RATIO } from "../constants";
 import { storeToRefs } from "pinia";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
 import { useChartsStore, useSessionsStore } from "../store";
@@ -223,20 +223,6 @@ const wheelHandler = (e: any) => {
   chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
   chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
 };
-
-const visibleRange = ref(VISIBLE_MINUTES + " min");
-
-watch(
-  () => chartsStore.selection.range,
-  (range) => {
-    if (!range.from || !range.to) return;
-    const duration = dayjs.duration(Number(range.to) - Number(range.from));
-    visibleRange.value = `${duration.hours() ? duration.hours() + "h " : ""} ${duration.minutes() ? duration.minutes() + "m " : ""} ${
-      duration.seconds() ? duration.seconds() + "s" : ""
-    }`;
-  },
-  { deep: true },
-);
 </script>
 <style>
 .card {
