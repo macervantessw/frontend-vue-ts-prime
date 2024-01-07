@@ -61,7 +61,15 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
     serie.attachPrimitive(box);
   });
 }
-
+export function drawBox(chart: IChartApi | null, from: Time, to: Time, serie: ISeriesApi<"Line">, color: string) {
+  if (!chart) return;
+  const box = new Box(chart, serie, Array.from(serie.data()) as LineData<Time>[], from, to, 0, undefined, {
+    showLabel: false,
+    color: color,
+  });
+  serie.attachPrimitive(box);
+  return box;
+}
 export function showSnoringEvents(
   chart: IChartApi | null,
   serie: ISeriesApi<keyof SeriesOptionsMap> | undefined,

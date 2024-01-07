@@ -61,5 +61,6 @@
   "End": "Fin",
   "Duration": "Duración",
   "odi-description": "Número medio de veces por hora que el nivel de oxígeno en sangre desciende un 2% con respecto al valor de referencia.",
-  "visible-range": "Alcance visible"
+  "visible-range": "Alcance visible",
+  "selected-time": "Tiempo seleccionado"
 }

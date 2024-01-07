@@ -2,14 +2,17 @@
   <div>
     <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
+    <span v-if="selectedTime != 0" id="selected-time" class="absolute p-1 px-3 m-1 text-lg z-5 font-semibold border-round"
+      >{{ t("selected-time") }}: {{ selectedTime.toFixed(1) }}s</span
+    >
   </div>
 </template>
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { IChartApi, ISeriesApi, LineData, Time, UTCTimestamp, createChart } from "lightweight-charts";
-import { useChartsStore } from "../../store";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
+import { useChartsStore, useMessagesStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
 import JSZip from "jszip";
@@ -17,8 +20,17 @@ import { Serie, Event } from "../../interfaces";
 import dayjs from "dayjs";
 import { showRespiratoryEvents } from "../../utilities/chart.utilities";
 import Skeleton from "primevue/skeleton";
+import { Box } from "./plugins/box";
+import i18n from "../../i18n";
 
+const { t } = i18n.global;
+const box = ref<Box | undefined>();
 const chartsStore = useChartsStore();
+let timeFrom = 0;
+let timeTo = 0;
+
+const selectedTime = ref(0);
+
 const props = defineProps({
   files: {
     type: Object as PropType<Record<string, JSZip.JSZipObject>>,
@@ -104,8 +116,50 @@ onMounted(() => {
       }
     }
   });
-});
 
+  chart.subscribeClick((param: MouseEventParams) => {
+    if (param.sourceEvent?.altKey) {
+      if (timeFrom === 0) {
+        timeFrom = param.time as UTCTimestamp;
+        timeTo = 0;
+      } else if (timeTo === 0) {
+        timeTo = param.time as UTCTimestamp;
+        const totalTime = timeTo - timeFrom;
+        useMessagesStore().setSuccessMessage(`Selected time: ${totalTime / 1000} seconds`);
+        if (box.value) series[0].serie.detachPrimitive(box.value);
+        selectedTime.value = Number(totalTime / 1000);
+        drawBox(timeFrom as Time, timeTo as Time, `${selectedTime.value.toFixed(1)} s`);
+        timeFrom = 0;
+      }
+    }
+    // if (!param.point || !param.time) return;
+    // chartsStore.setCurrentTime(param.time as UTCTimestamp);
+    // setSelectionBox(param.time);
+  });
+});
+function drawBox(from: Time, to: Time, text: string) {
+  if (box.value) series[0].serie.detachPrimitive(box.value);
+  if (!chart) return;
+  const data = Array.from(series[0].serie.data()) as LineData<Time>[];
+  box.value = new Box(chart, series[0].serie, data, from, to, 0, undefined, {
+    showLabel: false,
+    color: "rgba(14, 195, 134, 0.25)",
+    width: 40,
+  });
+  series[0].serie.attachPrimitive(box.value);
+  series[0].serie.setMarkers([
+    {
+      time: to,
+      position: "aboveBar",
+      shape: "circle",
+      color: "",
+      size: 0,
+      text: text,
+      id: "selectionTime",
+    },
+  ]);
+  box.value.updateAllViews();
+}
 onUnmounted(() => {
   if (chart) {
     chart.remove();
@@ -201,5 +255,10 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
 <style scoped>
 .lw-chart {
   height: 100%;
+}
+#selected-time {
+  background: #68b0a8;
+  /* border-radius: 2rem; */
+  color: white;
 }
 </style>
