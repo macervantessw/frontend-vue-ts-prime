@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full flex flex-column p-4 pt-0 gap-3">
+  <div class="w-full h-full flex flex-column pt-0 gap-3">
     <section class="flex justify-content-between">
       <span>
         <h1 class="m-0 text-800">{{ selectedSession?.PatientName || selectedSession?.Name }} {{ selectedSession?.Surname || selectedSession?.PatientSurname }}</h1>
@@ -219,6 +219,7 @@ async function downloadFileAndUncompress() {
 }
 
 const wheelHandler = (e: any) => {
+  if (!sessionsStore.showSessionAnalysis) return;
   const increment = e.deltaY * 50;
   chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
   chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;

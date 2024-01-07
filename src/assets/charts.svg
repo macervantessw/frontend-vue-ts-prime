@@ -1,5 +1,5 @@
 <svg width="1440" height="1024" viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="1440" height="1024" fill="white"/>
+<rect width="1440" height="1024" fill="url(#myGradient)"/>
 <g clip-path="url(#clip0)">
 <path d="M681.725 839.623C879.807 839.623 1040.38 679.046 1040.38 480.963C1040.38 282.881 879.807 122.304 681.725 122.304C483.643 122.304 323.065 282.881 323.065 480.963C323.065 679.046 483.643 839.623 681.725 839.623Z" stroke="#D1E8F7" stroke-width="1.91649" stroke-miterlimit="10"/>
 <path d="M389.948 283.002C396.925 283.002 402.581 277.346 402.581 270.369C402.581 263.392 396.925 257.737 389.948 257.737C382.972 257.737 377.316 263.392 377.316 270.369C377.316 277.346 382.972 283.002 389.948 283.002Z" fill="#FEBB94"/>
@@ -82,6 +82,11 @@
 <path d="M572.086 801.146C576.497 801.146 580.074 797.569 580.074 793.158C580.074 788.746 576.497 785.17 572.086 785.17C567.674 785.17 564.098 788.746 564.098 793.158C564.098 797.569 567.674 801.146 572.086 801.146Z" fill="white"/>
 </g>
 <defs>
+    <radialGradient id="myGradient">
+        <stop offset="0%" stop-color="#117064" />
+        <stop offset="30%" stop-color="#ffffff" />
+        <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </radialGradient>
 <linearGradient id="paint0_linear" x1="634.203" y1="-7.66352" x2="918.04" y2="1414.72" gradientUnits="userSpaceOnUse">
 <stop stop-color="white"/>
 <stop offset="1" stop-color="#117064"/>

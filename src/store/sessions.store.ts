@@ -12,6 +12,7 @@ import i18n from "../i18n";
 const { t } = i18n.global;
 export const useSessionsStore = defineStore("Session", {
   state: () => ({
+    showSessionAnalysis: false,
     patients: [] as string[],
     sessions: [] as Session[],
     selectedSession: useLocalStorage<Session | null>("selectedSession", null, {

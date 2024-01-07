@@ -24,7 +24,7 @@
       </SideMenu>
       <router-view v-slot="{ Component, route }">
         <transition :name="'fade'" :mode="'out-in'" :duration="100">
-          <component :is="Component" :key="route.path" class="w-full h-full p-2 sm:p-5 overflow-auto" />
+          <component :is="Component" :key="route.path" />
         </transition>
       </router-view>
     </div>

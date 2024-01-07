@@ -25,8 +25,8 @@ const routes = [
         meta: {
           requiresAuth: true,
         },
-        name: "sessionSummary",
-        component: () => import("../views/SessionSummary.vue"),
+        name: "selectSession",
+        component: () => import("../views/SelectSession.vue"),
       },
       {
         path: "/session/:sessionId",
