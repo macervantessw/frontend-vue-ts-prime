@@ -40,7 +40,7 @@ const props = defineProps({
   },
 });
 
-let series = ref([] as Serie<"Line">[]);
+let series: Serie<"Line">[] = [];
 let chart: IChartApi | null = null;
 const chartContainer = ref();
 
@@ -48,7 +48,7 @@ const getChart = () => {
   return chart;
 };
 const getSeries = () => {
-  return series.value;
+  return series;
 };
 
 defineExpose({ getSeries, getChart });
@@ -73,8 +73,8 @@ onUnmounted(() => {
     chart.remove();
     chart = null;
   }
-  if (series.value) {
-    series.value = [];
+  if (series) {
+    series = [];
   }
 });
 
@@ -143,7 +143,7 @@ watch(
           from: chartsStore.timeAxis[0] as UTCTimestamp,
           to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
         });
-        const oxymetrySeries = series.value.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
+        const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
 
         if (oxymetrySeries) {
           oxymetrySeries.priceScale().applyOptions({
@@ -171,7 +171,7 @@ function generateLineSeries(signal: string, name: string, options: DeepPartial<L
       if (data.every((item: any) => item.value === 0)) isEmptySeries.value = true;
       const serie = chart?.addLineSeries({ ...LINE_OPTIONS, ...options });
       serie?.setData(data as any);
-      series.value?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
+      series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
       resolve();
     });
   });
@@ -191,7 +191,7 @@ watch(
 const setHeartRateLines = (timeRange: LogicalRange | null) => {
   if (!timeRange) return;
 
-  const heartRateSeries = series.value.find((s) => s.id === SIGNALS.HR)?.serie;
+  const heartRateSeries = series.find((s) => s.id === SIGNALS.HR)?.serie;
   if (heartRateSeries) {
     const portion = heartRateSeries
       ?.data()

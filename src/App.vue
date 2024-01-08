@@ -1,4 +1,6 @@
 <template>
+  <DynamicDialog />
+
   <router-view />
   <!-- <Button label="Download Zip" @click="downloadZip" /> -->
   <Toast position="bottom-right" group="br" />
@@ -9,6 +11,7 @@ import { watch } from "vue";
 import { useMessagesStore } from "./store";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
+import DynamicDialog from "primevue/dynamicdialog";
 
 const toast = useToast();
 const messagesStore = useMessagesStore();
