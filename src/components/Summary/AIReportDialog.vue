@@ -5,7 +5,7 @@ import { useSessionsStore } from "../../store";
 // import Button from "primevue/button";
 
 const sessionsStore = useSessionsStore();
-const apiKey = import.meta.env.VITE_OPENAI_APIKEY;
+const apiKey = "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";
 const openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true });
 const result = ref("");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
