@@ -2,12 +2,18 @@
   <div>
     <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
+    <ChartTooltip ref="tooltip" :show="showTooltip" :style="{ left: leftPosition }">
+      <div style="color: rgba(239, 83, 80, 1)">Attenuation</div>
+      <div style="font-size: 24px; margin: 4px 0px; color: black">
+        {{ attenuation.toFixed(2) }}
+      </div>
+      <div style="color: black">{{ dayjs(dateStr).format("HH:mm:ss:SSS") }}</div>
+    </ChartTooltip>
     <span v-if="selectedTime != 0" id="selected-time" class="absolute p-1 px-3 m-1 text-lg z-5 font-semibold border-round"
       >{{ t("selected-time") }}: {{ selectedTime.toFixed(1) }}s</span
     >
   </div>
 </template>
-
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
@@ -22,7 +28,8 @@ import { showRespiratoryEvents } from "../../utilities/chart.utilities";
 import Skeleton from "primevue/skeleton";
 import { Box } from "./plugins/box";
 import i18n from "../../i18n";
-
+import ChartTooltip from "./ChartTooltip.vue";
+const attenuation = ref(0);
 const { t } = i18n.global;
 const box = ref<Box | undefined>();
 const chartsStore = useChartsStore();
@@ -30,7 +37,8 @@ let timeFrom = 0;
 let timeTo = 0;
 
 const selectedTime = ref(0);
-
+const showTooltip = ref(false);
+const leftPosition = ref("0px");
 const props = defineProps({
   files: {
     type: Object as PropType<Record<string, JSZip.JSZipObject>>,
@@ -48,6 +56,8 @@ let series: Serie<"Line">[] = [];
 let chart: IChartApi | null = null;
 
 const chartContainer = ref();
+const tooltip = ref();
+const dateStr = ref();
 
 const getChart = () => {
   return chart;
@@ -61,18 +71,7 @@ defineExpose({ getChart, getSeries });
 
 onMounted(() => {
   chart = createChart(chartContainer.value, CHART_OPTIONS);
-
   const toolTipWidth = 96;
-
-  // Create and style the tooltip html element
-  const toolTip = document.createElement("div");
-  toolTip.style.cssText = `width: ${toolTipWidth}px; height: 20rem; position: absolute; display: none; padding: 8px; box-sizing: border-box; font-size: 12px; text-align: left; z-index: 1000; top: 12px; left: 12px; pointer-events: none; border-radius: 4px 4px 0px 0px; border-bottom: none; box-shadow: 0 2px 5px 0 rgba(117, 134, 150, 0.45);font-family: -apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;`;
-  toolTip.style.background = `rgba(${"255, 255, 255"}, 0.25)`;
-  toolTip.style.color = "black";
-  toolTip.style.borderColor = "rgba( 239, 83, 80, 1)";
-  chartContainer.value.appendChild(toolTip);
-
-  // update tooltip
   chart.subscribeCrosshairMove((param) => {
     if (
       param.point === undefined ||
@@ -82,11 +81,10 @@ onMounted(() => {
       param.point.y < 0 ||
       param.point.y > chartContainer.value.clientHeight
     ) {
-      toolTip.style.display = "none";
+      showTooltip.value = false;
     } else {
-      // thus it will be YYYY-MM-DD
-      const dateStr: any = param.time;
-      toolTip.style.display = "block";
+      dateStr.value = param.time;
+      showTooltip.value = true;
       const basalSerie = series.find((serie) => serie.id === SIGNALS.BASAL_AIR_FLOW);
       const airFlowserie = series.find((serie) => serie.id === SIGNALS.AIR_FLOW);
       if (basalSerie && airFlowserie) {
@@ -94,12 +92,7 @@ onMounted(() => {
         const airFlow: any = param.seriesData.get(airFlowserie.serie);
         const basalData = basalAirFlow?.value !== undefined ? basalAirFlow.value : basalAirFlow.close;
         const airFlowData = airFlow?.value !== undefined ? airFlow.value : airFlow.close;
-
-        toolTip.innerHTML = `<div style="color: ${"rgba( 239, 83, 80, 1)"}">Attenuation</div><div style="font-size: 24px; margin: 4px 0px; color: ${"black"}">
-        ${(((airFlowData - basalData) / basalData) * 100).toFixed(2)}
-        </div><div style="color: ${"black"}">
-        ${dayjs(dateStr).format("HH:mm:ss:SSS")}
-        </div>`;
+        attenuation.value = ((airFlowData - basalData) / basalData) * 100;
       }
 
       if (chart) {
@@ -111,8 +104,7 @@ onMounted(() => {
         left = Math.min(left, priceScaleWidth + timeScaleWidth - toolTipWidth);
         left = Math.max(left, priceScaleWidth);
 
-        toolTip.style.left = left + "px";
-        toolTip.style.top = 0 + "px";
+        leftPosition.value = left + "px";
       }
     }
   });

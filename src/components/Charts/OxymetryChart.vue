@@ -1,5 +1,15 @@
 <template>
   <div :class="{ 'max-h-0 min-h-0': isEmptySeries }">
+    <ChartTooltip :show="showTooltip" :style="{ left: leftPosition }">
+      <div style="color: rgba(239, 83, 80, 1)">Attenuation</div>
+      <div style="font-size: 24px; margin: 4px 0px" :style="{ color: attenuation < -3 ? 'red' : 'black' }">{{ attenuation.toFixed(2) }}%</div>
+      <div style="backdrop-filter: blur(2px)">
+        <div class="tooltip-detail text-lg font-bold text-orange-600">Basal:{{ basalValue }}%</div>
+        <div class="tooltip-detail text-lg font-bold text-blue-600">SPO2:{{ oxymetryValue }}%</div>
+        <div class="tooltip-detail text-lg font-bold text-pink-600">HR:{{ hrValue }} bpm</div>
+      </div>
+      <!-- <div style="color: black">{{ dayjs(dateStr).format("HH:mm:ss:SSS") }}</div> -->
+    </ChartTooltip>
     <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
   </div>
@@ -14,6 +24,7 @@ import {
   IChartApi,
   IPriceLine,
   ISeriesApi,
+  LineData,
   LineStyleOptions,
   LogicalRange,
   SeriesOptionsCommon,
@@ -25,14 +36,28 @@ import {
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { SIGNALS, CHART_OPTIONS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
-import { Serie } from "../../interfaces";
+import { Data, Serie } from "../../interfaces";
 import JSZip from "jszip";
 import Skeleton from "primevue/skeleton";
+import { calculateOxymetryEvents, showOxymetryEvents } from "../../utilities/chart.utilities";
+import ChartTooltip from "./ChartTooltip.vue";
+// import dayjs from "dayjs";
 
 let priceLines: IPriceLine[] = [];
 const isEmptySeries = ref(false);
 const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
 const chartsStore = useChartsStore();
+const showTooltip = ref(false);
+const leftPosition = ref("0px");
+const dateStr = ref();
+const attenuation = ref(0);
+const basalValue = ref<number | undefined>(0);
+const oxymetryValue = ref<number | undefined>(0);
+const hrValue = ref<number | undefined>(0);
+
+const toolTipWidth = 80;
+const toolTipMargin = 15;
+
 const props = defineProps({
   files: {
     type: Object as PropType<Record<string, JSZip.JSZipObject>>,
@@ -50,6 +75,9 @@ const getChart = () => {
 const getSeries = () => {
   return series;
 };
+const getSerieData = (id: string) => {
+  return series.find((s) => s.id === id)?.serie.data() as readonly Data[];
+};
 
 defineExpose({ getSeries, getChart });
 
@@ -65,6 +93,41 @@ onMounted(() => {
   chart = createChart(chartContainer.value, { ...CHART_OPTIONS, ...options });
   chart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     setHeartRateLines(timeRange);
+  });
+
+  chart.subscribeCrosshairMove((param) => {
+    if (
+      param.point === undefined ||
+      !param.time ||
+      param.point.x < 0 ||
+      param.point.x > chartContainer.value.clientWidth ||
+      param.point.y < 0 ||
+      param.point.y > chartContainer.value.clientHeight
+    ) {
+      showTooltip.value = false;
+    } else {
+      dateStr.value = param.time;
+      showTooltip.value = true;
+      const basalSerie = series.find((serie) => serie.id === SIGNALS.BASAL_OXIMETRY);
+      const oxymetrySerie = series.find((serie) => serie.id === SIGNALS.OXIMETRY);
+      const hrSerie = series.find((serie) => serie.id === SIGNALS.HR);
+
+      const seriesData = param.seriesData as Map<ISeriesApi<"Line">, LineData<Time>>;
+      if (seriesData) {
+        basalValue.value = seriesData.get(basalSerie?.serie as ISeriesApi<"Line">)?.value;
+        oxymetryValue.value = seriesData.get(oxymetrySerie?.serie as ISeriesApi<"Line">)?.value;
+        hrValue.value = seriesData.get(hrSerie?.serie as ISeriesApi<"Line">)?.value;
+        if (!oxymetryValue.value || !basalValue.value) attenuation.value = 0;
+        else attenuation.value = ((oxymetryValue.value - basalValue.value) / basalValue.value) * 100;
+      }
+
+      let left = param.point.x + toolTipMargin;
+      if (left > chartContainer.value.clientWidth - toolTipWidth) {
+        left = param.point.x - toolTipMargin - toolTipWidth;
+      }
+
+      leftPosition.value = left + "px";
+    }
   });
 });
 
@@ -139,10 +202,18 @@ watch(
 
     Promise.all(promises)
       .then(() => {
+        const oxyEvents = calculateOxymetryEvents(getSerieData(SIGNALS.BASAL_OXIMETRY), getSerieData(SIGNALS.OXIMETRY));
+        showOxymetryEvents(
+          chart,
+          getSeries().find((serie) => serie.id === SIGNALS.BASAL_OXIMETRY)?.serie,
+          getSerieData(SIGNALS.BASAL_OXIMETRY) as LineData<Time>[],
+          oxyEvents,
+        );
         chart?.timeScale().setVisibleRange({
           from: chartsStore.timeAxis[0] as UTCTimestamp,
           to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
         });
+
         const oxymetrySeries = series.find((s) => s.id === SIGNALS.OXIMETRY)?.serie;
 
         if (oxymetrySeries) {
@@ -223,5 +294,8 @@ const setHeartRateLines = (timeRange: LogicalRange | null) => {
 <style scoped>
 .lw-chart {
   height: 100%;
+}
+.tooltip-detail {
+  text-shadow: 1px 1px 14px rgb(81 67 21 / 25%);
 }
 </style>

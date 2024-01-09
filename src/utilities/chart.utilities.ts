@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, SeriesOptionsMap, Time } from "lightweight-charts";
-import { Event, Serie } from "../interfaces";
+import { Data, Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
 import { STATES } from "../constants";
 import { useChartsStore } from "../store";
@@ -53,6 +53,29 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
     }
     const from = event.startTime * 1000;
     const to = event.endTime * 1000;
+    const box = new Box(chart, serie, data, from as Time, to as Time, offset, h, {
+      showLabel: false,
+      color: color,
+      width: 40,
+    });
+    serie.attachPrimitive(box);
+  });
+}
+export function showOxymetryEvents(
+  chart: IChartApi | null,
+  serie: ISeriesApi<"Line"> | undefined,
+  data: LineData[],
+  events: Event[] | undefined,
+  vertOffset = 0,
+  height?: number,
+) {
+  if (!events || !chart || !serie) return;
+  events.forEach((event) => {
+    const offset = vertOffset;
+    const h = height;
+    const color = "hsla(30, 87%, 65%, 0.243)";
+    const from = event.startTime;
+    const to = event.endTime;
     const box = new Box(chart, serie, data, from as Time, to as Time, offset, h, {
       showLabel: false,
       color: color,
@@ -196,4 +219,20 @@ function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: 
     return;
   }
   chart.clearCrosshairPosition();
+}
+
+export function calculateOxymetryEvents(basalOxymetryData: readonly Data[], oxymetryData: readonly Data[], percentage = 3) {
+  const events = basalOxymetryData.reduce((acc: Event[], curr, index) => {
+    const value = oxymetryData[index].value;
+    if (value < curr.value * (1 - percentage / 100)) {
+      if (acc[acc.length - 1]?.endTime !== 0) acc.push({ startTime: curr.time, endTime: 0, eventType: 44 });
+    } else {
+      if (acc[acc.length - 1]?.endTime === 0) {
+        acc[acc.length - 1].endTime = curr.time;
+      }
+    }
+    return acc;
+  }, []);
+
+  return events;
 }
