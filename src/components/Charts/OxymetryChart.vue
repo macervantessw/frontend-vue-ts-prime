@@ -2,7 +2,7 @@
   <div :class="{ 'max-h-0 min-h-0': isEmptySeries }">
     <ChartTooltip :show="showTooltip" :style="{ left: leftPosition }">
       <div style="color: rgba(239, 83, 80, 1)">Attenuation</div>
-      <div style="font-size: 24px; margin: 4px 0px" :style="{ color: attenuation < -3 ? 'red' : 'black' }">{{ attenuation.toFixed(2) }}%</div>
+      <div style="font-size: 24px; margin: 4px 0px" :style="{ color: attenuation < selectedPercentage * -1 ? 'red' : 'black' }">{{ attenuation.toFixed(2) }}%</div>
       <div style="backdrop-filter: blur(2px)">
         <div class="tooltip-detail text-lg font-bold text-orange-600">Basal:{{ basalValue }}%</div>
         <div class="tooltip-detail text-lg font-bold text-blue-600">SPO2:{{ oxymetryValue }}%</div>
