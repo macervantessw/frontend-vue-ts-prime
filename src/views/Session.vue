@@ -220,8 +220,18 @@ async function downloadFileAndUncompress() {
 
 const wheelHandler = (e: any) => {
   const increment = e.deltaY * 50;
-  chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
-  chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
+  if (Number(chartsStore.selection.range.from) + increment < chartsStore.timeAxis[0]) {
+    const range = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
+    chartsStore.selection.range.from = chartsStore.timeAxis[0] as Time;
+    chartsStore.selection.range.to = (chartsStore.timeAxis[0] + range) as Time;
+  } else if (Number(chartsStore.selection.range.to) + increment > chartsStore.timeAxis[chartsStore.timeAxis.length - 1]) {
+    const range = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
+    chartsStore.selection.range.to = chartsStore.timeAxis[chartsStore.timeAxis.length - 1] as Time;
+    chartsStore.selection.range.from = (chartsStore.timeAxis[chartsStore.timeAxis.length - 1] - range) as Time;
+  } else {
+    chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
+    chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
+  }
 };
 </script>
 <style>

@@ -111,15 +111,16 @@ onMounted(() => {
   });
 
   chart.subscribeClick((param: MouseEventParams) => {
+    if (box.value) series[0].serie.detachPrimitive(box.value);
+    series[0].serie.setMarkers([{ time: 0 as Time, position: "aboveBar", shape: "circle", color: "#FFF0" }]);
+    selectedTime.value = "";
     if (param.sourceEvent?.altKey) {
       if (timeFrom === 0) {
         timeFrom = param.time as UTCTimestamp;
         timeTo = 0;
       } else if (timeTo === 0) {
         timeTo = param.time as UTCTimestamp;
-        const totalTime = dayjs.duration(timeTo - timeFrom);
-        if (box.value) series[0].serie.detachPrimitive(box.value);
-
+        const totalTime = dayjs.duration(Math.max(timeTo, timeFrom) - Math.min(timeTo, timeFrom));
         selectedTime.value = `${totalTime.hours() ? totalTime.hours() + "h " : ""} ${totalTime.minutes() ? totalTime.minutes() + "m " : ""} ${
           totalTime.seconds() ? totalTime.seconds() + "s" : ""
         }`;
