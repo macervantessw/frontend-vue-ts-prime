@@ -47,7 +47,114 @@ getResponse();
 <template>
   <div class="p-4">
     <!-- <Button icon="pi pi-stop-circle" text rounded @click="stream.controller.abort()" /> -->
-    <p class="text-xl font-semibold" v-html="result.replace(/\n/g, '<br>')"></p>
+    <section class="paper shadow-3">
+      <p class="text-xl font-semibold content" v-html="result.replace(/\n/g, '<br>')"></p>
+    </section>
   </div>
 </template>
-<style></style>
+<style lang="scss">
+@import url("https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap");
+$gradient: ();
+
+// Generate multiple black/white linear gradients
+
+$line-height: 40px;
+.paper {
+  margin: 0 auto;
+  border-left: 30px solid white;
+  border-radius: 0 20px 20px 0;
+  border-image: url("../../assets/paper-border.svg") 5% 100% repeat;
+  border-image-width: 0px 0px 0px 30px;
+  transform: translateY(100%);
+  animation: init 1s ease-in-out forwards;
+
+  .content {
+    position: relative;
+    margin: 0;
+    padding: 30px 30px 30px 80px;
+    border: none;
+    border-radius: 0 20px 20px 0;
+    font-family: "Indie Flower", cursive;
+
+    background: #fcf9f4 linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 0) 0 20px / 100% $line-height;
+
+    &:after {
+      position: absolute;
+      top: 0;
+      left: 50px;
+      content: "";
+      height: 100%;
+      width: 1px;
+      border-left: double #e08183;
+    }
+  }
+
+  p {
+    margin: 0 0 $line-height 0;
+    color: #333;
+  }
+
+  span {
+    position: relative;
+    line-height: $line-height;
+  }
+}
+
+.form__field {
+  display: inline;
+  color: #7db665;
+  outline: none;
+
+  &:empty {
+    display: inline-block;
+    color: #ddd;
+  }
+
+  // Use a data-attr to replicate a placeholder
+  &:empty,
+  &:empty:focus {
+    &:before {
+      content: attr(data-placeholder);
+    }
+  }
+}
+
+// Hide blur defs
+svg {
+  display: none;
+}
+
+@keyframes init {
+  75% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes do-blur {
+  0% {
+    filter: url(#blur4);
+  }
+
+  25% {
+    filter: url(#blur3);
+  }
+
+  50% {
+    filter: url(#blur2);
+  }
+
+  75% {
+    filter: url(#blur1);
+  }
+
+  100% {
+    filter: url(#blur0);
+  }
+}
+svg {
+  filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
+}
+</style>

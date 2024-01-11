@@ -108,16 +108,16 @@ watch(
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
 
-    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 30, 10, false);
+    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 40, 10, false /* showDiscarded */, true /* solidColor */);
     showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 10);
-    showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 40, 10);
+    showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 50, 10);
   },
 );
 
 watch(
   () => chartsStore.oxymetryEvents,
   (events) => {
-    oxymetryEventBoxes = showOxymetryEvents(chart, series[0], timeSeries.value, events, oxymetryEventBoxes, 50, 10, "hsla(30, 87%, 65%, 0.5)");
+    oxymetryEventBoxes = showOxymetryEvents(chart, series[0], timeSeries.value, events, oxymetryEventBoxes, 30, 10, "hsla(30, 87%, 65%, 1)");
   },
   { deep: true },
 );

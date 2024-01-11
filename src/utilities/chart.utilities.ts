@@ -14,15 +14,16 @@ export function showRespiratoryEvents(
   vertOffset = 0,
   height?: number,
   showDiscarded = true,
+  solidColor = false,
 ) {
   if (!events || !chart || !serie) return;
 
   events.forEach((event) => {
     const types = showDiscarded ? [0, 2, 103] : [0];
     if (chart && types.includes(event.eventType)) {
-      let color = "hsla(207, 73%, 39%, 0.2)";
-      if (event.eventType === 2) color = "hsla(53, 85%, 52%, 0.1)";
-      else if (event.eventType === 103) color = "hsla(286, 45%, 36%, 0.2)";
+      let color = `hsla(207, 73%, 39%, ${solidColor ? 1 : 0.2})`;
+      if (event.eventType === 2) color = `hsla(53, 85%, 52%,  ${solidColor ? 1 : 0.1})`;
+      else if (event.eventType === 103) color = `hsla(286, 45%, 36%,  ${solidColor ? 1 : 0.2})`;
       const from = event.startTime * 1000;
       const to = event.endTime * 1000;
       const box = new Box(chart, serie, data, from as Time, to as Time, vertOffset, height, {
