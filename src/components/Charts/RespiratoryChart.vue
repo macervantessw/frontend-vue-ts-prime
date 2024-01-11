@@ -9,21 +9,20 @@
       </div>
       <div style="color: black">{{ dayjs(dateStr).format("HH:mm:ss:SSS") }}</div>
     </ChartTooltip>
-    <span v-if="selectedTime != 0" id="selected-time" class="absolute p-1 px-3 m-1 text-lg z-5 font-semibold border-round"
-      >{{ t("selected-time") }}: {{ selectedTime.toFixed(1) }}s</span
-    >
+    <span v-if="selectedTime" id="selected-time" class="absolute p-1 px-3 m-1 text-lg z-5 font-semibold border-round">{{ t("selected-time") }}: {{ selectedTime }}</span>
   </div>
 </template>
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
-import { useChartsStore, useMessagesStore } from "../../store";
+import { useChartsStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
 import JSZip from "jszip";
 import { Serie, Event } from "../../interfaces";
 import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import { showRespiratoryEvents } from "../../utilities/chart.utilities";
 import Skeleton from "primevue/skeleton";
 import { Box } from "./plugins/box";
@@ -36,7 +35,9 @@ const chartsStore = useChartsStore();
 let timeFrom = 0;
 let timeTo = 0;
 
-const selectedTime = ref(0);
+dayjs.extend(duration);
+
+const selectedTime = ref("");
 const showTooltip = ref(false);
 const leftPosition = ref("0px");
 const props = defineProps({
@@ -116,11 +117,13 @@ onMounted(() => {
         timeTo = 0;
       } else if (timeTo === 0) {
         timeTo = param.time as UTCTimestamp;
-        const totalTime = timeTo - timeFrom;
-        useMessagesStore().setSuccessMessage(`Selected time: ${totalTime / 1000} seconds`);
+        const totalTime = dayjs.duration(timeTo - timeFrom);
         if (box.value) series[0].serie.detachPrimitive(box.value);
-        selectedTime.value = Number(totalTime / 1000);
-        drawBox(timeFrom as Time, timeTo as Time, `${selectedTime.value.toFixed(1)} s`);
+
+        selectedTime.value = `${totalTime.hours() ? totalTime.hours() + "h " : ""} ${totalTime.minutes() ? totalTime.minutes() + "m " : ""} ${
+          totalTime.seconds() ? totalTime.seconds() + "s" : ""
+        }`;
+        drawBox(timeFrom as Time, timeTo as Time, `${selectedTime.value}`);
         timeFrom = 0;
       }
     }
