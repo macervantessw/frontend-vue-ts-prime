@@ -4,6 +4,7 @@ import { useSessionsStore } from "./sessions.store";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { VISIBLE_MINUTES } from "../constants";
+import { Event } from "../interfaces";
 dayjs.extend(duration);
 
 export const useChartsStore = defineStore("Charts", {
@@ -18,6 +19,7 @@ export const useChartsStore = defineStore("Charts", {
     audioChartRendered: false,
     minimapChartRendered: false,
     respiratoryChartRendered: false,
+    oxymetryEvents: [] as Event[],
   }),
   getters: {
     allRendered: (state) => {

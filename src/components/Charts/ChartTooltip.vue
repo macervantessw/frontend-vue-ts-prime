@@ -14,7 +14,7 @@ defineProps({
 <style>
 .tooltip {
   width: 96px;
-  height: 85%;
+  height: 100%;
   position: absolute;
   padding: 8px;
   box-sizing: border-box;

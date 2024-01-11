@@ -44,7 +44,7 @@ const getSeries = () => {
 defineExpose({ getChart, getSeries });
 
 onMounted(() => {
-  chart = createChart(chartContainer.value, CHART_OPTIONS);
+  chart = createChart(chartContainer.value, { ...CHART_OPTIONS, timeScale: { visible: false } });
 });
 
 onUnmounted(() => {

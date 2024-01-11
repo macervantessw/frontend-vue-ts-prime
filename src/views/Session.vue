@@ -43,7 +43,7 @@
       :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
       :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
       class="card card-small chart-container h-full w-full shadow-2 relative"
-      style="max-height: 7rem; min-height: 4rem"
+      style="max-height: 8rem; min-height: 8rem"
       @wheel.prevent="wheelHandler"
     />
 
@@ -219,7 +219,6 @@ async function downloadFileAndUncompress() {
 }
 
 const wheelHandler = (e: any) => {
-  if (!sessionsStore.showSessionAnalysis) return;
   const increment = e.deltaY * 50;
   chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
   chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;

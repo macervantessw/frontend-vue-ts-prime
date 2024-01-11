@@ -22,7 +22,6 @@ const sessionDate = () => {
 
 const goToSessionSummary = () => {
   sessionsStore.selectedSession = props.session;
-  sessionsStore.showSessionAnalysis = false;
   mainStore.menuVisible = false;
   chartsStore.setNotRendered();
 };

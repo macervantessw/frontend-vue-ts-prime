@@ -70,6 +70,7 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
 
   timeScale: {
     fixLeftEdge: true,
+    fixRightEdge: true,
     lockVisibleTimeRangeOnResize: true,
     borderVisible: false,
     uniformDistribution: true,

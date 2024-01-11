@@ -4,6 +4,7 @@ import { Data, Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
 import { STATES } from "../constants";
 import { useChartsStore } from "../store";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function showRespiratoryEvents(
   chart: IChartApi | null,
@@ -66,23 +67,29 @@ export function showOxymetryEvents(
   serie: ISeriesApi<"Line"> | undefined,
   data: LineData[],
   events: Event[] | undefined,
+  oldBoxes: Box[] = [],
   vertOffset = 0,
   height?: number,
+  color = "hsla(30, 87%, 65%, 0.243)",
 ) {
   if (!events || !chart || !serie) return;
+  for (const box of oldBoxes) {
+    serie.detachPrimitive(box);
+  }
+
+  const boxes = [] as Box[];
+
   events.forEach((event) => {
-    const offset = vertOffset;
-    const h = height;
-    const color = "hsla(30, 87%, 65%, 0.243)";
-    const from = event.startTime;
-    const to = event.endTime;
-    const box = new Box(chart, serie, data, from as Time, to as Time, offset, h, {
+    const box = new Box(chart, serie, data, event.startTime as Time, event.endTime as Time, vertOffset, height, {
       showLabel: false,
       color: color,
       width: 40,
     });
+    boxes.push(box);
     serie.attachPrimitive(box);
   });
+  serie.setMarkers([{ time: 0 as Time, position: "aboveBar", color: "rgba(0, 0, 0, 0.0)", shape: "arrowUp", id: "marker" }]);
+  return boxes;
 }
 export function drawBox(chart: IChartApi | null, from: Time, to: Time, serie: ISeriesApi<"Line">, color: string) {
   if (!chart) return;
@@ -221,7 +228,7 @@ function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: 
   chart.clearCrosshairPosition();
 }
 
-export function calculateOxymetryEvents(basalOxymetryData: readonly Data[], oxymetryData: readonly Data[], percentage = 3) {
+export function calculateOxymetryEvents(basalOxymetryData: readonly Data[], oxymetryData: readonly Data[], percentage = 3): Event[] {
   const events = basalOxymetryData.reduce((acc: Event[], curr, index) => {
     const value = oxymetryData[index].value;
     if (value < curr.value * (1 - percentage / 100)) {

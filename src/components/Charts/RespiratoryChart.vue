@@ -70,7 +70,7 @@ const getSeries = () => {
 defineExpose({ getChart, getSeries });
 
 onMounted(() => {
-  chart = createChart(chartContainer.value, CHART_OPTIONS);
+  chart = createChart(chartContainer.value, { ...CHART_OPTIONS, timeScale: { visible: false } });
   const toolTipWidth = 96;
   chart.subscribeCrosshairMove((param) => {
     if (
@@ -97,7 +97,7 @@ onMounted(() => {
 
       if (chart) {
         let left = Number(param.point.x); // relative to timeScale
-        const timeScaleWidth = chart?.timeScale().width();
+        const timeScaleWidth = chart?.paneSize().width;
         const priceScaleWidth = chart?.priceScale("left").width();
         const halfTooltipWidth = toolTipWidth / 2;
         left += priceScaleWidth - halfTooltipWidth;

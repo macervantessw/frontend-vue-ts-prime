@@ -10,6 +10,17 @@
       </div>
       <!-- <div style="color: black">{{ dayjs(dateStr).format("HH:mm:ss:SSS") }}</div> -->
     </ChartTooltip>
+    <div v-if="chartsStore.allRendered" class="absolute right-0 bottom-0 p-3 z-5">
+      <Dropdown v-model="selectedPercentage" :options="dropdownOptions">
+        <template #value="{ value }">
+          <span>{{ value }} %</span>
+        </template>
+        <template #option="{ option }">
+          <span>{{ option }} %</span>
+        </template>
+      </Dropdown>
+    </div>
+
     <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
   </div>
@@ -41,11 +52,14 @@ import JSZip from "jszip";
 import Skeleton from "primevue/skeleton";
 import { calculateOxymetryEvents, showOxymetryEvents } from "../../utilities/chart.utilities";
 import ChartTooltip from "./ChartTooltip.vue";
+import Dropdown from "primevue/dropdown";
+import { Box } from "./plugins/box";
+
 // import dayjs from "dayjs";
 
 let priceLines: IPriceLine[] = [];
 const isEmptySeries = ref(false);
-const options: Partial<CreatePriceLineOptions> = { lineStyle: 2, axisLabelVisible: true, lineWidth: 1 };
+const options: Partial<CreatePriceLineOptions> = { lineStyle: 1, axisLabelVisible: true, lineWidth: 1 };
 const chartsStore = useChartsStore();
 const showTooltip = ref(false);
 const leftPosition = ref("0px");
@@ -54,9 +68,10 @@ const attenuation = ref(0);
 const basalValue = ref<number | undefined>(0);
 const oxymetryValue = ref<number | undefined>(0);
 const hrValue = ref<number | undefined>(0);
-
+const dropdownOptions = [2, 3, 4];
 const toolTipWidth = 80;
-const toolTipMargin = 15;
+const selectedPercentage = ref(3);
+let boxes: Box[] | undefined = [];
 
 const props = defineProps({
   files: {
@@ -84,10 +99,13 @@ defineExpose({ getSeries, getChart });
 onMounted(() => {
   const options: DeepPartial<TimeChartOptions> = {
     leftPriceScale: {
-      visible: true,
+      visible: false,
     },
     rightPriceScale: {
-      visible: true,
+      visible: false,
+    },
+    timeScale: {
+      visible: false,
     },
   };
   chart = createChart(chartContainer.value, { ...CHART_OPTIONS, ...options });
@@ -121,12 +139,17 @@ onMounted(() => {
         else attenuation.value = ((oxymetryValue.value - basalValue.value) / basalValue.value) * 100;
       }
 
-      let left = param.point.x + toolTipMargin;
-      if (left > chartContainer.value.clientWidth - toolTipWidth) {
-        left = param.point.x - toolTipMargin - toolTipWidth;
-      }
+      if (chart) {
+        let left = Number(param.point.x); // relative to timeScale
+        const timeScaleWidth = chart?.paneSize().width;
+        const priceScaleWidth = chart?.priceScale("left").width();
+        const halfTooltipWidth = toolTipWidth / 2;
+        left += priceScaleWidth - halfTooltipWidth;
+        left = Math.min(left, priceScaleWidth + timeScaleWidth - toolTipWidth);
+        left = Math.max(left, priceScaleWidth);
 
-      leftPosition.value = left + "px";
+        leftPosition.value = left + "px";
+      }
     }
   });
 });
@@ -140,6 +163,12 @@ onUnmounted(() => {
     series = [];
   }
 });
+watch(
+  () => selectedPercentage.value,
+  (percentage) => {
+    chartsStore.oxymetryEvents = calculateOxymetryEvents(getSerieData(SIGNALS.BASAL_OXIMETRY), getSerieData(SIGNALS.OXIMETRY), percentage);
+  },
+);
 
 watch(
   () => chartsStore.timeAxis,
@@ -161,6 +190,7 @@ watch(
             return price.toFixed(0) + "%";
           },
         },
+        priceLineVisible: false,
       }),
     );
     promises.push(
@@ -179,6 +209,7 @@ watch(
             return price.toFixed(0) + "%";
           },
         },
+        priceLineVisible: false,
       }),
     );
     promises.push(
@@ -197,18 +228,14 @@ watch(
             return price.toFixed(0) + "bpm";
           },
         },
+        priceLineVisible: false,
       }),
     );
 
     Promise.all(promises)
       .then(() => {
-        const oxyEvents = calculateOxymetryEvents(getSerieData(SIGNALS.BASAL_OXIMETRY), getSerieData(SIGNALS.OXIMETRY));
-        showOxymetryEvents(
-          chart,
-          getSeries().find((serie) => serie.id === SIGNALS.BASAL_OXIMETRY)?.serie,
-          getSerieData(SIGNALS.BASAL_OXIMETRY) as LineData<Time>[],
-          oxyEvents,
-        );
+        chartsStore.oxymetryEvents = calculateOxymetryEvents(getSerieData(SIGNALS.BASAL_OXIMETRY), getSerieData(SIGNALS.OXIMETRY));
+
         chart?.timeScale().setVisibleRange({
           from: chartsStore.timeAxis[0] as UTCTimestamp,
           to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
@@ -221,8 +248,8 @@ watch(
             autoScale: true,
           });
 
-          oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90 });
-          oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80 });
+          oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90, title: "90%" });
+          oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80, title: "80%" });
         }
         console.log("Oxymetry has been rendered");
       })
@@ -233,6 +260,20 @@ watch(
         chartsStore.oxymetryChartRendered = true;
       });
   },
+);
+
+watch(
+  () => chartsStore.oxymetryEvents,
+  (events) => {
+    boxes = showOxymetryEvents(
+      chart,
+      getSeries().find((serie) => serie.id === SIGNALS.BASAL_OXIMETRY)?.serie,
+      getSerieData(SIGNALS.BASAL_OXIMETRY) as LineData<Time>[],
+      events,
+      boxes,
+    );
+  },
+  { deep: true },
 );
 
 function generateLineSeries(signal: string, name: string, options: DeepPartial<LineStyleOptions & SeriesOptionsCommon>): Promise<void> {
@@ -276,8 +317,8 @@ const setHeartRateLines = (timeRange: LogicalRange | null) => {
     const max = Math.max(...portion);
     const min = Math.min(...portion);
 
-    priceLines.push(heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: max }));
-    priceLines.push(heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: min }));
+    priceLines.push(heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: max, title: max.toFixed(0) + "bpm" }));
+    priceLines.push(heartRateSeries.createPriceLine({ ...options, color: "rgb(190, 34, 34)", price: min, title: min.toFixed(0) + "bpm" }));
     heartRateSeries.setMarkers([
       {
         time: 0 as Time,
@@ -297,5 +338,18 @@ const setHeartRateLines = (timeRange: LogicalRange | null) => {
 }
 .tooltip-detail {
   text-shadow: 1px 1px 14px rgb(81 67 21 / 25%);
+}
+</style>
+<style>
+.p-dropdown {
+  background: #fff0 !important;
+  border: 1px solid #c1cbd600 !important;
+  box-shadow:
+    0px 4px 10px rgba(0, 0, 0, 0.03),
+    0px 0px 2px rgba(0, 0, 0, 0.06),
+    0px 2px 6px rgba(0, 0, 0, 0.12) !important;
+}
+.p-dropdown .p-inputtext {
+  padding: 0.2rem 0.5rem !important;
 }
 </style>

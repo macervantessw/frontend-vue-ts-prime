@@ -62,5 +62,6 @@
   "odi-description": "Average number of times per hour that the blood oxygen level drops by a {num}% from baseline",
   "visible-range": "Visible range",
   "selected-time": "Selected time",
-  "Generate AI report": "Generate AI Report"
+  "Generate AI report": "Generate AI Report",
+  "Percentage": "Percentage"
 }

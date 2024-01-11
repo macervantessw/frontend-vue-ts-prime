@@ -66,5 +66,6 @@
   "odi-description": "Numero medio di volte all'ora in cui il livello di ossigeno nel sangue si abbassa del 2% rispetto al valore di riferimento.",
   "visible-range": "Gamma visibile",
   "selected-time": "Tempo selezionato",
-  "Generate AI report": "Generare il rapporto AI"
+  "Generate AI report": "Generare il rapporto AI",
+  "Percentage": "Percentuale"
 }

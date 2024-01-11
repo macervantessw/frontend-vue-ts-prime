@@ -13,13 +13,15 @@ import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, VISIBLE_HALF, VISIBLE_MINUTES } from "../../constants";
 import { cloneDeep } from "lodash";
 import { Event } from "../../interfaces";
-import { showRespiratoryEvents, showSnoringEvents, showStateEvents } from "../../utilities/chart.utilities";
+import { showOxymetryEvents, showRespiratoryEvents, showSnoringEvents, showStateEvents } from "../../utilities/chart.utilities";
 import { Box } from "./plugins/box";
 import Skeleton from "primevue/skeleton";
 
 const chartsStore = useChartsStore();
 const timeSeries = ref([] as LineData[]);
 const box = ref(null as Box | null);
+let oxymetryEventBoxes: Box[] | undefined = [];
+
 let series: ISeriesApi<"Line">[] = [];
 let chart: IChartApi | null = null;
 
@@ -106,10 +108,18 @@ watch(
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
 
-    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 30, 20, false);
-    showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 15);
-    showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 50, 20);
+    showRespiratoryEvents(chart, series[0], timeSeries.value, props.respiratoryEvents, 30, 10, false);
+    showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 10);
+    showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 40, 10);
   },
+);
+
+watch(
+  () => chartsStore.oxymetryEvents,
+  (events) => {
+    oxymetryEventBoxes = showOxymetryEvents(chart, series[0], timeSeries.value, events, oxymetryEventBoxes, 50, 10, "hsla(30, 87%, 65%, 0.5)");
+  },
+  { deep: true },
 );
 
 function setSelectionBox(time: Time) {

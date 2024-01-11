@@ -141,6 +141,12 @@ const awakesPerHour = () => {
         units="min"
         icon="material-symbols:start"
       />
+      <DataComponent
+        class="col-12 xl:col-8 p-0 pr-1"
+        :title="$t('Micro awakes per hour')"
+        :value="Number(selectedSession?.SessionMicroAwakeIndex).toFixed(2)"
+        icon="ion:time"
+      />
     </div>
   </SummaryCard>
 </template>
