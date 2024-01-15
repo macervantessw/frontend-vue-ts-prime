@@ -1,5 +1,5 @@
 <template>
-  <DynamicDialog />
+  <DynamicDialog :pt="{ content: { class: 'p-0' } }" />
 
   <router-view />
   <!-- <Button label="Download Zip" @click="downloadZip" /> -->

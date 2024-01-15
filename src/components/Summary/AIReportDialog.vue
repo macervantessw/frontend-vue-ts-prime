@@ -45,7 +45,7 @@ const getResponse = async () => {
 getResponse();
 </script>
 <template>
-  <div class="p-4">
+  <div class="p-2 sm:p-4">
     <!-- <Button icon="pi pi-stop-circle" text rounded @click="stream.controller.abort()" /> -->
     <section class="paper shadow-3">
       <p class="text-xl font-semibold content" v-html="result.replace(/\n/g, '<br>')"></p>
@@ -59,6 +59,17 @@ $gradient: ();
 // Generate multiple black/white linear gradients
 
 $line-height: 40px;
+
+@media (min-width: 576px) {
+  .paper {
+    .content {
+      padding: 30px 30px 30px 80px;
+      &:after {
+        left: 50px;
+      }
+    }
+  }
+}
 .paper {
   margin: 0 auto;
   border-left: 30px solid white;
@@ -71,7 +82,7 @@ $line-height: 40px;
   .content {
     position: relative;
     margin: 0;
-    padding: 30px 30px 30px 80px;
+    padding: 30px 30px 30px 22px !important;
     border: none;
     border-radius: 0 20px 20px 0;
     font-family: "Indie Flower", cursive;
@@ -81,7 +92,7 @@ $line-height: 40px;
     &:after {
       position: absolute;
       top: 0;
-      left: 50px;
+      left: 12px;
       content: "";
       height: 100%;
       width: 1px;

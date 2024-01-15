@@ -56,7 +56,7 @@ const openAIReportDialog = () => {
       },
       breakpoints: {
         "960px": "75vw",
-        "640px": "90vw",
+        "640px": "100vw",
       },
       modal: true,
     },
