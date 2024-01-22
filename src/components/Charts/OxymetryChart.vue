@@ -10,7 +10,7 @@
       </div>
       <!-- <div style="color: black">{{ dayjs(dateStr).format("HH:mm:ss:SSS") }}</div> -->
     </ChartTooltip>
-    <div v-if="chartsStore.allRendered" class="absolute right-0 bottom-0 p-3 z-5">
+    <div v-if="chartsStore.allRendered && !isEmptySeries" class="absolute right-0 bottom-0 p-3 z-5">
       <Dropdown v-model="selectedPercentage" :options="dropdownOptions">
         <template #value="{ value }">
           <span>{{ value }} %</span>
