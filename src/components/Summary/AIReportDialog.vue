@@ -47,12 +47,12 @@ getResponse();
 <template>
   <div class="p-2 sm:p-4">
     <!-- <Button icon="pi pi-stop-circle" text rounded @click="stream.controller.abort()" /> -->
-    <section class="paper shadow-3">
-      <p class="text-xl font-semibold content" v-html="result.replace(/\n/g, '<br>')"></p>
+    <section class="p-4">
+      <p class="text-xl font-semibold" v-html="result.replace(/\n/g, '<br>')"></p>
     </section>
   </div>
 </template>
-<style lang="scss">
+<style scoped lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap");
 $gradient: ();
 

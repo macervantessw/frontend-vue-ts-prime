@@ -33,4 +33,8 @@ defineProps({
     </div>
   </div>
 </template>
-<style></style>
+<style>
+.p-progressbar-value {
+  max-width: 100% !important;
+}
+</style>

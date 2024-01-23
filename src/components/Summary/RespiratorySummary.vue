@@ -102,7 +102,7 @@ const chartOptions = computed(() => {
 <style>
 .progress-top .p-progressbar-value {
   background-color: #ffffff00;
-  border-right: 4px solid #3d3afe;
+  border-right: 4px solid #4745f9;
 }
 .progress-top {
   background-color: #ffffff00;
