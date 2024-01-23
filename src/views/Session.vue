@@ -9,6 +9,16 @@
         <h3 class="m-0 text-600">{{ $t("visible-range") }}: {{ chartsStore.selectionRangeDuration }}</h3>
       </span>
     </section>
+    <MinimapChart
+      ref="miniMapChart"
+      :state-events="sessionsStore.selectedSession?.Data.StateEvents"
+      :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
+      :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
+      class="card card-small chart-container h-full w-full shadow-2 relative"
+      style="max-height: 8rem; min-height: 8rem"
+      @wheel.prevent="wheelHandler"
+    />
+
     <StateChart
       ref="stateChartRef"
       :state-events="sessionsStore.selectedSession?.Data.StateEvents"
@@ -37,15 +47,6 @@
       class="card card-small chart-container h-full w-full shadow-2 relative"
       @wheel.prevent="wheelHandler"
     />
-    <MinimapChart
-      ref="miniMapChart"
-      :state-events="sessionsStore.selectedSession?.Data.StateEvents"
-      :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
-      :snoring-events="sessionsStore.selectedSession?.Data.SnoringEvents"
-      class="card card-small chart-container h-full w-full shadow-2 relative"
-      style="max-height: 8rem; min-height: 8rem"
-      @wheel.prevent="wheelHandler"
-    />
 
     <VideoPlayer v-if="!!videoLink" :options="videoOptions" style="height: 24rem; width: 32rem" />
   </div>
@@ -70,9 +71,11 @@ import OxymetryChart from "../components/Charts/OxymetryChart.vue";
 import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
 import VideoPlayer from "../components/Video/VideoPlayer.vue";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
 dayjs.extend(duration);
 
+const keys = useMagicKeys();
 const audioChartRef = ref();
 const fromIndexRef = ref(-999);
 const miniMapChart = ref();
@@ -185,24 +188,28 @@ onBeforeMount(() => {
   }
 });
 
-// whenever(keys.ArrowRight, () => {
-//   if (current.has("shift") && current.has("control")) move(chartsStore.selection.max - chartsStore.selection.min);
-//   else move(CHART_MOVEMENT);
-// });
+whenever(keys.ArrowRight, () => {
+  move(Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from));
+});
 
-// whenever(keys.ArrowLeft, () => {
-//   if (current.has("shift") && current.has("control")) move((chartsStore.selection.max - chartsStore.selection.min) * -1);
-//   else move(-CHART_MOVEMENT);
-// });
+whenever(keys.ArrowLeft, () => {
+  move(Number(chartsStore.selection.range.from) - Number(chartsStore.selection.range.to));
+});
 
-// function move(quantity: number) {
-//   if (!chartsStore.selection.min) chartsStore.selection.min = chartsStore.xaxis.min;
-//   if (!chartsStore.selection.max) chartsStore.selection.max = chartsStore.xaxis.max;
-//   chartsStore.selection = {
-//     min: chartsStore.selection.min + quantity,
-//     max: chartsStore.selection.max + quantity,
-//   };
-// }
+function move(increment: number) {
+  if (Number(chartsStore.selection.range.from) + increment < chartsStore.timeAxis[0]) {
+    const range = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
+    chartsStore.selection.range.from = chartsStore.timeAxis[0] as Time;
+    chartsStore.selection.range.to = (chartsStore.timeAxis[0] + range) as Time;
+  } else if (Number(chartsStore.selection.range.to) + increment > chartsStore.timeAxis[chartsStore.timeAxis.length - 1]) {
+    const range = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
+    chartsStore.selection.range.to = chartsStore.timeAxis[chartsStore.timeAxis.length - 1] as Time;
+    chartsStore.selection.range.from = (chartsStore.timeAxis[chartsStore.timeAxis.length - 1] - range) as Time;
+  } else {
+    chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
+    chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
+  }
+}
 
 async function downloadFileAndUncompress() {
   if (!sessionsStore.selectedSession) return;
@@ -220,18 +227,7 @@ async function downloadFileAndUncompress() {
 
 const wheelHandler = (e: any) => {
   const increment = e.deltaY * 50;
-  if (Number(chartsStore.selection.range.from) + increment < chartsStore.timeAxis[0]) {
-    const range = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
-    chartsStore.selection.range.from = chartsStore.timeAxis[0] as Time;
-    chartsStore.selection.range.to = (chartsStore.timeAxis[0] + range) as Time;
-  } else if (Number(chartsStore.selection.range.to) + increment > chartsStore.timeAxis[chartsStore.timeAxis.length - 1]) {
-    const range = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
-    chartsStore.selection.range.to = chartsStore.timeAxis[chartsStore.timeAxis.length - 1] as Time;
-    chartsStore.selection.range.from = (chartsStore.timeAxis[chartsStore.timeAxis.length - 1] - range) as Time;
-  } else {
-    chartsStore.selection.range.from = (Number(chartsStore.selection.range.from) + increment) as Time;
-    chartsStore.selection.range.to = (Number(chartsStore.selection.range.to) + increment) as Time;
-  }
+  move(increment);
 };
 </script>
 <style>
