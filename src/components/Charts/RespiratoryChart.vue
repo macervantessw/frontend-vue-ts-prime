@@ -40,7 +40,6 @@ const sessionsStore = useSessionsStore();
 let timeFrom = 0;
 let timeTo = 0;
 let selectedEvent: Event | undefined = undefined;
-let selectedBox: Box | undefined = undefined;
 let index = -1;
 
 dayjs.extend(duration);
