@@ -2,7 +2,7 @@
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, SeriesOptionsMap, Time } from "lightweight-charts";
 import { Data, Event, Serie } from "../interfaces";
 import { Box } from "../components/Charts/plugins/box";
-import { STATES } from "../constants";
+import { STATES, RESPIRATORY_EVENTS } from "../constants";
 import { useChartsStore } from "../store";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,13 +17,14 @@ export function showRespiratoryEvents(
   solidColor = false,
 ) {
   if (!events || !chart || !serie) return;
+  const boxes: Box[] = [];
 
-  events.forEach((event) => {
+  for (const event of events) {
     const types = showDiscarded ? [0, 2, 103] : [0];
     if (chart && types.includes(event.eventType)) {
       let color = `hsla(207, 73%, 39%, ${solidColor ? 1 : 0.2})`;
-      if (event.eventType === 2) color = `hsla(53, 85%, 52%,  ${solidColor ? 1 : 0.1})`;
-      else if (event.eventType === 103) color = `hsla(54, 97.30%, 56.50%,  ${solidColor ? 1 : 0.2})`;
+      if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = `hsla(53, 85%, 52%,  ${solidColor ? 1 : 0.1})`;
+      else if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = `hsla(54, 97.30%, 56.50%,  ${solidColor ? 1 : 0.2})`;
       const from = event.startTime * 1000;
       const to = event.endTime * 1000;
       const box = new Box(chart, serie, data, from as Time, to as Time, vertOffset, height, {
@@ -32,8 +33,10 @@ export function showRespiratoryEvents(
         width: 40,
       });
       serie.attachPrimitive(box);
+      boxes.push(box);
     }
-  });
+  }
+  return boxes;
 }
 
 export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line">, data: LineData[], events: Event[] | undefined, vertOffset = 0, height?: number) {
@@ -63,6 +66,7 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
     serie.attachPrimitive(box);
   });
 }
+
 export function showOxymetryEvents(
   chart: IChartApi | null,
   serie: ISeriesApi<"Line"> | undefined,
@@ -92,15 +96,37 @@ export function showOxymetryEvents(
   serie.setMarkers([{ time: 0 as Time, position: "aboveBar", color: "rgba(0, 0, 0, 0.0)", shape: "arrowUp", id: "marker" }]);
   return boxes;
 }
-export function drawBox(chart: IChartApi | null, from: Time, to: Time, serie: ISeriesApi<"Line">, color: string) {
+export function drawBox(chart: IChartApi | null, from: Time, to: Time, serie: ISeriesApi<"Line">, color: string, text = "") {
   if (!chart) return;
-  const box = new Box(chart, serie, Array.from(serie.data()) as LineData<Time>[], from, to, 0, undefined, {
+  const data = Array.from(serie.data()) as LineData<Time>[];
+  const box = new Box(chart, serie, data, from, to, 0, undefined, {
     showLabel: false,
     color: color,
+    width: 40,
   });
   serie.attachPrimitive(box);
+  serie.setMarkers([
+    {
+      time: to,
+      position: "aboveBar",
+      shape: "circle",
+      color: "",
+      size: 0,
+      text: text,
+      id: "selectionTime",
+    },
+  ]);
+  box.updateAllViews();
   return box;
 }
+
+export function removeBox(box: Box | undefined, serie: ISeriesApi<"Line">) {
+  if (!box || !serie) return;
+  serie.detachPrimitive(box);
+  serie.setMarkers([{ time: 0 as Time, position: "aboveBar", color: "rgba(0, 0, 0, 0.0)", shape: "circle", id: "marker" }]);
+  box.updateAllViews();
+}
+
 export function showSnoringEvents(
   chart: IChartApi | null,
   serie: ISeriesApi<keyof SeriesOptionsMap> | undefined,

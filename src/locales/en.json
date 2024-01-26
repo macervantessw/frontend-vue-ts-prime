@@ -63,5 +63,7 @@
   "visible-range": "Visible range",
   "selected-time": "Selected time",
   "Generate AI report": "Generate AI Report",
-  "Percentage": "Percentage"
+  "Percentage": "Percentage",
+  "Suspicius": "Suspicious",
+  "Discard": "Discard"
 }

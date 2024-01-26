@@ -73,6 +73,9 @@ onMounted(() => {
   if (chartOptions.handleScroll) {
     chartOptions.handleScroll = { mouseWheel: false, pressedMouseMove: false };
   }
+  if (chartOptions.handleScale) {
+    chartOptions.handleScale = { mouseWheel: false, axisPressedMouseMove: false };
+  }
   chart = createChart(chartContainer.value, chartOptions);
 
   chart.subscribeClick((param: MouseEventParams) => {
@@ -125,7 +128,7 @@ watch(
 function setSelectionBox(time: Time) {
   let from = Number(time) - VISIBLE_HALF * 60 * 1000;
   let to = Number(time) + VISIBLE_HALF * 60 * 1000;
-  if (chartsStore.selection.range.from && chartsStore.selection.range.to) {
+  if (chartsStore.selection.range?.from && chartsStore.selection.range?.to) {
     const diff = Number(chartsStore.selection.range.to) - Number(chartsStore.selection.range.from);
     from = Number(time) - diff / 2;
     to = Number(time) + diff / 2;

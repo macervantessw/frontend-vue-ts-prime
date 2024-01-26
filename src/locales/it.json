@@ -67,5 +67,7 @@
   "visible-range": "Gamma visibile",
   "selected-time": "Tempo selezionato",
   "Generate AI report": "Generare il rapporto AI",
-  "Percentage": "Percentuale"
+  "Percentage": "Percentuale",
+  "Suspicius": "Sospetto",
+  "Discard": "Scartare"
 }
