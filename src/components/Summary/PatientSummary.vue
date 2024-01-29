@@ -4,6 +4,7 @@ import { storeToRefs } from "pinia";
 import SummaryCard from "./SummaryCard.vue";
 import i18n from "../../i18n";
 import DataComponent from "../DataComponent.vue";
+import { computed } from "vue";
 
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
@@ -12,6 +13,11 @@ const { selectedSession } = storeToRefs(sessionsStore);
 const getFullName = () => {
   return selectedSession.value?.PatientName || selectedSession.value?.Name + " " + selectedSession.value?.Surname || selectedSession.value?.PatientSurname;
 };
+
+const computedBMI = computed(() => {
+  if (!selectedSession.value?.Weight || !selectedSession.value?.Height) return;
+  return selectedSession.value?.Weight / Math.pow(selectedSession.value?.Height / 100, 2);
+});
 </script>
 
 <template>
@@ -23,9 +29,10 @@ const getFullName = () => {
     <DataComponent
       class="col-12 p-0"
       :title="$t('BMI')"
-      :value="selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : ''"
+      :value="selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : computedBMI"
       icon="lucide:scale"
       color="#fbc4ab"
+      :num-decimals="2"
     />
   </SummaryCard>
 </template>
