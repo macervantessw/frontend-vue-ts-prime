@@ -8,7 +8,18 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
-import { BaselineData, BaselineStyleOptions, DeepPartial, IChartApi, ISeriesApi, SeriesOptionsCommon, Time, UTCTimestamp, createChart } from "lightweight-charts";
+import {
+  BaselineData,
+  BaselineStyleOptions,
+  DeepPartial,
+  IChartApi,
+  ISeriesApi,
+  MouseEventParams,
+  SeriesOptionsCommon,
+  Time,
+  UTCTimestamp,
+  createChart,
+} from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { getData } from "../../utilities/file.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES } from "../../constants";
@@ -45,6 +56,9 @@ defineExpose({ getChart, getSeries });
 
 onMounted(() => {
   chart = createChart(chartContainer.value, { ...CHART_OPTIONS, timeScale: { visible: false } });
+  chart.subscribeClick((param: MouseEventParams) => {
+    chartsStore.setCurrentTime(param.time as number);
+  });
 });
 
 onUnmounted(() => {

@@ -8,7 +8,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
-import { IChartApi, ISeriesApi, LineData, UTCTimestamp, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, SIGNALS, VISIBLE_MINUTES } from "../../constants";
 import { Event, Serie } from "../../interfaces";
@@ -38,6 +38,9 @@ defineExpose({ getSeries, getChart });
 
 onMounted(() => {
   chart = createChart(chartContainer.value, CHART_OPTIONS);
+  chart.subscribeClick((param: MouseEventParams) => {
+    chartsStore.setCurrentTime(param.time as number);
+  });
 });
 
 onUnmounted(() => {

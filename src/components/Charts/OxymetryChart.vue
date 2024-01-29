@@ -38,6 +38,7 @@ import {
   LineData,
   LineStyleOptions,
   LogicalRange,
+  MouseEventParams,
   SeriesOptionsCommon,
   Time,
   TimeChartOptions,
@@ -112,7 +113,9 @@ onMounted(() => {
   chart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     setHeartRateLines(timeRange);
   });
-
+  chart.subscribeClick((param: MouseEventParams) => {
+    chartsStore.setCurrentTime(param.time as number);
+  });
   chart.subscribeCrosshairMove((param) => {
     if (
       param.point === undefined ||

@@ -1,6 +1,7 @@
 <template>
   <div>
     <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+    <ZoomControls class="absolute right-0 m-2 z-5" :class="{ 'opacity-0': !chartsStore.allRendered }" @zoom-in="zoom(10000)" @zoom-out="zoom(-10000)" />
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
     <ChartTooltip ref="tooltip" :show="showTooltip" :style="{ left: leftPosition }">
       <div style="color: rgba(239, 83, 80, 1)">Attenuation</div>
@@ -30,24 +31,30 @@ import { Box } from "./plugins/box";
 import i18n from "../../i18n";
 import ChartTooltip from "./ChartTooltip.vue";
 import ContextMenu from "primevue/contextmenu";
-
-const menu = ref();
-const attenuation = ref(0);
-const { t } = i18n.global;
-let selectionBox: Box | undefined = undefined;
-const chartsStore = useChartsStore();
-const sessionsStore = useSessionsStore();
-let timeFrom = 0;
-let timeTo = 0;
-let selectedEvent: Event | undefined = undefined;
-let index = -1;
+import ZoomControls from "./ZoomControls.vue";
 
 dayjs.extend(duration);
 
-const selectedTime = ref("");
-const showTooltip = ref(false);
+const { t } = i18n.global;
+const attenuation = ref(0);
+const chartContainer = ref();
+const chartsStore = useChartsStore();
+const dateStr = ref();
 const leftPosition = ref("0px");
+const menu = ref();
+const selectedTime = ref("");
+const sessionsStore = useSessionsStore();
+const showTooltip = ref(false);
+const tooltip = ref();
 let addedEvents: Box[] = [];
+let chart: IChartApi | null = null;
+let index = -1;
+let selectedEvent: Event | undefined = undefined;
+let selectionBox: Box | undefined = undefined;
+let series: Serie<"Line">[] = [];
+let timeFrom = 0;
+let timeTo = 0;
+let maxScaleValue = ref(10000);
 
 const props = defineProps({
   files: {
@@ -59,15 +66,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-// Lightweight Charts™ instances are stored as normal JS variables
-// If you need to use a ref then it is recommended that you use `shallowRef` instead
-let series: Serie<"Line">[] = [];
-let chart: IChartApi | null = null;
-
-const chartContainer = ref();
-const tooltip = ref();
-const dateStr = ref();
 
 const getChart = () => {
   return chart;
@@ -121,6 +119,7 @@ onMounted(() => {
 
   chart.subscribeClick((param: MouseEventParams) => {
     const serie = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie as ISeriesApi<"Line">;
+    chartsStore.setCurrentTime(param.time as number);
     removeBox(selectionBox, serie);
     selectedTime.value = "";
     if (param.sourceEvent?.altKey) {
@@ -172,6 +171,22 @@ onUnmounted(() => {
     series = [];
   }
 });
+
+function zoom(quantity: number) {
+  maxScaleValue.value += quantity;
+  if (maxScaleValue.value < 0) maxScaleValue.value = 0;
+  const autoScaleInfoProvider = {
+    priceRange: {
+      minValue: 0,
+      maxValue: maxScaleValue.value,
+    },
+  };
+  series.forEach((serie) => {
+    serie.serie.applyOptions({
+      autoscaleInfoProvider: () => autoScaleInfoProvider,
+    });
+  });
+}
 
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {
@@ -257,10 +272,12 @@ watch(
       const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
       const movement = series.find((s) => s.id === SIGNALS.MOVEMENT)?.serie;
 
+      maxScaleValue.value = Math.floor(average * 3);
+
       const autoScaleInfoProvider = {
         priceRange: {
           minValue: 0,
-          maxValue: average * 2 || 100000,
+          maxValue: maxScaleValue.value,
         },
       };
 
