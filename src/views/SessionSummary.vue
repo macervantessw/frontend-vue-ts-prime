@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineAsyncComponent, watch } from "vue";
+import { computed, defineAsyncComponent, watch } from "vue";
 import { useSessionsStore } from "../store";
 import Button from "primevue/button";
 import i18n from "../i18n";
@@ -62,6 +62,11 @@ const openAIReportDialog = () => {
     },
   });
 };
+
+const hasOxymetryData = computed(() => {
+  if (sessionsStore.selectedSession?.SessionOxAverage && Number(sessionsStore.selectedSession?.SessionOxAverage) !== 0) return true;
+  else return sessionsStore.selectedSession?.SessionOxCT90 !== 1 || sessionsStore.selectedSession?.SessionOxCT80 !== 1;
+});
 </script>
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
@@ -81,7 +86,7 @@ const openAIReportDialog = () => {
       <SleepSummary />
       <AhiSummary />
       <AudioSummary />
-      <ODISummary />
+      <ODISummary v-if="hasOxymetryData" />
     </section>
     <Button :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
