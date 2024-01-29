@@ -137,14 +137,14 @@ const awakesPerHour = () => {
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
         :title="$t('sleep-latency')"
-        :value="Number(selectedSession?.SessionSleepLatency) / 60"
+        :value="selectedSession?.SessionSleepLatency ? Number(selectedSession?.SessionSleepLatency) / 60 : '-'"
         units="min"
         icon="material-symbols:start"
       />
       <DataComponent
         class="col-12 xl:col-8 p-0 pr-1"
         :title="$t('Micro awakes per hour')"
-        :value="Number(selectedSession?.SessionMicroAwakeIndex).toFixed(2)"
+        :value="selectedSession?.SessionMicroAwakeIndex ? Number(selectedSession?.SessionMicroAwakeIndex).toFixed(2) : '-'"
         icon="ion:time"
       />
     </div>
