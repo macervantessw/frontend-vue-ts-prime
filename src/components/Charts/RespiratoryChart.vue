@@ -173,7 +173,10 @@ onUnmounted(() => {
 });
 
 function zoom(quantity: number) {
+  if (maxScaleValue.value < 20000) quantity = quantity / 6;
+  else if (maxScaleValue.value < 35000) quantity = quantity / 2;
   maxScaleValue.value += quantity;
+
   if (maxScaleValue.value < 0) maxScaleValue.value = 0;
   const autoScaleInfoProvider = {
     priceRange: {
@@ -210,6 +213,10 @@ const setEventAsSuspicious = () => {
   if (!selectedEvent) return;
   changeEvent(selectedEvent, RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED);
 };
+const setEventAsCentralApnea = () => {
+  if (!selectedEvent) return;
+  changeEvent(selectedEvent, RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA);
+};
 
 function changeEvent(event: Event, eventType: number) {
   chartsStore.respiratoryEvents = [];
@@ -226,6 +233,7 @@ function changeEvent(event: Event, eventType: number) {
     `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/RespiratoryEvents/${index}`,
   );
 }
+
 const setEventAsDiscarded = () => {
   if (!selectedEvent) return;
   changeEvent(selectedEvent, RESPIRATORY_EVENTS.DISCARDABLE_AWAKE);
@@ -244,12 +252,18 @@ function findBox(event: Event) {
 function drawEvent(event: Event) {
   const from = (event.startTime * 1000) as Time;
   const to = (event.endTime * 1000) as Time;
-  const color = event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA ? "hsla(207, 73%, 39%, 0.2)" : "hsla(54, 97%, 56%, 0.2)";
+
+  let color = "hsla(207, 73%, 39%, 0.2)";
+  if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 0.2)";
+  else if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,0.2)";
+
   const serie = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie as ISeriesApi<"Line">;
   const box = drawBox(chart, from, to, serie, color);
   if (box) addedEvents.push(box);
 }
 const items = ref([
+  { label: t("Central Apnea"), command: setEventAsCentralApnea },
+  { separator: true },
   { label: t("Suspicius"), command: setEventAsSuspicious },
   { label: t("Discard"), command: setEventAsDiscarded },
 ]);

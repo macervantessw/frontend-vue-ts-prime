@@ -23,7 +23,7 @@ export function showRespiratoryEvents(
     const types = showDiscarded ? [0, 2, 103] : [0];
     if (chart && types.includes(event.eventType)) {
       let color = `hsla(207, 73%, 39%, ${solidColor ? 1 : 0.2})`;
-      if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = `hsla(53, 85%, 52%,  ${solidColor ? 1 : 0.1})`;
+      if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = `hsla(24, 76%, 51%,  ${solidColor ? 1 : 0.2})`;
       else if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = `hsla(54, 97.30%, 56.50%,  ${solidColor ? 1 : 0.2})`;
       const from = event.startTime * 1000;
       const to = event.endTime * 1000;

@@ -132,7 +132,7 @@ onMounted(() => {
       const to = miniMapChart.value?.getSeries()[0].data()[toIndex];
 
       if (from?.time && to?.time) {
-        miniMapChart.value?.drawBox({ from: from.time as Time, to: to.time as Time });
+        miniMapChart.value?.drawSelectionBox({ from: from.time as Time, to: to.time as Time });
         chartsStore.selection = {
           range: {
             from: from.time as Time,

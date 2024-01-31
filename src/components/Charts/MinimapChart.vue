@@ -8,7 +8,7 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
-import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
+import { IChartApi, ISeriesApi, LineData, MouseEventParams, Range, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, RESPIRATORY_EVENTS, VISIBLE_HALF, VISIBLE_MINUTES } from "../../constants";
 import { cloneDeep } from "lodash";
@@ -48,7 +48,7 @@ const getSeries = () => {
   return series;
 };
 
-defineExpose({ getSeries, getChart, drawBox });
+defineExpose({ getSeries, getChart, drawSelectionBox });
 
 // Auto resizes the chart when the browser window is resized.
 const resizeHandler = () => {
@@ -121,26 +121,29 @@ function setSelectionBox(time: Time) {
   selectionBox = drawBox(chart, from as Time, to as Time, series[0], "hsla(180, 4%, 44%, 0.60)");
 }
 
-// function drawBoxx(timeRange: Range<Time>) {
-//   if (selectionBox) series[0].detachPrimitive(selectionBox);
-//   if (!chart || !timeSeries.value.length) return;
-//   selectionBox = new Box(chart, series[0], timeSeries.value, timeRange.from, timeRange.to, 0, undefined, {
-//     showLabel: false,
-//     color: "hsla(180, 4%, 44%, 0.60)",
-//     width: 40,
-//   });
-//   series[0].attachPrimitive(selectionBox);
-//   series[0].setMarkers([
-//     {
-//       time: timeRange.from,
-//       position: "inBar",
-//       shape: "circle",
-//       color: "hsla(0, 79.70%, 44.50%, 0.01)",
-//       size: 1,
-//     },
-//   ]);
-//   selectionBox.updateAllViews();
-// }
+function drawSelectionBox(timeRange: Range<Time>) {
+  removeBox(selectionBox, series[0]);
+  selectionBox = drawBox(chart, timeRange.from, timeRange.to, series[0], "hsla(180, 4%, 44%, 0.60)");
+
+  if (selectionBox) series[0].detachPrimitive(selectionBox);
+  if (!chart || !timeSeries.value.length) return;
+  selectionBox = new Box(chart, series[0], timeSeries.value, timeRange.from, timeRange.to, 0, undefined, {
+    showLabel: false,
+    color: "hsla(180, 4%, 44%, 0.60)",
+    width: 40,
+  });
+  series[0].attachPrimitive(selectionBox);
+  series[0].setMarkers([
+    {
+      time: timeRange.from,
+      position: "inBar",
+      shape: "circle",
+      color: "hsla(0, 79.70%, 44.50%, 0.01)",
+      size: 1,
+    },
+  ]);
+  selectionBox.updateAllViews();
+}
 
 watch(
   () => chartsStore.timeAxis,
@@ -180,7 +183,9 @@ function removeFromAddedEvents(event: Event) {
 function drawEvent(event: Event) {
   const from = (event.startTime * 1000) as Time;
   const to = (event.endTime * 1000) as Time;
-  const color = event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA ? "hsla(207, 73%, 39%, 1)" : "hsla(54, 97%, 56%, 1)";
+  let color = "hsla(207, 73%, 39%, 1)";
+  if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 1)";
+  else if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,1)";
   const serie = series[0];
   const box = drawBox(chart, from, to, serie, color, "", 40, 10);
   if (box) addedEventBoxes.push(box);
@@ -203,7 +208,7 @@ watch(
       const serie = series[0];
       removeBox(box, serie);
       removeFromAddedEvents(event);
-      if (event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_AWAKE) drawEvent(event);
+      if (event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_AWAKE && event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) drawEvent(event);
     }
   },
   { deep: true },
