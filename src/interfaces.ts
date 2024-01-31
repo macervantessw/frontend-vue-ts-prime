@@ -64,8 +64,8 @@ export interface Session {
   SessionStartTime: number;
   SessionMicroAwakeIndex: string;
   SessionNumSnorings: number;
-  SessionOxCT80: number;
-  SessionOxCT90: number;
+  SessionOxCT80: string;
+  SessionOxCT90: string;
   SessionOxODI4: number;
   SessionOxODI3: number;
   SessionOxODI2: number;

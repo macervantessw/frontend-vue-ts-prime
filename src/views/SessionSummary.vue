@@ -65,7 +65,7 @@ const openAIReportDialog = () => {
 
 const hasOxymetryData = computed(() => {
   if (sessionsStore.selectedSession?.SessionOxAverage && Number(sessionsStore.selectedSession?.SessionOxAverage) !== 0) return true;
-  else return sessionsStore.selectedSession?.SessionOxCT90 !== 1 || sessionsStore.selectedSession?.SessionOxCT80 !== 1;
+  else return sessionsStore.selectedSession?.SessionOxCT90 !== "1" || sessionsStore.selectedSession?.SessionOxCT80 !== "1";
 });
 </script>
 <template>

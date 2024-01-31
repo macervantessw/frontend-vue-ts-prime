@@ -212,12 +212,14 @@ const setEventAsSuspicious = () => {
 };
 
 function changeEvent(event: Event, eventType: number) {
+  chartsStore.respiratoryEvents = [];
   event.eventType = eventType;
   const box = findBox(event);
   const serie = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie as ISeriesApi<"Line">;
   removeBox(box, serie);
   removeFromAddedEvents(event);
   if (eventType !== RESPIRATORY_EVENTS.DISCARDABLE_AWAKE) drawEvent(event);
+  chartsStore.respiratoryEvents.push(event);
   chartsStore.setEventType(
     event,
     eventType,

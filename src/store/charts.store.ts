@@ -22,6 +22,7 @@ export const useChartsStore = defineStore("Charts", {
     minimapChartRendered: false,
     respiratoryChartRendered: false,
     oxymetryEvents: [] as Event[],
+    respiratoryEvents: [] as Event[],
   }),
   getters: {
     allRendered: (state) => {

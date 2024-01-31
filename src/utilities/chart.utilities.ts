@@ -96,10 +96,10 @@ export function showOxymetryEvents(
   serie.setMarkers([{ time: 0 as Time, position: "aboveBar", color: "rgba(0, 0, 0, 0.0)", shape: "arrowUp", id: "marker" }]);
   return boxes;
 }
-export function drawBox(chart: IChartApi | null, from: Time, to: Time, serie: ISeriesApi<"Line">, color: string, text = "") {
+export function drawBox(chart: IChartApi | null, from: Time, to: Time, serie: ISeriesApi<"Line">, color: string, text = "", verticalOffset = 0, height?: number) {
   if (!chart) return;
   const data = Array.from(serie.data()) as LineData<Time>[];
-  const box = new Box(chart, serie, data, from, to, 0, undefined, {
+  const box = new Box(chart, serie, data, from, to, verticalOffset, height, {
     showLabel: false,
     color: color,
     width: 40,
