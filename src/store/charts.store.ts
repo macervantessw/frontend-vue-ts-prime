@@ -3,10 +3,10 @@ import { defineStore } from "pinia";
 import { useSessionsStore } from "./sessions.store";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { VISIBLE_MINUTES } from "../constants";
+import { RESPIRATORY_EVENTS, VISIBLE_MINUTES } from "../constants";
 import { Event } from "../interfaces";
 import { db } from "../firebase/firebaseInit";
-import { DatabaseReference, ref as dbRef, set } from "firebase/database";
+import { DatabaseReference, child, ref as dbRef, get, set } from "firebase/database";
 dayjs.extend(duration);
 
 export const useChartsStore = defineStore("Charts", {
@@ -52,6 +52,35 @@ export const useChartsStore = defineStore("Charts", {
       event.eventType = type;
       const ref: DatabaseReference = dbRef(db, path);
       set(ref, event);
+    },
+    updateEvents() {
+      const sessionsStore = useSessionsStore();
+      const path = `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/RespiratoryEvents`;
+      const ref: DatabaseReference = dbRef(db);
+      get(child(ref, path))
+        .then((snapshot) => {
+          if (snapshot.exists() && sessionsStore.selectedSession) {
+            const events = snapshot.val() as Event[];
+            sessionsStore.selectedSession.SessionCentralApneas = events.filter((ev) => ev.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA).length;
+            sessionsStore.selectedSession.SessionNumRespEvents = events.filter((ev) => ev.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA).length;
+            sessionsStore.selectedSession.SessionIAH =
+              "" +
+              ((sessionsStore.selectedSession.SessionCentralApneas || 0) + (sessionsStore.selectedSession.SessionNumRespEvents || 0)) /
+                (sessionsStore.selectedSession.SessionSleepTime / 3600);
+            set(
+              dbRef(
+                db,
+                `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/`,
+              ),
+              sessionsStore.selectedSession,
+            );
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     },
   },
 });

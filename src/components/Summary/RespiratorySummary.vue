@@ -5,7 +5,9 @@ import VueApexCharts from "vue3-apexcharts";
 import { useSessionsStore } from "../../store";
 import SummaryCard from "./SummaryCard.vue";
 import RespiratoryLegendBar from "./RespiratoryLegendBar.vue";
+import i18n from "../../i18n";
 
+const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 const iah = computed(() => Number(selectedSession.value?.SessionIAH || 0));
@@ -71,7 +73,7 @@ const chartOptions = computed(() => {
       lineCap: "butt",
     },
 
-    labels: ["Events/h"],
+    labels: [t("Events/h")],
   };
 });
 </script>
@@ -93,7 +95,7 @@ const chartOptions = computed(() => {
       <div class="flex flex-1 flex-column align-items-center">
         <span class="text-lg">{{ $t("Total") }}</span>
         <span class="text-3xl" style="font-weight: 900; color: #f3a658">{{
-          selectedSession?.SessionCentralApneas || 0 + (selectedSession?.SessionNumRespEvents || 0)
+          (selectedSession?.SessionCentralApneas || 0) + (selectedSession?.SessionNumRespEvents || 0)
         }}</span>
       </div>
     </div>

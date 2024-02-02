@@ -232,6 +232,7 @@ function changeEvent(event: Event, eventType: number) {
     eventType,
     `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/RespiratoryEvents/${index}`,
   );
+  chartsStore.updateEvents();
 }
 
 const setEventAsDiscarded = () => {

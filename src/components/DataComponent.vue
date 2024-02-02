@@ -69,7 +69,7 @@ const getFocus = () => {
           <i class="pi pi-info-circle text-xs opacity-70" />
         </div>
       </div>
-      <span class="chip">{{ getValue() }} {{ units }}</span>
+      <span class="chip white-space-nowrap">{{ getValue() }} {{ units }}</span>
     </div>
   </div>
 </template>

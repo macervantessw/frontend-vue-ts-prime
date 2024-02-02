@@ -71,5 +71,8 @@
   "Suspicius": "Sospetto",
   "Discard": "Scartare",
   "Oximertry analysis": "Analisi dell'ossimetria",
-  "Central Apnea": "Apnea centrale"
+  "Central Apnea": "Apnea centrale",
+  "no-session-selected-please-select-one-session": "Nessuna sessione selezionata, selezionare una sessione.",
+  "Events/h": "Eventi/h",
+  "ai-generated-repport": "Rapporti generati dall'intelligenza artificiale"
 }
