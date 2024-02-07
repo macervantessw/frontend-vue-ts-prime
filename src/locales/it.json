@@ -74,5 +74,8 @@
   "Central Apnea": "Apnea centrale",
   "no-session-selected-please-select-one-session": "Nessuna sessione selezionata, selezionare una sessione.",
   "Events/h": "Eventi/h",
-  "ai-generated-repport": "Rapporti generati dall'intelligenza artificiale"
+  "ai-generated-repport": "Rapporti generati dall'intelligenza artificiale",
+  "Search": "Ricerca",
+  "movement-analysis": "Analisi del movimento",
+  "plm-index": "Indice PLM"
 }

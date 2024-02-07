@@ -20,7 +20,7 @@ import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore, useSessionsStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
-import { showRespiratoryEvents, removeBox, drawBox } from "../../utilities/chart.utilities";
+import { showRespiratoryEvents, removeBox, drawBox, showMovementEvents } from "../../utilities/chart.utilities";
 import { CHART_OPTIONS, SIGNALS, LINE_OPTIONS, VISIBLE_MINUTES, RESPIRATORY_EVENTS } from "../../constants";
 import JSZip from "jszip";
 import { Serie, Event } from "../../interfaces";
@@ -62,6 +62,10 @@ const props = defineProps({
     required: true,
   },
   respiratoryEvents: {
+    type: Object as PropType<Event[] | undefined> | undefined,
+    required: true,
+  },
+  movementEvents: {
     type: Object as PropType<Event[] | undefined> | undefined,
     required: true,
   },
@@ -199,6 +203,9 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       series?.push({ name: name, serie: serie as ISeriesApi<"Line">, id: signal });
       if (props.respiratoryEvents && signal === SIGNALS.AIR_FLOW && serie) {
         addedEvents = showRespiratoryEvents(chart, serie, data as LineData<Time>[], props.respiratoryEvents) || [];
+      }
+      if (props.movementEvents && signal === SIGNALS.MOVEMENT && serie) {
+        showMovementEvents(serie, props.movementEvents);
       }
       resolve();
     });

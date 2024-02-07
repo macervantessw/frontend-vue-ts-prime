@@ -21,7 +21,7 @@ export const useSessionsStore = defineStore("Session", {
       },
     }),
   }),
-  getters: {},
+
   actions: {
     // fetchAllPatients() {
     //   const usersStore = useUsersStore();

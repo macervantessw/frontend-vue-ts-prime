@@ -9,18 +9,19 @@ const { width } = useWindowSize();
 const mainStore = useMainStore();
 const { menuVisible } = storeToRefs(mainStore);
 const usersStore = useUsersStore();
-
 const visible = computed(() => {
   return width.value > 768 || menuVisible.value;
 });
 </script>
 
 <template>
-  <Transition name="slidemenu">
-    <div v-if="visible" class="sidemenu flex flex-column h-full fixed md:relative z-5 overflow-auto" :class="{ wide: usersStore.isAdmin }">
-      <slot />
-    </div>
-  </Transition>
+  <div class="flex flex-column pl-2">
+    <Transition name="slidemenu">
+      <div v-if="visible" class="sidemenu flex flex-column h-full fixed md:relative z-5 overflow-auto" :class="{ wide: usersStore.isAdmin }">
+        <slot />
+      </div>
+    </Transition>
+  </div>
 </template>
 <style>
 .sidemenu {

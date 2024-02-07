@@ -36,6 +36,7 @@
       ref="respiratoryChartRef"
       :files="zippedFiles"
       :respiratory-events="sessionsStore.selectedSession?.Data.RespiratoryEvents"
+      :movement-events="sessionsStore.selectedSession?.Data.MovementEvents"
       class="card chart-container h-full w-full shadow-2 relative"
       @wheel.prevent="wheelHandler"
     />

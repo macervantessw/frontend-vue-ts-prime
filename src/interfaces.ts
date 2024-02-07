@@ -28,6 +28,7 @@ export interface SessionData {
   RespiratoryEvents?: Event[] | undefined;
   SnoringEvents: Event[];
   StateEvents: Event[];
+  MovementEvents: Event[];
 }
 export interface Session {
   Age: number;
@@ -62,6 +63,8 @@ export interface Session {
   SessionNumRespEvents: number;
   SessionSleepTime: number;
   SessionStartTime: number;
+  SessionNumPLMEvents: string;
+  SessionPLMIndex: string;
   SessionMicroAwakeIndex: string;
   SessionNumSnorings: number;
   SessionOxCT80: string;

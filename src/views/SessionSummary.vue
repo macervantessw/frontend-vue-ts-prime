@@ -10,6 +10,7 @@ import AhiSummary from "../components/Summary/RespiratorySummary.vue";
 import { useRoute } from "vue-router";
 import AudioSummary from "../components/Summary/AudioSummary.vue";
 import ODISummary from "../components/Summary/OximetrySummary.vue";
+import MovementSummary from "../components/Summary/MovementSummary.vue";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
@@ -69,6 +70,10 @@ const hasOxymetryData = computed(() => {
   else if (sessionsStore.selectedSession?.SessionOxCT90 === "1" && sessionsStore.selectedSession?.SessionOxCT80 === "1") return false;
   else return true;
 });
+
+const hasMovementData = computed(() => {
+  return !sessionsStore.selectedSession?.SessionPLMIndex || Number(sessionsStore.selectedSession?.SessionPLMIndex) === 0 ? false : true;
+});
 </script>
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
@@ -89,6 +94,7 @@ const hasOxymetryData = computed(() => {
       <AhiSummary />
       <AudioSummary />
       <ODISummary v-if="hasOxymetryData" />
+      <MovementSummary v-if="hasMovementData" />
     </section>
     <Button :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>

@@ -70,5 +70,8 @@
   "Central Apnea": "Central Apnea",
   "no-session-selected-please-select-one-session": "No session selected, please select one session.",
   "Events/h": "Events/h",
-  "ai-generated-repport": "AI Generated repport"
+  "ai-generated-repport": "AI Generated repport",
+  "Search": "Search",
+  "movement-analysis": "Movement analysis",
+  "plm-index": "PLM Index"
 }

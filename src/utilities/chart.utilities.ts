@@ -38,6 +38,14 @@ export function showRespiratoryEvents(
   }
   return boxes;
 }
+export function showMovementEvents(serie: ISeriesApi<"Line">, events: Event[] | undefined) {
+  serie.setMarkers(
+    events?.map((event) => {
+      const time = event.startTime * 1000 + (event.endTime * 1000 - event.startTime * 1000) / 2;
+      return { time: time as Time, position: "belowBar", color: "rgba(33, 179, 94, 1)", shape: "circle", id: "marker" };
+    }) ?? [],
+  );
+}
 
 export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line">, data: LineData[], events: Event[] | undefined, vertOffset = 0, height?: number) {
   if (!events || !chart || !serie) return;
