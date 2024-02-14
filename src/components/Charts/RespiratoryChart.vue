@@ -32,6 +32,7 @@ import i18n from "../../i18n";
 import ChartTooltip from "./ChartTooltip.vue";
 import ContextMenu from "primevue/contextmenu";
 import ZoomControls from "./ZoomControls.vue";
+import { useUsersStore } from "../../store";
 
 dayjs.extend(duration);
 
@@ -46,6 +47,7 @@ const selectedTime = ref("");
 const sessionsStore = useSessionsStore();
 const showTooltip = ref(false);
 const tooltip = ref();
+
 let addedEvents: Box[] = [];
 let chart: IChartApi | null = null;
 let index = -1;
@@ -62,11 +64,11 @@ const props = defineProps({
     required: true,
   },
   respiratoryEvents: {
-    type: Object as PropType<Event[] | undefined> | undefined,
+    type: Array as PropType<Event[] | undefined>,
     required: true,
   },
   movementEvents: {
-    type: Object as PropType<Event[] | undefined> | undefined,
+    type: Array as PropType<Event[] | undefined>,
     required: true,
   },
 });
@@ -136,8 +138,6 @@ onMounted(() => {
         selectedTime.value = `${totalTime.hours() ? totalTime.hours() + "h " : ""} ${totalTime.minutes() ? totalTime.minutes() + "m " : ""} ${
           totalTime.seconds() ? totalTime.seconds() + "s" : ""
         }`;
-        // box.value = drawBox(chart, timeFrom as Time, timeTo as Time, series[0].serie, "rgba(14, 195, 134, 0.25)", `${selectedTime.value}`);
-        const serie = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie as ISeriesApi<"Line">;
         selectionBox = drawBox(chart, timeFrom as Time, timeTo as Time, serie, "rgba(14, 195, 134, 0.25)", `${selectedTime.value}`);
         timeFrom = 0;
       }
@@ -145,6 +145,8 @@ onMounted(() => {
   });
 
   chart.subscribeDblClick((param: MouseEventParams) => {
+    const usersStore = useUsersStore();
+    if (!usersStore.canEdit) return;
     if (!param.time || !props.respiratoryEvents) return;
     const time = (param.time as UTCTimestamp) / 1000;
 
@@ -205,7 +207,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
         addedEvents = showRespiratoryEvents(chart, serie, data as LineData<Time>[], props.respiratoryEvents) || [];
       }
       if (props.movementEvents && signal === SIGNALS.MOVEMENT && serie) {
-        showMovementEvents(serie, props.movementEvents);
+        showMovementEvents(chart, serie, data as LineData<Time>[], props.movementEvents, [11, 17], undefined, 15);
       }
       resolve();
     });
@@ -342,7 +344,7 @@ watch(
           autoScale: true,
         });
       }
-      console.log("Respiratory Chart has been rendered");
+      // console.log("Respiratory Chart has been rendered");
       chartsStore.respiratoryChartRendered = true;
     });
   },

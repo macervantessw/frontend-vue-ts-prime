@@ -254,7 +254,7 @@ watch(
           oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 90, title: "90%" });
           oxymetrySeries.createPriceLine({ ...options, color: "#0077b6", price: 80, title: "80%" });
         }
-        console.log("Oxymetry has been rendered");
+        // console.log("Oxymetry has been rendered");
       })
       .catch(() => {
         isEmptySeries.value = true;

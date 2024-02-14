@@ -72,7 +72,7 @@ const hasOxymetryData = computed(() => {
 });
 
 const hasMovementData = computed(() => {
-  return !sessionsStore.selectedSession?.SessionPLMIndex || Number(sessionsStore.selectedSession?.SessionPLMIndex) === 0 ? false : true;
+  return !sessionsStore.selectedSession?.SessionPLMIndex ? false : true;
 });
 </script>
 <template>

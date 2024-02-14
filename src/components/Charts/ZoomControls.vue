@@ -5,8 +5,8 @@ const emit = defineEmits(["zoomIn", "zoomOut"]);
 </script>
 <template>
   <div class="zoom-buttons flex flex-column">
-    <Button icon="pi pi-plus" text raised @click="emit('zoomIn')" />
-    <Button icon="pi pi-minus" text raised @click="emit('zoomOut')" />
+    <Button icon="pi pi-plus" text raised @click="emit('zoomOut')" />
+    <Button icon="pi pi-minus" text raised @click="emit('zoomIn')" />
   </div>
 </template>
 <style>

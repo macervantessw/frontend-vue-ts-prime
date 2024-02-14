@@ -48,7 +48,7 @@
   "Permission denied": "Autorizzazione negata",
   "Total asleep": "Totale addormentati",
   "Num": {
-    " Awakes": ""
+    " Awakes": "Num. Risvegli"
   },
   "min": "min",
   "snoring-analysis": "Analisi del russamento",
@@ -77,5 +77,12 @@
   "ai-generated-repport": "Rapporti generati dall'intelligenza artificiale",
   "Search": "Ricerca",
   "movement-analysis": "Analisi del movimento",
-  "plm-index": "Indice PLM"
+  "plm-index": "Indice PLM",
+  "Awake": "Svegliato",
+  "Sleeping": "Dormito",
+  "Unknown": "Sconosciuto",
+  "Micro-awake": "Micro-sveglia",
+  "BMI": "BMI",
+  "sleep-latency": "Latenza",
+  "Micro awakes per hour": "Micro risvegli all'ora"
 }

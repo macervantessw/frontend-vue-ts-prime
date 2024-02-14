@@ -29,6 +29,9 @@ export const useUsersStore = defineStore("Users", {
     isAdmin(): boolean {
       return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2" || this.userId === "W3kgbH7b6ueZImJwiNqtMXUA4Ni1" || this.userId === "SQuLenovK9dkc3pZH81Sv7bZwkl1";
     },
+    canEdit(): boolean {
+      return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2" || this.userId === "W3kgbH7b6ueZImJwiNqtMXUA4Ni1";
+    },
   },
   actions: {
     loginUserWithEmailAndPassword(email: string, password: string, rememberMe: boolean) {

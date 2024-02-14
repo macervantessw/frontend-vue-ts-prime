@@ -145,7 +145,7 @@ watch(
           invertScale: true,
         });
       }
-      console.log("Audio has been rendered");
+      // console.log("Audio has been rendered");
       chartsStore.audioChartRendered = true;
     });
   },

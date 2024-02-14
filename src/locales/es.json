@@ -74,5 +74,15 @@
   "ai-generated-repport": "Informe generado por IA",
   "Search": "Buscar",
   "movement-analysis": "Análisis de movimientos",
-  "plm-index": "Índice PLM"
+  "plm-index": "Índice PLM",
+  "Awake": "Despierto",
+  "Sleeping": "Dormido",
+  "Unknown": "Desconocido",
+  "Micro-awake": "Microdespertar",
+  "BMI": "IMC",
+  "Num": {
+    " Awakes": "Num. Despertares"
+  },
+  "sleep-latency": "Latencia",
+  "Micro awakes per hour": "Microdespertares por hora"
 }

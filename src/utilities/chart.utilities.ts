@@ -38,41 +38,68 @@ export function showRespiratoryEvents(
   }
   return boxes;
 }
-export function showMovementEvents(serie: ISeriesApi<"Line">, events: Event[] | undefined) {
-  serie.setMarkers(
-    events?.map((event) => {
-      const time = event.startTime * 1000 + (event.endTime * 1000 - event.startTime * 1000) / 2;
-      return { time: time as Time, position: "belowBar", color: "rgba(33, 179, 94, 1)", shape: "circle", id: "marker" };
-    }) ?? [],
-  );
-}
 
+export function showMovementEvents(
+  chart: IChartApi | null,
+  serie: ISeriesApi<"Line">,
+  data: LineData[],
+  events: Event[] | undefined,
+  showTypes = [17, 11],
+  vertOffset = 0,
+  height?: number,
+  solidColor = false,
+) {
+  if (!events || !chart || !serie) return;
+  const opacity = solidColor ? 1 : 0.2;
+  events.forEach((event) => {
+    if (showTypes.includes(event.eventType)) {
+      let color = `hsla(278, 87%, 64%, ${opacity})`;
+      if (event.eventType === 11) {
+        color = `hsla(0, 0%, 45%, ${opacity})`;
+      }
+      const from = event.startTime * 1000;
+      const to = event.endTime * 1000;
+      const box = new Box(chart, serie, data, from as Time, to as Time, vertOffset, height, {
+        showLabel: false,
+        color: color,
+        width: 40,
+      });
+      serie.attachPrimitive(box);
+    }
+  });
+}
 export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line">, data: LineData[], events: Event[] | undefined, vertOffset = 0, height?: number) {
   if (!events || !chart || !serie) return;
+  const boxes = [] as Box[];
   events.forEach((event) => {
-    let offset = vertOffset;
-    let h = height;
-    let color = "hsl(232, 87%, 64%)";
-    if (event.eventType === STATES.SLEEPING) {
-      color = "hsl(172, 31%, 55%)";
-      offset = vertOffset + (height ?? 0);
-    } else if (event.eventType === STATES.UNKNOWN) {
-      color = "hsl(30, 87%, 65%)";
-      offset = vertOffset;
-      h = height ? height * 2 : undefined;
-    } else if (event.eventType === STATES.MICROAWAKE) {
-      color = "hsl(197, 54%, 52%)";
-      offset = vertOffset + (height ?? 0);
+    const box = drawStateEvent(event, chart, serie, vertOffset, height);
+    if (box) {
+      boxes.push(box);
+      serie.attachPrimitive(box);
     }
-    const from = event.startTime * 1000;
-    const to = event.endTime * 1000;
-    const box = new Box(chart, serie, data, from as Time, to as Time, offset, h, {
-      showLabel: false,
-      color: color,
-      width: 40,
-    });
-    serie.attachPrimitive(box);
   });
+  return boxes;
+}
+
+export function drawStateEvent(event: Event, chart: IChartApi, serie: ISeriesApi<"Line">, vertOffset = 0, height?: number) {
+  let offset = vertOffset;
+  let h = height;
+  let color = "hsl(232, 87%, 64%)";
+  if (event.eventType === STATES.SLEEPING) {
+    color = "hsl(172, 31%, 55%)";
+    offset = vertOffset + (height ?? 0);
+  } else if (event.eventType === STATES.UNKNOWN) {
+    color = "hsl(30, 87%, 65%)";
+    offset = vertOffset;
+    h = height ? height * 2 : undefined;
+  } else if (event.eventType === STATES.MICROAWAKE) {
+    color = "hsl(197, 54%, 52%)";
+    offset = vertOffset + (height ?? 0);
+  }
+  const from = (event.startTime * 1000) as Time;
+  const to = (event.endTime * 1000) as Time;
+  const box = drawBox(chart, from, to, serie, color, "", offset, h);
+  return box;
 }
 
 export function showOxymetryEvents(

@@ -153,7 +153,7 @@ watch(
     });
     const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918" });
     serie?.setData(timeSeries.value);
-    console.log("MinimapChart has been rendered");
+    // console.log("MinimapChart has been rendered");
     chartsStore.minimapChartRendered = true;
     series?.push(serie as ISeriesApi<"Line">);
     chart?.timeScale().fitContent();
