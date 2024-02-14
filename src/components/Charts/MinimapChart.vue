@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Range, Time, UTCTimestamp, createChart } from "lightweight-charts";
-import { useChartsStore } from "../../store";
+import { useChartsStore, useSessionsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, RESPIRATORY_EVENTS, VISIBLE_HALF, VISIBLE_MINUTES } from "../../constants";
 import { cloneDeep } from "lodash";
 import { Event } from "../../interfaces";
@@ -18,13 +18,14 @@ import { Box } from "./plugins/box";
 import Skeleton from "primevue/skeleton";
 
 const chartsStore = useChartsStore();
+const sessionsStore = useSessionsStore();
 const timeSeries = ref([] as LineData[]);
 let selectionBox: Box | undefined = undefined;
 let oxymetryEventBoxes: Box[] | undefined = [];
 let addedEventBoxes: Box[] = [];
 let series: ISeriesApi<"Line">[] = [];
 let chart: IChartApi | null = null;
-
+let stateEventBoxes: Box[] = [];
 const chartContainer = ref();
 const props = defineProps({
   stateEvents: {
@@ -168,7 +169,7 @@ watch(
       true /* solidColor */,
     ) as Box[];
 
-    showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 10);
+    stateEventBoxes = showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 10) || [];
     showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 50, 10);
   },
 );
@@ -209,6 +210,19 @@ watch(
       removeBox(box, serie);
       removeFromAddedEvents(event);
       if (event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_AWAKE && event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) drawEvent(event);
+    }
+  },
+  { deep: true },
+);
+
+watch(
+  () => sessionsStore.selectedSession?.Data.StateEvents,
+  (events) => {
+    if (events && events.length) {
+      stateEventBoxes.forEach((box) => {
+        removeBox(box, series[0]);
+      });
+      stateEventBoxes = showStateEvents(chart, series[0], timeSeries.value, events, undefined, 10) || [];
     }
   },
   { deep: true },

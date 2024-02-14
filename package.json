@@ -1,7 +1,7 @@
 {
   "name": "-sleepwise-frontend",
   "private": true,
-  "version": "0.0.32",
+  "version": "0.0.33",
   "scripts": {
     "dev": "vite --mode dev",
     "build": "vue-tsc --noEmit && vite build",
@@ -31,7 +31,7 @@
     "primeicons": "^6.0.1",
     "primevue": "3.35.0",
     "video.js": "^8.6.1",
-    "vue": "^3.3.4",
+    "vue": "^3.4.19",
     "vue-i18n": "^9.5.0",
     "vue-router": "^4.2.5",
     "vue3-apexcharts": "^1.4.4"

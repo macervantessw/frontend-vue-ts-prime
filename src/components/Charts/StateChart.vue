@@ -8,9 +8,9 @@
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, defineExpose, PropType } from "vue";
+import { ref, onMounted, onUnmounted, watch, defineExpose } from "vue";
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
-import { useChartsStore } from "../../store";
+import { useChartsStore, useSessionsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, SIGNALS, STATES, VISIBLE_MINUTES } from "../../constants";
 import { Event, Serie } from "../../interfaces";
 import { showStateEvents, drawBox, removeBox, drawStateEvent } from "../../utilities/chart.utilities";
@@ -21,6 +21,7 @@ import ContextMenu from "primevue/contextmenu";
 
 const { t } = i18n.global;
 const chartsStore = useChartsStore();
+const sessionsStore = useSessionsStore();
 const stateMenu = ref();
 let series: Serie<"Line">[] = [];
 let chart: IChartApi | null = null;
@@ -33,12 +34,15 @@ let selectionBox: Box | undefined = undefined;
 
 const chartContainer = ref();
 const serie = () => series.find((s) => s.id === SIGNALS.STATE)?.serie as ISeriesApi<"Line">;
-const props = defineProps({
-  stateEvents: {
-    type: Object as PropType<Event[] | undefined>,
-    required: true,
-  },
-});
+// const props = defineProps({
+//   stateEvents: {
+//     type: Object as PropType<Event[] | undefined>,
+//     required: true,
+//   },
+// });
+
+// const stateEvents = defineModel<Event[]>("stateEvents");
+
 const items = ref([
   { label: t("Awake"), command: () => modifyStateEvents(STATES.AWAKE) },
   { label: t("Sleeping"), command: () => modifyStateEvents(STATES.SLEEPING) },
@@ -107,23 +111,24 @@ const showContextualMenu = (event: any) => {
 };
 
 function modifyStateEvents(eventType: number) {
-  console.log("State modified", eventType);
   let event: Event | undefined = undefined;
   if (isInsideEvent() && event) {
     if ((event as Event).eventType === eventType) return;
     const eventCopy: Event = JSON.parse(JSON.stringify(event));
-    removeBox(findBox(event), serie());
+    removeStateEvent(event);
     cutBothEvents(event, eventCopy);
     addStateEvent(event);
     addStateEvent(eventCopy);
   } else if (isFullOutsideEvent()) {
-    const previousEvent = props.stateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom);
-    const nextEvent = props.stateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
+    const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
+      (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
+    );
+    const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
     if (!previousEvent || !nextEvent) return;
-    removeBox(findBox(previousEvent), serie());
-    removeBox(findBox(nextEvent), serie());
-    const innerEvents = props.stateEvents?.filter((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
-    innerEvents?.forEach((event) => removeBox(findBox(event), serie()));
+    removeStateEvent(previousEvent);
+    removeStateEvent(nextEvent);
+    const innerEvents = sessionsStore.selectedSession?.Data.StateEvents?.filter((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
+    innerEvents?.forEach((event) => removeStateEvent(event));
     if (eventType === previousEvent?.eventType && eventType === nextEvent?.eventType) {
       previousEvent.endTime = nextEvent.endTime;
       // deleteEvent(nextEvent);
@@ -137,11 +142,13 @@ function modifyStateEvents(eventType: number) {
     addStateEvent(previousEvent);
     addStateEvent(nextEvent);
   } else if (isPartlyOutEvent()) {
-    const previousEvent = props.stateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom);
-    const nextEvent = props.stateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
+    const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
+      (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
+    );
+    const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
     if (!previousEvent || !nextEvent) return;
-    removeBox(findBox(previousEvent), serie());
-    removeBox(findBox(nextEvent), serie());
+    removeStateEvent(previousEvent);
+    removeStateEvent(nextEvent);
     if (eventType === previousEvent?.eventType) {
       cutNextEvent(previousEvent, nextEvent);
     } else if (eventType === nextEvent?.eventType) {
@@ -151,6 +158,8 @@ function modifyStateEvents(eventType: number) {
     }
     addStateEvent(previousEvent);
     addStateEvent(nextEvent);
+  } else {
+    createNewEvent(selectedFrom, selectedTo, eventType);
   }
 
   function cutBothEvents(previousEvent: Event, nextEvent: Event) {
@@ -169,22 +178,31 @@ function modifyStateEvents(eventType: number) {
   }
 
   function isInsideEvent(): boolean {
-    event = props.stateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
+    event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
     return !!event;
   }
   function isFullOutsideEvent() {
-    event = props.stateEvents?.find((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
+    event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
     return !!event;
   }
   function isPartlyOutEvent() {
-    return !!props.stateEvents?.find((event) => selectedFrom < event.startTime * 1000 && selectedTo < event.endTime * 1000);
+    return !!sessionsStore.selectedSession?.Data.StateEvents?.find((event) => selectedFrom < event.startTime * 1000 && selectedTo < event.endTime * 1000);
   }
 }
-function addStateEvent(previousEvent: Event) {
-  let box = drawStateEvent(previousEvent, chart as IChartApi, serie(), 10, 20);
+function addStateEvent(event: Event) {
+  let box = drawStateEvent(event, chart as IChartApi, serie(), 10, 20);
   if (box) eventBoxes.push(box);
+  if (sessionsStore.selectedSession)
+    sessionsStore.selectedSession.Data.StateEvents = sessionsStore.selectedSession.Data.StateEvents?.concat(event).sort((a, b) => a.startTime - b.startTime);
 }
-
+function removeStateEvent(event: Event) {
+  removeBox(findBox(event), serie());
+  eventBoxes = eventBoxes.filter((b) => b._time !== event.startTime * 1000 && b._end !== event.endTime * 1000);
+  if (sessionsStore.selectedSession)
+    sessionsStore.selectedSession.Data.StateEvents = sessionsStore.selectedSession.Data.StateEvents?.filter(
+      (e) => e.startTime !== event.startTime && e.endTime !== event.endTime,
+    );
+}
 function findBox(event: Event) {
   return eventBoxes.find((b) => b._time === event.startTime * 1000 && b._end === event.endTime * 1000);
 }
@@ -196,7 +214,6 @@ function createNewEvent(startTime: number, endTime: number, eventType: number) {
     eventType: eventType,
   };
   addStateEvent(newEvent);
-  props.stateEvents?.push(newEvent);
 }
 watch(
   () => chartsStore.timeAxis,
@@ -214,7 +231,7 @@ watch(
       to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
     });
 
-    if (serie) eventBoxes = showStateEvents(chart, serie, timeSeries, props.stateEvents, 10, 20) || [];
+    if (serie) eventBoxes = showStateEvents(chart, serie, timeSeries, sessionsStore.selectedSession?.Data.StateEvents, 10, 20) || [];
   },
 );
 </script>

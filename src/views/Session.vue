@@ -20,8 +20,9 @@
     />
 
     <StateChart
+      v-if="sessionsStore.selectedSession"
       ref="stateChartRef"
-      :state-events="sessionsStore.selectedSession?.Data.StateEvents"
+      v-model:state-events="sessionsStore.selectedSession.Data.StateEvents"
       class="card card-small chart-container w-full shadow-2 relative"
       @wheel.prevent="wheelHandler"
     />
