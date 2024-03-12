@@ -34,6 +34,7 @@ let selectionBox: Box | undefined = undefined;
 
 const chartContainer = ref();
 const serie = () => series.find((s) => s.id === SIGNALS.STATE)?.serie as ISeriesApi<"Line">;
+const emit = defineEmits(["eventChanged"]);
 // const props = defineProps({
 //   stateEvents: {
 //     type: Object as PropType<Event[] | undefined>,
@@ -162,6 +163,33 @@ function modifyStateEvents(eventType: number) {
     createNewEvent(selectedFrom, selectedTo, eventType);
   }
 
+  recalculateStatistics();
+
+  function recalculateStatistics() {
+    if (eventType === STATES.AWAKE) {
+      emit("eventChanged", { from: selectedFrom, to: selectedTo });
+    }
+
+    if (!sessionsStore.selectedSession) return;
+    sessionsStore.selectedSession.SessionSleepTime = sessionsStore.selectedSession.Data.StateEvents.reduce((acc, event) => {
+      if (event.eventType === STATES.SLEEPING) {
+        acc += event.endTime - event.startTime;
+      }
+      return acc;
+    }, 0);
+
+    sessionsStore.selectedSession.SessionAwakeTime = sessionsStore.selectedSession.Data.StateEvents.reduce((acc, event) => {
+      if (event.eventType === STATES.AWAKE || event.eventType === STATES.MICROAWAKE) {
+        acc += event.endTime - event.startTime;
+      }
+      return acc;
+    }, 0);
+
+    sessionsStore.selectedSession.SessionNumAwakes = sessionsStore.selectedSession.Data.StateEvents.filter((event) => event.eventType === STATES.AWAKE).length;
+    if (sessionsStore.selectedSession.SessionPLMIndex)
+      sessionsStore.selectedSession.SessionPLMIndex =
+        "" + Number(sessionsStore.selectedSession.SessionNumPLMEvents) / (sessionsStore.selectedSession.SessionSleepTime / 60 / 60);
+  }
   function cutBothEvents(previousEvent: Event, nextEvent: Event) {
     previousEvent.endTime = selectedFrom / 1000;
     nextEvent.startTime = selectedTo / 1000;
@@ -194,6 +222,12 @@ function addStateEvent(event: Event) {
   if (box) eventBoxes.push(box);
   if (sessionsStore.selectedSession)
     sessionsStore.selectedSession.Data.StateEvents = sessionsStore.selectedSession.Data.StateEvents?.concat(event).sort((a, b) => a.startTime - b.startTime);
+  if (sessionsStore.selectedSession?.Data.StateEvents) {
+    chartsStore.setEvents(
+      sessionsStore.selectedSession.Data.StateEvents,
+      `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/StateEvents/`,
+    );
+  }
 }
 function removeStateEvent(event: Event) {
   removeBox(findBox(event), serie());

@@ -81,7 +81,7 @@ const getSeries = () => {
   return series;
 };
 
-defineExpose({ getChart, getSeries });
+defineExpose({ getChart, getSeries, changeEvent });
 
 onMounted(() => {
   chart = createChart(chartContainer.value, { ...CHART_OPTIONS, timeScale: { visible: false } });
@@ -227,7 +227,7 @@ const setEventAsCentralApnea = () => {
   changeEvent(selectedEvent, RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA);
 };
 
-function changeEvent(event: Event, eventType: number) {
+function changeEvent(event: Event, eventType: number, i: number = index) {
   chartsStore.respiratoryEvents = [];
   event.eventType = eventType;
   const box = findBox(event);
@@ -239,7 +239,7 @@ function changeEvent(event: Event, eventType: number) {
   chartsStore.setEventType(
     event,
     eventType,
-    `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/RespiratoryEvents/${index}`,
+    `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/RespiratoryEvents/${i}`,
   );
   chartsStore.updateEvents();
 }

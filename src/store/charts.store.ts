@@ -53,6 +53,10 @@ export const useChartsStore = defineStore("Charts", {
       const ref: DatabaseReference = dbRef(db, path);
       set(ref, event);
     },
+    setEvents(events: Event[], path: string) {
+      const ref: DatabaseReference = dbRef(db, path);
+      set(ref, events);
+    },
     updateEvents() {
       const sessionsStore = useSessionsStore();
       const path = `/users/${sessionsStore.selectedSession?.userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionsStore.selectedSession?.SessionId}\\/Data/RespiratoryEvents`;

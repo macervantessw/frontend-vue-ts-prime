@@ -25,6 +25,7 @@
       v-model:state-events="sessionsStore.selectedSession.Data.StateEvents"
       class="card card-small chart-container w-full shadow-2 relative"
       @wheel.prevent="wheelHandler"
+      @event-changed="eventChanged"
     />
     <OxymetryChart
       ref="oxymetryChartRef"
@@ -60,7 +61,7 @@ import { getBytes } from "firebase/storage";
 import { IChartApi, Range, Time } from "lightweight-charts";
 import { onBeforeMount, onMounted, ref, computed } from "vue";
 import { readDatFile, uncompressFile } from "../utilities/file.utilities";
-import { SIGNALS, DOWNSAMPLE_RATIO } from "../constants";
+import { SIGNALS, DOWNSAMPLE_RATIO, RESPIRATORY_EVENTS } from "../constants";
 import { storeToRefs } from "pinia";
 import { syncronizeCrosshairs } from "../utilities/chart.utilities";
 import { useChartsStore, useSessionsStore } from "../store";
@@ -231,6 +232,14 @@ const wheelHandler = (e: any) => {
   const increment = e.deltaY * 50;
   move(increment);
 };
+
+function eventChanged(eventRange: any) {
+  sessionsStore.selectedSession?.Data.RespiratoryEvents?.forEach((event, index) => {
+    if (event.startTime * 1000 > eventRange.from && event.endTime * 1000 < eventRange.to) {
+      respiratoryChartRef.value?.changeEvent(event, RESPIRATORY_EVENTS.DISCARDABLE_AWAKE, index);
+    }
+  });
+}
 </script>
 <style>
 .card {
