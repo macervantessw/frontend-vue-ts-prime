@@ -98,7 +98,8 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   },
   localization: {
     timeFormatter: (time: number) => {
-      return dayjs(time).format("HH:mm:ss");
+      // return dayjs(time).format("HH:mm:ss");
+      return Math.floor(time / 1000);
     },
   },
 

@@ -8,7 +8,7 @@
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, defineExpose } from "vue";
+import { ref, onMounted, onUnmounted, watch, defineExpose, nextTick } from "vue";
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore, useSessionsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, SIGNALS, STATES, VISIBLE_MINUTES } from "../../constants";
@@ -112,59 +112,114 @@ const showContextualMenu = (event: any) => {
 };
 
 function modifyStateEvents(eventType: number) {
-  let event: Event | undefined = undefined;
-  if (isInsideEvent() && event) {
-    if ((event as Event).eventType === eventType) return;
-    const eventCopy: Event = JSON.parse(JSON.stringify(event));
-    removeStateEvent(event);
-    cutBothEvents(event, eventCopy);
-    addStateEvent(event);
-    addStateEvent(eventCopy);
-  } else if (isFullOutsideEvent()) {
-    const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
-      (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
-    );
-    const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
-    if (!previousEvent || !nextEvent) return;
-    removeStateEvent(previousEvent);
-    removeStateEvent(nextEvent);
-    const innerEvents = sessionsStore.selectedSession?.Data.StateEvents?.filter((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
-    innerEvents?.forEach((event) => removeStateEvent(event));
-    if (eventType === previousEvent?.eventType && eventType === nextEvent?.eventType) {
-      previousEvent.endTime = nextEvent.endTime;
-      // deleteEvent(nextEvent);
-    } else if (eventType === previousEvent?.eventType) {
-      cutNextEvent(previousEvent, nextEvent);
-    } else if (eventType === nextEvent?.eventType) {
-      cutPreviousEvent(previousEvent, nextEvent);
+  // const eventLengthType = getLengthType();
+  // let event: Event | undefined = undefined;
+  // if (isInsideEvent() && event) {
+  //   if ((event as Event).eventType === eventType) return;
+  //   const eventCopy: Event = JSON.parse(JSON.stringify(event));
+  //   removeStateEvent(event);
+  //   cutBothEvents(event, eventCopy);
+  //   addStateEvent(event);
+  //   addStateEvent(eventCopy);
+  // } else if (isFullOutsideEvent()) {
+  //   const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
+  //     (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
+  //   );
+  //   const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
+  //   if (!previousEvent || !nextEvent) return;
+  //   removeStateEvent(previousEvent);
+  //   removeStateEvent(nextEvent);
+  //   const innerEvents = sessionsStore.selectedSession?.Data.StateEvents?.filter((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
+  //   innerEvents?.forEach((event) => removeStateEvent(event));
+  //   if (eventType === previousEvent?.eventType && eventType === nextEvent?.eventType) {
+  //     previousEvent.endTime = nextEvent.endTime;
+  //     // deleteEvent(nextEvent);
+  //   } else if (eventType === previousEvent?.eventType) {
+  //     cutNextEvent(previousEvent, nextEvent);
+  //   } else if (eventType === nextEvent?.eventType) {
+  //     cutPreviousEvent(previousEvent, nextEvent);
+  //   } else {
+  //     cutBothEvents(previousEvent, nextEvent);
+  //   }
+  //   addStateEvent(previousEvent);
+  //   addStateEvent(nextEvent);
+  // } else if (isPartlyOutEvent()) {
+  //   const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
+  //     (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
+  //   );
+  //   const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
+  //   if (!previousEvent || !nextEvent) return;
+  //   removeStateEvent(previousEvent);
+  //   removeStateEvent(nextEvent);
+  //   if (eventType === previousEvent?.eventType && eventType === nextEvent?.eventType) {
+  //     cutBothEvents(previousEvent, nextEvent);
+  //   } else if (eventType === nextEvent?.eventType) {
+  //     cutPreviousEvent(previousEvent, nextEvent);
+  //   } else if (eventType === previousEvent?.eventType) {
+  //     cutNextEvent(previousEvent, nextEvent);
+  //   }
+  //   addStateEvent(previousEvent);
+  //   addStateEvent(nextEvent);
+  // } else {
+  //   createNewEvent(selectedFrom, selectedTo, eventType);
+  // }
+
+  const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.findLast((event) => event.startTime * 1000 <= selectedFrom);
+  const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 >= selectedTo);
+
+  if (!previousEvent || !nextEvent) return;
+
+  if (previousEvent === nextEvent) {
+    if (previousEvent.eventType === eventType) {
+      return;
     } else {
-      cutBothEvents(previousEvent, nextEvent);
+      const endTime = nextEvent.endTime;
+      const type = previousEvent.eventType;
+      cutEvent(previousEvent, previousEvent.startTime, selectedFrom);
+      createNewEvent(selectedFrom, selectedTo, eventType);
+      createNewEvent(selectedTo, endTime, type);
     }
-    addStateEvent(previousEvent);
-    addStateEvent(nextEvent);
-  } else if (isPartlyOutEvent()) {
-    const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
-      (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
-    );
-    const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
-    if (!previousEvent || !nextEvent) return;
-    removeStateEvent(previousEvent);
-    removeStateEvent(nextEvent);
-    if (eventType === previousEvent?.eventType) {
-      cutNextEvent(previousEvent, nextEvent);
-    } else if (eventType === nextEvent?.eventType) {
-      cutPreviousEvent(previousEvent, nextEvent);
-    } else {
-      cutBothEvents(previousEvent, nextEvent);
-    }
-    addStateEvent(previousEvent);
-    addStateEvent(nextEvent);
   } else {
-    createNewEvent(selectedFrom, selectedTo, eventType);
+    if (previousEvent.eventType === eventType) {
+      if (nextEvent.eventType === eventType) {
+        cutEvent(previousEvent, previousEvent.startTime, nextEvent.endTime);
+        removeStateEvent(nextEvent);
+      } else {
+        cutEvent(previousEvent, previousEvent.startTime, selectedTo);
+        cutEvent(nextEvent, selectedTo, nextEvent.endTime);
+      }
+    } else {
+      cutEvent(previousEvent, previousEvent.startTime, selectedFrom);
+      if (nextEvent.eventType === eventType) {
+        cutEvent(nextEvent, selectedFrom, nextEvent.endTime);
+      } else {
+        cutEvent(nextEvent, selectedTo, nextEvent.endTime);
+        createNewEvent(selectedFrom, selectedTo, eventType);
+      }
+    }
   }
+  sessionsStore.selectedSession?.Data.StateEvents?.forEach((event) => {
+    if (event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo) {
+      removeStateEvent(event);
+    }
+  });
 
-  recalculateStatistics();
+  nextTick(() => recalculateStatistics());
 
+  function cutEvent(event: Event, startTime: number /* in seconds */, endTime: number) {
+    removeStateEvent(event);
+    event.startTime = startTime > 1000000000000 ? startTime / 1000 : startTime;
+    event.endTime = endTime > 1000000000000 ? endTime / 1000 : endTime;
+    addStateEvent(event);
+  }
+  function createNewEvent(startTime: number, endTime: number, eventType: number) {
+    const newEvent: Event = {
+      startTime: startTime > 1000000000000 ? startTime / 1000 : startTime,
+      endTime: endTime > 1000000000000 ? endTime / 1000 : endTime,
+      eventType: eventType,
+    };
+    addStateEvent(newEvent);
+  }
   function recalculateStatistics() {
     if (eventType === STATES.AWAKE) {
       emit("eventChanged", { from: selectedFrom, to: selectedTo });
@@ -190,32 +245,36 @@ function modifyStateEvents(eventType: number) {
       sessionsStore.selectedSession.SessionPLMIndex =
         "" + Number(sessionsStore.selectedSession.SessionNumPLMEvents) / (sessionsStore.selectedSession.SessionSleepTime / 60 / 60);
   }
-  function cutBothEvents(previousEvent: Event, nextEvent: Event) {
-    previousEvent.endTime = selectedFrom / 1000;
-    nextEvent.startTime = selectedTo / 1000;
-    createNewEvent(selectedFrom, selectedTo, eventType);
-  }
+  // function cutBothEvents(previousEvent: Event, nextEvent: Event) {
+  //   previousEvent.endTime = selectedFrom / 1000;
+  //   nextEvent.startTime = selectedTo / 1000;
+  //   createNewEvent(selectedFrom, selectedTo, eventType);
+  // }
 
-  function cutPreviousEvent(previousEvent: Event, nextEvent: Event) {
-    previousEvent.endTime = selectedFrom / 1000;
-    nextEvent.startTime = selectedFrom / 1000;
-  }
-  function cutNextEvent(previousEvent: Event, nextEvent: Event) {
-    previousEvent.endTime = selectedTo / 1000;
-    nextEvent.startTime = selectedTo / 1000;
-  }
+  // function cutPreviousEvent(previousEvent: Event, nextEvent: Event) {
+  //   previousEvent.endTime = selectedFrom / 1000;
+  //   nextEvent.startTime = selectedFrom / 1000;
+  // }
+  // function cutNextEvent(previousEvent: Event, nextEvent: Event) {
+  //   previousEvent.endTime = selectedTo / 1000;
+  //   nextEvent.startTime = selectedTo / 1000;
+  // }
 
-  function isInsideEvent(): boolean {
-    event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
-    return !!event;
-  }
-  function isFullOutsideEvent() {
-    event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
-    return !!event;
-  }
-  function isPartlyOutEvent() {
-    return !!sessionsStore.selectedSession?.Data.StateEvents?.find((event) => selectedFrom < event.startTime * 1000 && selectedTo < event.endTime * 1000);
-  }
+  // function isInsideEvent(): boolean {
+  //   event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
+  //   return !!event;
+  // }
+  // function isFullOutsideEvent() {
+  //   event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
+  //   return !!event;
+  // }
+  // function isPartlyOutEvent() {
+  //   return !!sessionsStore.selectedSession?.Data.StateEvents?.find((event) => selectedFrom < event.startTime * 1000 && selectedTo < event.endTime * 1000);
+  // }
+
+  // function getLengthType(): "INSIDE" | "FULL_OUTSIDE" | "PARTLY_OUTSIDE" {
+  //   event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
+  // }
 }
 function addStateEvent(event: Event) {
   let box = drawStateEvent(event, chart as IChartApi, serie(), 10, 20);
@@ -241,14 +300,6 @@ function findBox(event: Event) {
   return eventBoxes.find((b) => b._time === event.startTime * 1000 && b._end === event.endTime * 1000);
 }
 
-function createNewEvent(startTime: number, endTime: number, eventType: number) {
-  const newEvent: Event = {
-    startTime: startTime / 1000,
-    endTime: endTime / 1000,
-    eventType: eventType,
-  };
-  addStateEvent(newEvent);
-}
 watch(
   () => chartsStore.timeAxis,
   () => {
