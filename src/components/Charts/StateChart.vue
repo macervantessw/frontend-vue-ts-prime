@@ -112,58 +112,6 @@ const showContextualMenu = (event: any) => {
 };
 
 function modifyStateEvents(eventType: number) {
-  // const eventLengthType = getLengthType();
-  // let event: Event | undefined = undefined;
-  // if (isInsideEvent() && event) {
-  //   if ((event as Event).eventType === eventType) return;
-  //   const eventCopy: Event = JSON.parse(JSON.stringify(event));
-  //   removeStateEvent(event);
-  //   cutBothEvents(event, eventCopy);
-  //   addStateEvent(event);
-  //   addStateEvent(eventCopy);
-  // } else if (isFullOutsideEvent()) {
-  //   const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
-  //     (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
-  //   );
-  //   const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
-  //   if (!previousEvent || !nextEvent) return;
-  //   removeStateEvent(previousEvent);
-  //   removeStateEvent(nextEvent);
-  //   const innerEvents = sessionsStore.selectedSession?.Data.StateEvents?.filter((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
-  //   innerEvents?.forEach((event) => removeStateEvent(event));
-  //   if (eventType === previousEvent?.eventType && eventType === nextEvent?.eventType) {
-  //     previousEvent.endTime = nextEvent.endTime;
-  //     // deleteEvent(nextEvent);
-  //   } else if (eventType === previousEvent?.eventType) {
-  //     cutNextEvent(previousEvent, nextEvent);
-  //   } else if (eventType === nextEvent?.eventType) {
-  //     cutPreviousEvent(previousEvent, nextEvent);
-  //   } else {
-  //     cutBothEvents(previousEvent, nextEvent);
-  //   }
-  //   addStateEvent(previousEvent);
-  //   addStateEvent(nextEvent);
-  // } else if (isPartlyOutEvent()) {
-  //   const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
-  //     (event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedFrom,
-  //   );
-  //   const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 > selectedTo && event.startTime * 1000 <= selectedTo);
-  //   if (!previousEvent || !nextEvent) return;
-  //   removeStateEvent(previousEvent);
-  //   removeStateEvent(nextEvent);
-  //   if (eventType === previousEvent?.eventType && eventType === nextEvent?.eventType) {
-  //     cutBothEvents(previousEvent, nextEvent);
-  //   } else if (eventType === nextEvent?.eventType) {
-  //     cutPreviousEvent(previousEvent, nextEvent);
-  //   } else if (eventType === previousEvent?.eventType) {
-  //     cutNextEvent(previousEvent, nextEvent);
-  //   }
-  //   addStateEvent(previousEvent);
-  //   addStateEvent(nextEvent);
-  // } else {
-  //   createNewEvent(selectedFrom, selectedTo, eventType);
-  // }
-
   const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.findLast((event) => event.startTime * 1000 <= selectedFrom);
   const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 >= selectedTo);
 
@@ -245,42 +193,15 @@ function modifyStateEvents(eventType: number) {
       sessionsStore.selectedSession.SessionPLMIndex =
         "" + Number(sessionsStore.selectedSession.SessionNumPLMEvents) / (sessionsStore.selectedSession.SessionSleepTime / 60 / 60);
   }
-  // function cutBothEvents(previousEvent: Event, nextEvent: Event) {
-  //   previousEvent.endTime = selectedFrom / 1000;
-  //   nextEvent.startTime = selectedTo / 1000;
-  //   createNewEvent(selectedFrom, selectedTo, eventType);
-  // }
-
-  // function cutPreviousEvent(previousEvent: Event, nextEvent: Event) {
-  //   previousEvent.endTime = selectedFrom / 1000;
-  //   nextEvent.startTime = selectedFrom / 1000;
-  // }
-  // function cutNextEvent(previousEvent: Event, nextEvent: Event) {
-  //   previousEvent.endTime = selectedTo / 1000;
-  //   nextEvent.startTime = selectedTo / 1000;
-  // }
-
-  // function isInsideEvent(): boolean {
-  //   event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
-  //   return !!event;
-  // }
-  // function isFullOutsideEvent() {
-  //   event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 > selectedFrom && event.endTime * 1000 < selectedTo);
-  //   return !!event;
-  // }
-  // function isPartlyOutEvent() {
-  //   return !!sessionsStore.selectedSession?.Data.StateEvents?.find((event) => selectedFrom < event.startTime * 1000 && selectedTo < event.endTime * 1000);
-  // }
-
-  // function getLengthType(): "INSIDE" | "FULL_OUTSIDE" | "PARTLY_OUTSIDE" {
-  //   event = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.startTime * 1000 <= selectedFrom && event.endTime * 1000 >= selectedTo);
-  // }
 }
 function addStateEvent(event: Event) {
   let box = drawStateEvent(event, chart as IChartApi, serie(), 10, 20);
   if (box) eventBoxes.push(box);
   if (sessionsStore.selectedSession)
     sessionsStore.selectedSession.Data.StateEvents = sessionsStore.selectedSession.Data.StateEvents?.concat(event).sort((a, b) => a.startTime - b.startTime);
+
+  //Save it to firebase
+
   if (sessionsStore.selectedSession?.Data.StateEvents) {
     chartsStore.setEvents(
       sessionsStore.selectedSession.Data.StateEvents,
@@ -290,10 +211,10 @@ function addStateEvent(event: Event) {
 }
 function removeStateEvent(event: Event) {
   removeBox(findBox(event), serie());
-  eventBoxes = eventBoxes.filter((b) => b._time !== event.startTime * 1000 && b._end !== event.endTime * 1000);
+  eventBoxes = eventBoxes.filter((b) => !(b._time === event.startTime * 1000 && b._end === event.endTime * 1000));
   if (sessionsStore.selectedSession)
     sessionsStore.selectedSession.Data.StateEvents = sessionsStore.selectedSession.Data.StateEvents?.filter(
-      (e) => e.startTime !== event.startTime && e.endTime !== event.endTime,
+      (e) => !(e.startTime === event.startTime && e.endTime === event.endTime),
     );
 }
 function findBox(event: Event) {

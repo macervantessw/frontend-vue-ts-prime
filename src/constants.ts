@@ -22,7 +22,7 @@ export const STATES = {
 };
 
 export const DOWNSAMPLE_RATIO = 5;
-export const VISIBLE_MINUTES = 10;
+export const VISIBLE_MINUTES = 20;
 export const VISIBLE_HALF = VISIBLE_MINUTES / 2;
 
 export const RESPIRATORY_EVENTS = {
@@ -86,7 +86,6 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
     },
   },
   handleScroll: {
-    pressedMouseMove: true,
     mouseWheel: true,
   },
   handleScale: {
@@ -98,8 +97,8 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   },
   localization: {
     timeFormatter: (time: number) => {
-      // return dayjs(time).format("HH:mm:ss");
-      return Math.floor(time / 1000);
+      return dayjs(time).format("HH:mm:ss");
+      // return Math.floor(time / 1000);
     },
   },
 
