@@ -126,15 +126,21 @@ onMounted(() => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     audioChart?.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+  });
+
+  stateChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+    oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    audioChart?.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+
     const fromIndex = Math.floor(timeRange?.from as number);
     const toIndex = Math.floor(timeRange?.to as number);
-
     if (fromIndex - fromIndexRef.value > 200 || fromIndexRef.value - fromIndex > 200) {
       fromIndexRef.value = fromIndex;
       const from = miniMapChart.value?.getSeries()[0].data()[fromIndex];
       const to = miniMapChart.value?.getSeries()[0].data()[toIndex];
 
-      if (from?.time && to?.time) {
+      if (chartsStore.allRendered && from?.time && to?.time) {
         miniMapChart.value?.drawSelectionBox({ from: from.time as Time, to: to.time as Time });
         chartsStore.selection = {
           range: {
@@ -144,12 +150,6 @@ onMounted(() => {
         };
       }
     }
-  });
-
-  stateChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
-    oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    audioChart?.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
   audioChart?.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
