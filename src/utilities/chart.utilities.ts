@@ -261,7 +261,7 @@ export function syncronizeCrosshairs(
     // chartsStore.setCurrentTime(dataPoint?.time as number);
   });
 
-  chart4.subscribeCrosshairMove((param) => {
+  chart4?.subscribeCrosshairMove((param) => {
     checkSeries();
     if (!mainSeries1 || !mainSeries2 || !mainSeries3 || !mainSeries4) return;
 
@@ -283,6 +283,7 @@ function getCrosshairDataPoint(series: ISeriesApi<"Line">, param: MouseEventPara
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: any) {
+  if (!chart) return;
   if (dataPoint) {
     chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
     return;

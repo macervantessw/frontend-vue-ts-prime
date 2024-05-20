@@ -119,13 +119,13 @@ onMounted(() => {
   oxChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    audioChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    audioChart?.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
   respiratoryChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    audioChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    audioChart?.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     const fromIndex = Math.floor(timeRange?.from as number);
     const toIndex = Math.floor(timeRange?.to as number);
 
@@ -149,10 +149,10 @@ onMounted(() => {
   stateChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
-    audioChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
+    audioChart?.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
   });
 
-  audioChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
+  audioChart?.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     oxChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     respiratoryChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
     stateChart.timeScale().setVisibleLogicalRange(timeRange as Range<number>);
