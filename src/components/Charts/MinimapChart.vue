@@ -13,7 +13,7 @@ import { useChartsStore, useSessionsStore } from "../../store";
 import { CHART_OPTIONS, LINE_OPTIONS, RESPIRATORY_EVENTS, VISIBLE_HALF, VISIBLE_MINUTES } from "../../constants";
 import { cloneDeep } from "lodash";
 import { Event } from "../../interfaces";
-import { drawBox, removeBox, showOxymetryEvents, showRespiratoryEvents, showSnoringEvents, showStateEvents } from "../../utilities/chart.utilities";
+import { drawBox, drawStateEvent, removeBox, showOxymetryEvents, showRespiratoryEvents, showSnoringEvents, showStateEvents } from "../../utilities/chart.utilities";
 import { Box } from "./plugins/box";
 import Skeleton from "primevue/skeleton";
 
@@ -25,6 +25,8 @@ let oxymetryEventBoxes: Box[] | undefined = [];
 let addedEventBoxes: Box[] = [];
 let series: ISeriesApi<"Line">[] = [];
 let chart: IChartApi | null = null;
+let oldEvents: Event[] = [];
+
 let stateEventBoxes: Box[] = [];
 const chartContainer = ref();
 const props = defineProps({
@@ -119,18 +121,18 @@ function setSelectionBox(time: Time) {
     range: { from: from as Time, to: to as Time },
   };
   removeBox(selectionBox, series[0]);
-  selectionBox = drawBox(chart, from as Time, to as Time, series[0], "hsla(180, 4%, 44%, 0.60)");
+  selectionBox = drawBox(chart, from as Time, to as Time, series[0], "hsla(180, 4%, 44%, 0.50)");
 }
 
 function drawSelectionBox(timeRange: Range<Time>) {
   removeBox(selectionBox, series[0]);
-  selectionBox = drawBox(chart, timeRange.from, timeRange.to, series[0], "hsla(180, 4%, 44%, 0.60)");
+  selectionBox = drawBox(chart, timeRange.from, timeRange.to, series[0], "hsla(180, 4%, 44%, 0.50)");
 
   if (selectionBox) series[0].detachPrimitive(selectionBox);
   if (!chart || !timeSeries.value.length) return;
   selectionBox = new Box(chart, series[0], timeSeries.value, timeRange.from, timeRange.to, 0, undefined, {
     showLabel: false,
-    color: "hsla(180, 4%, 44%, 0.60)",
+    color: "hsla(180, 4%, 44%, 0.50)",
     width: 40,
   });
   series[0].attachPrimitive(selectionBox);
@@ -170,6 +172,7 @@ watch(
     ) as Box[];
 
     stateEventBoxes = showStateEvents(chart, series[0], timeSeries.value, props.stateEvents, undefined, 10) || [];
+    oldEvents = JSON.parse(JSON.stringify(props.stateEvents)); // Create a deep copy of props.stateEvents
     showSnoringEvents(chart, series[0], timeSeries.value, props.snoringEvents, 50, 10);
   },
 );
@@ -217,16 +220,59 @@ watch(
 
 watch(
   () => sessionsStore.selectedSession?.Data.StateEvents,
-  (events) => {
-    if (events && events.length) {
-      stateEventBoxes.forEach((box) => {
+  (newEvents) => {
+    if (newEvents && newEvents.length) {
+      const oldSet = new Set(oldEvents.map((e) => JSON.stringify(e)));
+      const newSet = new Set(newEvents.map((e) => JSON.stringify(e)));
+
+      const addedEvents = newEvents.filter((newEvent) => !oldSet.has(JSON.stringify(newEvent)));
+      const removedEvents = oldEvents.filter((oldEvent) => !newSet.has(JSON.stringify(oldEvent)));
+
+      addedEvents.forEach(addStateEvent);
+
+      removedEvents.forEach((oldEvent) => {
+        const box = stateEventBoxes.find((b) => b._time === oldEvent.startTime * 1000 && b._end === oldEvent.endTime * 1000);
         removeBox(box, series[0]);
+        stateEventBoxes = stateEventBoxes.filter((b) => !(b._time === oldEvent.startTime * 1000 && b._end === oldEvent.endTime * 1000));
       });
-      stateEventBoxes = showStateEvents(chart, series[0], timeSeries.value, events, undefined, 10) || [];
+
+      oldEvents = JSON.parse(JSON.stringify(newEvents)); // Create a deep copy of newEvents
     }
+
+    // if (newEvents && newEvents.length) {
+    //   const old: Event[] = JSON.parse(JSON.stringify(oldEvents));
+    //   newEvents.forEach((newEvent) => {
+    //     const found = old.find((oldEvent) => oldEvent.startTime === newEvent.startTime && oldEvent.endTime === newEvent.endTime);
+    //     if (!found) {
+    //       addStateEvent(newEvent);
+    //     }
+    //   });
+
+    //   old.forEach((oldEvent) => {
+    //     const found = newEvents.find((newEvent) => newEvent.startTime === oldEvent.startTime && newEvent.endTime === oldEvent.endTime);
+    //     if (!found) {
+    //       const box = stateEventBoxes.find((b) => b._time === oldEvent.startTime * 1000 && b._end === oldEvent.endTime * 1000);
+    //       removeBox(box, series[0]);
+    //       stateEventBoxes = stateEventBoxes.filter((b) => !(b._time === oldEvent.startTime * 1000 && b._end === oldEvent.endTime * 1000));
+    //     }
+    //   });
+
+    //   oldEvents = JSON.parse(JSON.stringify(newEvents)); // Create a deep copy of newEvents
+    // }
+    // if (events && events.length) {
+    //   stateEventBoxes.forEach((box) => {
+    //     removeBox(box, series[0]);
+    //   });
+    //   stateEventBoxes = showStateEvents(chart, series[0], timeSeries.value, events, undefined, 10) || [];
+    // }
   },
   { deep: true },
 );
+
+function addStateEvent(event: Event) {
+  let box = drawStateEvent(event, chart as IChartApi, series[0], undefined, 10);
+  if (box) stateEventBoxes.push(box);
+}
 </script>
 
 <style scoped>

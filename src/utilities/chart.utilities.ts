@@ -84,16 +84,16 @@ export function showStateEvents(chart: IChartApi | null, serie: ISeriesApi<"Line
 export function drawStateEvent(event: Event, chart: IChartApi, serie: ISeriesApi<"Line">, vertOffset = 0, height?: number) {
   let offset = vertOffset;
   let h = height;
-  let color = "hsl(232, 87%, 64%)";
+  let color = "hsla(232, 87%, 64%,0.5)";
   if (event.eventType === STATES.SLEEPING) {
-    color = "hsl(172, 31%, 55%)";
+    color = "hsla(172, 31%, 55%, 0.5)";
     offset = vertOffset + (height ?? 0);
   } else if (event.eventType === STATES.UNKNOWN) {
-    color = "hsl(30, 87%, 65%)";
+    color = "hsla(30, 87%, 65%, 0.5)";
     offset = vertOffset;
     h = height ? height * 2 : undefined;
   } else if (event.eventType === STATES.MICROAWAKE) {
-    color = "hsl(197, 54%, 52%)";
+    color = "hsla(197, 54%, 52%)";
     offset = vertOffset + (height ?? 0);
   }
   const from = (event.startTime * 1000) as Time;
@@ -261,7 +261,7 @@ export function syncronizeCrosshairs(
     // chartsStore.setCurrentTime(dataPoint?.time as number);
   });
 
-  chart4.subscribeCrosshairMove((param) => {
+  chart4?.subscribeCrosshairMove((param) => {
     checkSeries();
     if (!mainSeries1 || !mainSeries2 || !mainSeries3 || !mainSeries4) return;
 
@@ -283,6 +283,7 @@ function getCrosshairDataPoint(series: ISeriesApi<"Line">, param: MouseEventPara
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: any) {
+  if (!chart) return;
   if (dataPoint) {
     chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
     return;

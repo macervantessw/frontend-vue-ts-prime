@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useUsersStore } from "./users.store";
-import { ref as fireRef, getDownloadURL, listAll, StorageReference } from "firebase/storage";
+import { ref as storageRef, getDownloadURL, listAll, StorageReference } from "firebase/storage";
 import { ref as dbRef, get, child, DatabaseReference } from "firebase/database";
 import app, { db, storage } from "../firebase/firebaseInit";
 import { Session, SessionResponse } from "../interfaces";
@@ -35,7 +35,7 @@ export const useSessionsStore = defineStore("Session", {
     async fetchPatientSessions(patientId: string): Promise<StorageReference[]> {
       const usersStore = useUsersStore();
       if (usersStore.userId) {
-        const sessionRef = fireRef(storage, `Sessions/${usersStore.userId}/${patientId}`);
+        const sessionRef = storageRef(storage, `Sessions/${usersStore.userId}/${patientId}`);
         const list = await listAll(sessionRef);
         return list.items.filter((itemRef) => itemRef.name.endsWith("_R.zip"));
       }
@@ -45,7 +45,7 @@ export const useSessionsStore = defineStore("Session", {
       const usersStore = useUsersStore();
       if (!userId) userId = usersStore.userId;
       if (userId) {
-        const sessionRef = fireRef(storage, `Sessions/${userId}/${deviceId}`);
+        const sessionRef = storageRef(storage, `Sessions/${userId}/${deviceId}`);
         const list = await listAll(sessionRef);
         return list.items.find((itemRef) => itemRef.name === `${sessionId}_R.zip`);
       }
@@ -55,7 +55,7 @@ export const useSessionsStore = defineStore("Session", {
       const usersStore = useUsersStore();
       if (!userId) userId = usersStore.userId;
       if (userId) {
-        const sessionRef = fireRef(storage, `Sessions/${userId}/${deviceId}`);
+        const sessionRef = storageRef(storage, `Sessions/${userId}/${deviceId}`);
         const list = await listAll(sessionRef);
         const videoRef = list.items.find((itemRef) => itemRef.name === `${sessionId}_M.mp4`);
         if (!videoRef) return undefined;
