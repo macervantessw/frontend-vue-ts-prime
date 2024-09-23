@@ -42,6 +42,7 @@ const getResponse = async () => {
   console.log(prompt.value);
 
   stream.value = openai.chat.completions.create({
+    //model: "gpt-3.5-turbo",
     model: "gpt-4",
     messages: [{ role: "user", content: prompt.value }],
     stream: true,
