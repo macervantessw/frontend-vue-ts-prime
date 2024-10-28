@@ -5,7 +5,8 @@ import { useSessionsStore } from "../../store";
 // import Button from "primevue/button";
 
 const sessionsStore = useSessionsStore();
-const apiKey = "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";
+
+const apiKey = "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"
 const openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true });
 const result = ref("");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +42,7 @@ const getResponse = async () => {
   console.log(prompt.value);
 
   stream.value = openai.chat.completions.create({
+    //model: "gpt-3.5-turbo",
     model: "gpt-4",
     messages: [{ role: "user", content: prompt.value }],
     stream: true,
