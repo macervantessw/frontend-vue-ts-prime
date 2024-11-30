@@ -16,7 +16,7 @@ const prompt = computed(() => {
   if (!sessionsStore.selectedSession) return "";
   const eficency = (sessionsStore.selectedSession?.SessionSleepTime / sessionsStore.selectedSession?.SessionDuration) * 100;
   const snoringsPerHour = sessionsStore.selectedSession?.SessionNumSnorings / (sessionsStore.selectedSession?.SessionDuration / 3600);
-  const prompt = `Quiero que me escribas un informe sobre los datos de un estudio de sueño dividido en tres partes bien diferenciadas. La primera se titula "Analisis de Sueño" y se analizaran 5 variables que te proporcionare. Las dos primeras variables son la eficiencia del sueño y la latencia del sueño. Utiliza tu conocimiento para dar una explicación sobre los resultados de estas dos varibles.La tercera variable es el indice de microdespertares por hora. Esta variable se considerará se considera normal por debajo de 7 y se considerará alta conforme se acerque al valor de 10. Si supera el valor de 10 diremos explicitamente que el sueño está excesivamente fragmentado. Tambien te proporcionaré el tiempo total de sueño y el tiempo despierto. Si el cociente entre tiempo despierto y el tiempo total de sueño es mayor de 0.1 diremos que existe una alteración en la proporcion de sueño que deberiamos vigilar.
+  /*const prompt = `Quiero que me escribas un informe sobre los datos de un estudio de sueño dividido en tres partes bien diferenciadas. La primera se titula "Analisis de Sueño" y se analizaran 5 variables que te proporcionare. Las dos primeras variables son la eficiencia del sueño y la latencia del sueño. Utiliza tu conocimiento para dar una explicación sobre los resultados de estas dos varibles.La tercera variable es el indice de microdespertares por hora. Esta variable se considerará se considera normal por debajo de 7 y se considerará alta conforme se acerque al valor de 10. Si supera el valor de 10 diremos explicitamente que el sueño está excesivamente fragmentado. Tambien te proporcionaré el tiempo total de sueño y el tiempo despierto. Si el cociente entre tiempo despierto y el tiempo total de sueño es mayor de 0.1 diremos que existe una alteración en la proporcion de sueño que deberiamos vigilar.
 La segunda se titula "Análisis respiratorio". Te proporcionare un valor de IAH donde se consideraran los siguientes márgenes. De 0-5 normal, de 5-15 leve, de 15-30 moderado y >30 severo. En caso de un IAH moderado se recomendara una visita al medico y solamente caso de severo se recomendara encarecidamente una visita al medico. El tercer análisis es respecto al ronquido. Se proporcionara un numero medio de ronquidos por hora. Utiliza tu criterio para dar información al respecto.
 Me gustaría que no dieras una importancia excesiva al ronquido, ya que no se considera una patología en si misma, aunque si un indicio de patología en caso de ser excesivo.
 Me gustaría que el informe tuviera aproximadamente 300 palabras. Al final del informe se ha de incluir una serie de recomendaciones generales (como evitar el consumo de alcohol antes de dormir, evitar uso de pantallas etc) y también especificas en función de los datos proporcionados. Evita la mención de terapias especificas como CPAP. Evita también aconsejar visitas a médicos en caso de que los parámetros entren dentro de la normalidad. El informe debes redactarlo en ${lang()}.
@@ -26,7 +26,43 @@ Microdespertares por hora = ${sessionsStore.selectedSession?.SessionMicroAwakeIn
 Tiempo dormido = ${sessionsStore.selectedSession?.SessionSleepTime / 60} minutos
 Tiempo despierto = ${sessionsStore.selectedSession?.SessionAccountableAwakeTime / 60} minutos
 IAH = ${sessionsStore.selectedSession?.SessionIAH}
-Número de ronquidos/hora = ${snoringsPerHour}`;
+Número de ronquidos/hora = ${snoringsPerHour}`;*/
+
+
+const prompt = `Quiero que redactes un informe médico sobre los datos de un estudio de sueño. Este informe debe dividirse en tres secciones diferenciadas cuyo titulo ha de ir en una fuente mas grande y subrayada y contar con aproximadamente 300 palabras. A continuación, detallo las instrucciones para cada sección:
+
+1. **Análisis de Sueño**:
+   - Se analizarán cinco variables: eficiencia del sueño, latencia del sueño, índice de microdespertares, tiempo total de sueño y tiempo despierto.
+   - **Eficiencia del sueño**: Indica qué tan eficiente fue el descanso. Si la eficiencia es:
+     - >=90%: buena.
+     - Entre 80% y 90%: ligeramente baja.
+     - <80%: deficiente. Describe los resultados con base en estos rangos.
+   - **Latencia del sueño**: Tiempo en minutos que tarda en iniciar el sueño. Proporciona una breve explicación sobre este valor.
+   - Respecto a los microdespertares haz una descripcion según tu criterio.
+
+2. **Análisis Respiratorio**:
+   - Proporciona el valor de IAH (índice de apnea-hipopnea). Interpreta los resultados según estos márgenes:
+     - 0-5: normal.
+     - 5-15: leve.
+     - 15-30: moderado. Recomienda una visita al médico.
+     - >30: severo. Recomienda encarecidamente visitar al médico.
+   - Solo menciona recomendaciones si el valor lo justifica.
+
+3. **Análisis de Ronquido**:
+   - Incluye el número promedio de ronquidos por hora. Proporciona información general sobre el ronquido, destacando que no es una patología en sí misma pero puede ser un indicio si es excesivo. No le des demasiada importancia salvo que sea un caso extremo.
+
+Al final del informe, incluye recomendaciones generales (evitar el alcohol antes de dormir, uso de pantallas, etc.) y específicas según los datos proporcionados. Evita mencionar terapias concretas como CPAP y no sugieras visitas médicas si los parámetros están dentro de la normalidad.
+
+Datos del estudio:
+- Latencia del sueño: ${sessionsStore.selectedSession?.SessionSleepLatency / 60} minutos
+- Eficiencia del sueño: ${eficency}%
+- Microdespertares por hora: ${sessionsStore.selectedSession?.SessionMicroAwakeIndex}
+- Tiempo dormido: ${sessionsStore.selectedSession?.SessionSleepTime / 60} minutos
+- Tiempo despierto: ${sessionsStore.selectedSession?.SessionAccountableAwakeTime / 60} minutos
+- IAH: ${sessionsStore.selectedSession?.SessionIAH}
+- Ronquidos/hora: ${snoringsPerHour}`;
+
+
   console.log(prompt);
 
   return prompt;
