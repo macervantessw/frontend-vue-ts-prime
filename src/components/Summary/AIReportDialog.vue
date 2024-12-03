@@ -29,7 +29,7 @@ IAH = ${sessionsStore.selectedSession?.SessionIAH}
 Número de ronquidos/hora = ${snoringsPerHour}`;*/
 
 
-const prompt = `Quiero que redactes un informe médico sobre los datos de un estudio de sueño. Este informe debe dividirse en tres secciones diferenciadas cuyo titulo ha de ir en una fuente mas grande y subrayada y contar con aproximadamente 300 palabras. A continuación, detallo las instrucciones para cada sección:
+const prompt = `Quiero que redactes un informe médico sobre los datos de un estudio de sueño. Este informe debe redactarse en idioma ${lang()} y dividirse en tres secciones diferenciadas cuyo titulo ha de ir en una fuente mas grande y subrayada y contar con aproximadamente 300 palabras. A continuación, detallo las instrucciones para cada sección:
 
 1. **Análisis de Sueño**:
    - Se analizarán cinco variables: eficiencia del sueño, latencia del sueño, índice de microdespertares, tiempo total de sueño y tiempo despierto.
