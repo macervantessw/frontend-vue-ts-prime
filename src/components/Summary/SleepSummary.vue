@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useSessionsStore } from "../../store";
 import { storeToRefs } from "pinia";
 import dayjs from "dayjs";
@@ -18,11 +18,7 @@ const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 
-// const series = ref([] as number[]);
-
-// onBeforeMount(() => {
-//   series.value = setSeries();
-// });
+// Configuración del gráfico
 const chartOptions: ApexOptions = {
   dataLabels: {
     enabled: false,
@@ -71,7 +67,6 @@ const chartOptions: ApexOptions = {
     },
   },
   colors: ["#5586f3", "#68b0a7", "#f3a658"],
-
   legend: {
     show: false,
   },
@@ -100,9 +95,38 @@ const awakesPerHour = () => {
 
   return numAwakes / totalHours;
 };
+
+// Estado del tooltip
+const showTooltip = ref(false);
+
+const toggleTooltip = () => {
+  showTooltip.value = !showTooltip.value;
+};
 </script>
+
 <template>
   <SummaryCard :title="t('Sleep analysis')">
+    <!-- Botón de información en la esquina superior derecha -->
+    <div class="absolute top-0 right-0 p-3">
+      <button
+        class="info-button"
+        @click="toggleTooltip"
+        aria-label="Información"
+      >
+        <i class="pi pi-info-circle text-2xl"></i>
+      </button>
+      <!-- Tooltip -->
+      <div
+        v-if="showTooltip"
+        class="tooltip-content"
+      >
+        <p>Sleep efficiency measures the percentage of time spent asleep while in bed. A higher percentage indicates better sleep quality.</p>
+        <a href="https://www.sleepwa.com.au/interpreting-a-sleep-study/" target="_blank" rel="noopener noreferrer"@click.stop>
+          Learn more...
+        </a>
+      </div>
+    </div>
+
     <div class="w-full flex justify-content-center py-5">
       <VueApexCharts type="donut" :options="chartOptions" :series="series"></VueApexCharts>
     </div>
@@ -115,7 +139,6 @@ const awakesPerHour = () => {
         icon="icon-park-solid:sleep"
         color="hsl(221,70%,80%)"
       />
-
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
         :title="$t('Awake time')"
@@ -150,4 +173,42 @@ const awakesPerHour = () => {
     </div>
   </SummaryCard>
 </template>
-<style></style>
+
+<style>
+/* Estilo del botón de información */
+.info-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  color: inherit;
+}
+
+/* Estilo del tooltip */
+.tooltip-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  width: 200px;
+  text-align: left;
+}
+
+.tooltip-content p {
+  margin: 0 0 5px;
+}
+
+.tooltip-content a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.tooltip-content a:hover {
+  text-decoration: underline;
+}
+</style>

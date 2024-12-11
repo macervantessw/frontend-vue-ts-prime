@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ref } from "vue";
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import VueApexCharts from "vue3-apexcharts";
@@ -72,50 +73,103 @@ const chartOptions = computed(() => {
     stroke: {
       lineCap: "butt",
     },
-
-    labels: [t("plm-index")],
+    labels: [t("PLM/h")],
   };
 });
+
+// Estado del tooltip
+const showTooltip = ref(false);
+
+const toggleTooltip = () => {
+  showTooltip.value = !showTooltip.value;
+};
 </script>
+
 <template>
   <SummaryCard :title="$t('movement-analysis')">
+    <!-- Botón de información en la esquina superior derecha -->
+    <div class="absolute top-0 right-0 p-3">
+      <button
+        class="info-button"
+        @click="toggleTooltip"
+        aria-label="Información"
+      >
+        <i class="pi pi-info-circle text-2xl"></i>
+      </button>
+      <!-- Tooltip -->
+      <div
+        v-if="showTooltip"
+        class="tooltip-content"
+      >
+        <p>Periodic limb movements (PLMs) are involuntary movements of the limbs during sleep. They may disrupt sleep quality and are measured by the PLM Index (PLMI), indicating frequency per hour.</p>
+        <a href="https://www.sleepwa.com.au/interpreting-a-sleep-study/" target="_blank" rel="noopener noreferrer">
+          Learn more...
+        </a>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
     <div class="w-full flex justify-content-center mb-5">
-      <VueApexCharts height="312px" type="radialBar" :options="chartOptions" :series="series"></VueApexCharts>
+      <VueApexCharts
+        height="312px"
+        type="radialBar"
+        :options="chartOptions"
+        :series="series"
+      ></VueApexCharts>
     </div>
     <PLMLegendBar :plm="PLMIndex" />
     <div class="flex justify-content-between pt-6 sm:pt-2 px-3 h-full align-items-end">
       <div class="flex flex-1 flex-column align-items-center">
-        <span class="text-lg overflow-hidden">{{ $t("plm-index") }}</span>
-        <span class="text-3xl" style="font-weight: 900">{{ Number(selectedSession?.SessionPLMIndex).toFixed(2) }}</span>
+        <span class="text-lg overflow-hidden">{{ $t("PLM Index") }}</span>
+        <span class="text-3xl" style="font-weight: 900; color: #5586f3">
+          {{ Number(selectedSession?.SessionPLMIndex).toFixed(2) }}
+        </span>
       </div>
-
       <div class="flex flex-1 flex-column align-items-center">
         <span class="text-lg">{{ $t("Total") }}</span>
-        <span class="text-3xl" style="font-weight: 900">{{ Number(selectedSession?.SessionNumPLMEvents).toFixed(0) }}</span>
+        <span class="text-3xl" style="font-weight: 900; color: #f3a658">
+          {{ Number(selectedSession?.SessionNumPLMEvents).toFixed(0) }}
+        </span>
       </div>
     </div>
   </SummaryCard>
 </template>
+
 <style>
-.progress-top .p-progressbar-value {
-  background-color: #ffffff00;
-  border-right: 4px solid #4745f9;
+/* Estilo del botón de información */
+.info-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  color: inherit;
 }
-.progress-top {
-  background-color: #ffffff00;
+
+/* Estilo del tooltip */
+.tooltip-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  width: 200px;
+  text-align: left;
 }
-</style>
-<style lang="scss">
-@supports (-webkit-touch-callout: none) {
-  svg {
-    path.apexcharts-radialbar-area {
-      filter: none;
-    }
-  }
+
+.tooltip-content p {
+  margin: 0 0 5px;
 }
-svg {
-  path.apexcharts-radialbar-area {
-    stroke-width: 32px;
-  }
+
+.tooltip-content a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.tooltip-content a:hover {
+  text-decoration: underline;
 }
 </style>
