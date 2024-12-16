@@ -103,7 +103,7 @@ const toggleTooltip = () => {
       >
       <p>Events like apneas and hypopneas affect sleep quality and health. Severity is measured by the Apnea-Hypopnea Index (AHI):</p>
 
-      <a href="https://www.sleepwa.com.au/interpreting-a-sleep-study/" target="_blank" rel="noopener noreferrer">
+      <a href="https://en.wikipedia.org/wiki/Apnea–hypopnea_index" target="_blank" rel="noopener noreferrer">
     Learn more...
 </a>
 

@@ -77,6 +77,12 @@ const hasMovementData = computed(() => {
 </script>
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
+    <!-- Mensaje Fijo -->
+    <div class="info-banner">
+      <p>
+        {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
+      </p>
+    </div>
     <section class="flex justify-content-between">
       <span>
         <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>

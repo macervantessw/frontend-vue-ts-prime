@@ -102,7 +102,7 @@ const toggleTooltip = () => {
         class="tooltip-content"
       >
         <p>Periodic limb movements (PLMs) are involuntary movements of the limbs during sleep. They may disrupt sleep quality and are measured by the PLM Index (PLMI), indicating frequency per hour.</p>
-        <a href="https://www.sleepwa.com.au/interpreting-a-sleep-study/" target="_blank" rel="noopener noreferrer">
+        <a href="https://en.wikipedia.org/wiki/Periodic_limb_movement_disorder" target="_blank" rel="noopener noreferrer">
           Learn more...
         </a>
       </div>

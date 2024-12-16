@@ -121,7 +121,7 @@ const toggleTooltip = () => {
         class="tooltip-content"
       >
         <p>Sleep efficiency measures the percentage of time spent asleep while in bed. A higher percentage indicates better sleep quality.</p>
-        <a href="https://www.sleepwa.com.au/interpreting-a-sleep-study/" target="_blank" rel="noopener noreferrer"@click.stop>
+        <a href="https://en.wikipedia.org/wiki/Sleep_efficiency" target="_blank" rel="noopener noreferrer"@click.stop>
           Learn more...
         </a>
       </div>
