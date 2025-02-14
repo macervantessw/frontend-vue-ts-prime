@@ -43,10 +43,12 @@ const goToSession = () => {
 const formatDate = (date: number) => {
   return dayjs.unix(date).format("DD/MM/YYYY HH:mm:ss");
 };
+
 const getDuration = () => {
   if (!sessionsStore.selectedSession) return;
   return dayjs.duration(sessionsStore.selectedSession?.SessionEndTime * 1000 - sessionsStore.selectedSession?.SessionStartTime * 1000).format("HH:mm:ss");
 };
+
 const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
 const openAIReportDialog = () => {
   dialog.open(AIReportDialog, {
@@ -75,14 +77,17 @@ const hasMovementData = computed(() => {
   return !sessionsStore.selectedSession?.SessionPLMIndex ? false : true;
 });
 </script>
+
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary" class="">
-    <!-- Mensaje Fijo -->
+    <!-- 📢 Mensaje Fijo -->
     <div class="info-banner">
       <p>
         {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
       </p>
     </div>
+
+    <!-- 📄 Información General de la Sesión (Siempre visible) -->
     <section class="flex justify-content-between">
       <span>
         <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
@@ -90,21 +95,45 @@ const hasMovementData = computed(() => {
         <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
         <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
       </span>
-      <span class="flex align-items-center">
-        <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
-      </span>
+      
+      <!-- 🔘 Botón para generar reporte AI (Siempre visible en pantallas grandes) -->
+      <span class="hidden lg:inline-flex">
+  <Button
+    :label="t('Generate AI report')"
+    class="border-round-3xl lg:h-12 px-5 text-lg flex items-center justify-center"
+    icon="pi pi-file-edit"
+    icon-pos="left"
+    @click="openAIReportDialog()"
+  />
+</span>
     </section>
-    <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
+
+    <!-- 📌 Contenedor de los bloques de información -->
+    <section class="pt-4 w-full grid gap-3 justify-content-center lg:justify-content-start">
+      <!-- ✅ Bloques permitidos en pantallas pequeñas -->
       <PatientSummary />
       <SleepSummary />
-      <AhiSummary />
       <AudioSummary />
-      <ODISummary v-if="hasOxymetryData" />
-      <MovementSummary v-if="hasMovementData" />
+
+      <!-- ❌ Bloques ocultos en pantallas pequeñas -->
+      <div class="hidden lg:block">
+        <AhiSummary />
+        <ODISummary v-if="hasOxymetryData" />
+        <MovementSummary v-if="hasMovementData" />
+      </div>
     </section>
-    <Button :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
+
+    <!-- 🔘 Botón para ver análisis (oculto en pantallas pequeñas) -->
+    <Button
+      :label="t('view-analysis')"
+      class="btn-go border-round-3xl hidden lg:flex"
+      icon="pi pi-chevron-right"
+      icon-pos="right"
+      @click="goToSession"
+    ></Button>
   </div>
 </template>
+
 <style>
 .summary-card {
   background-color: #e2e2e241;
@@ -152,37 +181,5 @@ const hasMovementData = computed(() => {
 
 .btn-go:active {
   bottom: 2px;
-}
-</style>
-<style lang="scss">
-.ai-button {
-  --b: 0.5em; /* border width */
-  --c: 3em; /* corner size */
-  --r: 2em; /* corner rounding */
-  position: relative;
-  margin: 1em auto;
-  border: solid var(--b) transparent;
-  padding: 1em;
-  max-width: 23em;
-  font:
-    1.25em ubuntu,
-    sans-serif;
-
-  &::before {
-    position: absolute;
-    z-index: -1;
-    inset: calc(-1 * var(--b));
-    border: inherit;
-    border-radius: var(--r);
-    background: linear-gradient(orange, deeppink, purple) border-box;
-    --corner: conic-gradient(from -90deg at var(--c) var(--c), red 25%, #0000 0) 0 0 / calc(100% - var(--c)) calc(100% - var(--c)) border-box;
-    --inner: conic-gradient(red 0 0) padding-box;
-    -webkit-mask: var(--corner), var(--inner);
-    -webkit-mask-composite: source-out;
-    mask:
-      var(--corner) subtract,
-      var(--inner);
-    content: "";
-  }
 }
 </style>
