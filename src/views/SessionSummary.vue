@@ -24,7 +24,7 @@ const sessionsStore = useSessionsStore();
 const route = useRoute();
 
 const updateShowOptionalElements = () => {
-  showOptionalElements.value = window.innerWidth > 768;
+  showOptionalElements.value = window.innerWidth > 1024;
 };
 
 onMounted(() => {
