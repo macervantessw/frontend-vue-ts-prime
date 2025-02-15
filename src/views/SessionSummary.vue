@@ -1,12 +1,13 @@
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useSessionsStore } from "../store";
-import i18n from "../i18n";
-import { useRoute, useRouter } from "vue-router";
 import Button from "primevue/button";
+import i18n from "../i18n";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
+import router from "../router";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
 import AhiSummary from "../components/Summary/RespiratorySummary.vue";
+import { useRoute } from "vue-router";
 import AudioSummary from "../components/Summary/AudioSummary.vue";
 import ODISummary from "../components/Summary/OximetrySummary.vue";
 import MovementSummary from "../components/Summary/MovementSummary.vue";
@@ -14,143 +15,122 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
 
-// Extender dayjs para soporte de duraciones
+const dialog = useDialog();
+const showOptionalElements = ref(true);
+
 dayjs.extend(duration);
-
-// Internacionalización
 const { t } = i18n.global;
-
-// Estado global
 const sessionsStore = useSessionsStore();
 const route = useRoute();
-const dialog = useDialog();
-const router = useRouter();
 
-// Computadas para verificar la disponibilidad de datos
-const hasOxymetryData = computed(() => {
-  if (
-    !sessionsStore.selectedSession?.SessionOxAverage ||
-    Number(sessionsStore.selectedSession?.SessionOxAverage) === 0
-  )
-    return false;
-  else if (
-    sessionsStore.selectedSession?.SessionOxCT90 === "100" &&
-    sessionsStore.selectedSession?.SessionOxCT80 === "100"
-  )
-    return false;
-  else if (
-    sessionsStore.selectedSession?.SessionOxCT90 === "1" &&
-    sessionsStore.selectedSession?.SessionOxCT80 === "1"
-  )
-    return false;
-  else return true;
+const updateShowOptionalElements = () => {
+  showOptionalElements.value = window.innerWidth > 768;
+};
+
+onMounted(() => {
+  updateShowOptionalElements();
+  window.addEventListener("resize", updateShowOptionalElements);
 });
 
-const hasMovementData = computed(() => {
-  return !!sessionsStore.selectedSession?.SessionPLMIndex;
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateShowOptionalElements);
 });
 
-// Importación sincrónica del diálogo AIReport
-import AIReportDialog from "../components/Summary/AIReportDialog.vue";
+if (route.params.sessionId) {
+  const session = sessionsStore.sessions.find((session) => session.SessionId === route.params.sessionId);
+  if (session) sessionsStore.selectedSession = session;
+}
 
-// Función para abrir el diálogo de informe AI
+watch(
+  () => sessionsStore.sessions,
+  (sessions) => {
+    const session = sessions.find((session) => session.SessionId === route.params.sessionId);
+    if (session) sessionsStore.selectedSession = session;
+  },
+  { deep: true },
+);
+
+const goToSession = () => {
+  router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
+};
+
+const formatDate = (date: number) => {
+  return dayjs.unix(date).format("DD/MM/YYYY HH:mm:ss");
+};
+const getDuration = () => {
+  if (!sessionsStore.selectedSession) return;
+  return dayjs.duration(sessionsStore.selectedSession?.SessionEndTime * 1000 - sessionsStore.selectedSession?.SessionStartTime * 1000).format("HH:mm:ss");
+};
+const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
 const openAIReportDialog = () => {
   dialog.open(AIReportDialog, {
     props: {
-      header: t("ai-generated-report"),
-      style: { width: "50vw" },
-      breakpoints: { "960px": "75vw", "640px": "100vw" },
+      header: t("ai-generated-repport"),
+      style: {
+        width: "50vw",
+      },
+      breakpoints: {
+        "960px": "75vw",
+        "640px": "100vw",
+      },
       modal: true,
     },
   });
 };
 
-// Función para navegar a la vista de sesión
-const goToSession = () => {
-  router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
-};
+const hasOxymetryData = computed(() => {
+  if (!sessionsStore.selectedSession?.SessionOxAverage || Number(sessionsStore.selectedSession?.SessionOxAverage) === 0) return false;
+  else if (sessionsStore.selectedSession?.SessionOxCT90 === "100" && sessionsStore.selectedSession?.SessionOxCT80 === "100") return false;
+  else if (sessionsStore.selectedSession?.SessionOxCT90 === "1" && sessionsStore.selectedSession?.SessionOxCT80 === "1") return false;
+  else return true;
+});
 
-// Formateo de fechas
-const formatDate = (date: number) => {
-  return dayjs.unix(date).format("DD/MM/YYYY HH:mm:ss");
-};
-
-// Cálculo de duración
-const getDuration = () => {
-  if (!sessionsStore.selectedSession) return "";
-  const startTime = sessionsStore.selectedSession.SessionStartTime * 1000;
-  const endTime = sessionsStore.selectedSession.SessionEndTime * 1000;
-  return dayjs.duration(endTime - startTime).format("HH:mm:ss");
-};
+const hasMovementData = computed(() => {
+  return !sessionsStore.selectedSession?.SessionPLMIndex ? false : true;
+});
 </script>
 
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary">
-    <!-- Mensaje Fijo -->
     <div class="info-banner">
       <p>
-        {{ $t("Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice.") }}
+        {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
       </p>
     </div>
-
-    <!-- Sección Principal -->
+    
     <section class="flex justify-content-between">
       <span>
-        <h2 class="w-full text-primary m-0 text-3xl">
-          {{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}
-        </h2>
-        <h3 class="w-full text-primary m-0">
-          {{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}
-        </h3>
-        <h3 class="w-full text-primary m-0">
-          {{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}
-        </h3>
-        <h3 class="w-full text-primary m-0">
-          {{ $t("Duration") }}: {{ getDuration() }}
-        </h3>
+        <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
+        <h3 class="w-full text-primary m-0">{{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
+        <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
+        <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
       </span>
-      <span class="flex align-items-center">
-        <!-- Botón Generate AI Report -->
-        <Button
-          :label="t('Generate AI report')"
-          class="border-round-3xl flex mb-4"
-          icon="pi pi-file-edit"
-          icon-pos="left"
-          @click="openAIReportDialog()"
-        />
+      <span v-if="showOptionalElements" class="flex align-items-center">
+        <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
       </span>
     </section>
-
-    <!-- Resúmenes -->
+    
     <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
       <PatientSummary />
       <SleepSummary />
-      <AhiSummary />
-      <ODISummary v-if="hasOxymetryData" />
-      <MovementSummary v-if="hasMovementData" />
+      <AhiSummary v-if="showOptionalElements" />
       <AudioSummary />
+      <ODISummary v-if="hasOxymetryData && showOptionalElements" />
+      <MovementSummary v-if="hasMovementData && showOptionalElements" />
     </section>
-
-    <!-- Botón Advanced View -->
-    <Button
-      :label="t('view-analysis')"
-      class="btn-go border-round-3xl hidden sm:flex"
-      icon="pi pi-chevron-right"
-      icon-pos="right"
-      @click="goToSession"
-    />
+    
+    <Button v-if="showOptionalElements" :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
 </template>
 
 <style>
-/* Estilos básicos */
 .summary-card {
-  background-color: rgba(226, 226, 226, 0.7); /* Cambiar backdrop-filter por un color sólido */
+  background-color: #e2e2e241;
+  backdrop-filter: blur(4px);
   border-radius: 10px;
   max-width: 37rem;
   min-width: 25rem;
 }
-
 .btn-go {
   position: absolute;
   bottom: 0;
@@ -165,16 +145,62 @@ const getDuration = () => {
   transition: all 0.3s ease;
 }
 
-.btn-go:hover {
-  color: rgb(0, 0, 0);
-  background-color: #117064; /* Cambiar efecto hover para compatibilidad */
+.btn-go:after {
+  position: absolute;
+  content: "";
+  width: 0;
+  height: 100%;
+  bottom: 0;
+  right: 0;
+  direction: ltr;
+  z-index: -1;
+  background: #117064;
+  transition: all 0.3s ease;
 }
 
-.info-banner {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
-  border-radius: 5px;
-  margin-bottom: 1rem;
+.btn-go:hover {
+  color: rgb(0, 0, 0);
+}
+
+.btn-go:hover:after {
+  right: auto;
+  left: 0;
+  width: 100%;
+}
+
+.btn-go:active {
+  bottom: 2px;
+}
+</style>
+<style lang="scss">
+.ai-button {
+  --b: 0.5em; /* border width */
+  --c: 3em; /* corner size */
+  --r: 2em; /* corner rounding */
+  position: relative;
+  margin: 1em auto;
+  border: solid var(--b) transparent;
+  padding: 1em;
+  max-width: 23em;
+  font:
+    1.25em ubuntu,
+    sans-serif;
+
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: calc(-1 * var(--b));
+    border: inherit;
+    border-radius: var(--r);
+    background: linear-gradient(orange, deeppink, purple) border-box;
+    --corner: conic-gradient(from -90deg at var(--c) var(--c), red 25%, #0000 0) 0 0 / calc(100% - var(--c)) calc(100% - var(--c)) border-box;
+    --inner: conic-gradient(red 0 0) padding-box;
+    -webkit-mask: var(--corner), var(--inner);
+    -webkit-mask-composite: source-out;
+    mask:
+      var(--corner) subtract,
+      var(--inner);
+    content: "";
+  }
 }
 </style>
