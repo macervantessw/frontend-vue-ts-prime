@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { computed, ref, onMounted, onUnmounted, defineAsyncComponent } from "vue";
+import { computed } from "vue";
 import { useSessionsStore } from "../store";
 import i18n from "../i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Button from "primevue/button";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
@@ -13,51 +13,47 @@ import MovementSummary from "../components/Summary/MovementSummary.vue";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
-import { useRouter } from "vue-router";
 
-
+// Extender dayjs para soporte de duraciones
 dayjs.extend(duration);
 
+// Internacionalización
 const { t } = i18n.global;
+
+// Estado global
 const sessionsStore = useSessionsStore();
 const route = useRoute();
 const dialog = useDialog();
-
-// Variable reactiva para controlar la visualización avanzada
-const showAdvancedSummaries = ref(true);
-
-// Umbral para dispositivos móviles (puedes ajustarlo según tus necesidades)
-const MOBILE_THRESHOLD = 900; // px
-
-// Función para detectar el tamaño de la pantalla
-const updateShowAdvancedSummaries = () => {
-  showAdvancedSummaries.value = window.innerWidth >= MOBILE_THRESHOLD;
-};
-
-// Observar cambios en el tamaño de la ventana
-onMounted(() => {
-  updateShowAdvancedSummaries(); // Inicializar al montar el componente
-  window.addEventListener("resize", updateShowAdvancedSummaries);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("resize", updateShowAdvancedSummaries);
-});
+const router = useRouter();
 
 // Computadas para verificar la disponibilidad de datos
 const hasOxymetryData = computed(() => {
-  if (!sessionsStore.selectedSession?.SessionOxAverage || Number(sessionsStore.selectedSession?.SessionOxAverage) === 0) return false;
-  else if (sessionsStore.selectedSession?.SessionOxCT90 === "100" && sessionsStore.selectedSession?.SessionOxCT80 === "100") return false;
-  else if (sessionsStore.selectedSession?.SessionOxCT90 === "1" && sessionsStore.selectedSession?.SessionOxCT80 === "1") return false;
+  if (
+    !sessionsStore.selectedSession?.SessionOxAverage ||
+    Number(sessionsStore.selectedSession?.SessionOxAverage) === 0
+  )
+    return false;
+  else if (
+    sessionsStore.selectedSession?.SessionOxCT90 === "100" &&
+    sessionsStore.selectedSession?.SessionOxCT80 === "100"
+  )
+    return false;
+  else if (
+    sessionsStore.selectedSession?.SessionOxCT90 === "1" &&
+    sessionsStore.selectedSession?.SessionOxCT80 === "1"
+  )
+    return false;
   else return true;
 });
 
 const hasMovementData = computed(() => {
-  return !sessionsStore.selectedSession?.SessionPLMIndex ? false : true;
+  return !!sessionsStore.selectedSession?.SessionPLMIndex;
 });
 
+// Importación sincrónica del diálogo AIReport
+import AIReportDialog from "../components/Summary/AIReportDialog.vue";
+
 // Función para abrir el diálogo de informe AI
-const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
 const openAIReportDialog = () => {
   dialog.open(AIReportDialog, {
     props: {
@@ -69,8 +65,6 @@ const openAIReportDialog = () => {
   });
 };
 
-
-const router = useRouter(); // Inicializa el enrutador
 // Función para navegar a la vista de sesión
 const goToSession = () => {
   router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
@@ -84,11 +78,12 @@ const formatDate = (date: number) => {
 // Cálculo de duración
 const getDuration = () => {
   if (!sessionsStore.selectedSession) return "";
-  return dayjs.duration(
-    sessionsStore.selectedSession.SessionEndTime * 1000 - sessionsStore.selectedSession.SessionStartTime * 1000
-  ).format("HH:mm:ss");
+  const startTime = sessionsStore.selectedSession.SessionStartTime * 1000;
+  const endTime = sessionsStore.selectedSession.SessionEndTime * 1000;
+  return dayjs.duration(endTime - startTime).format("HH:mm:ss");
 };
 </script>
+
 <template>
   <div v-if="sessionsStore.selectedSession" id="session-summary">
     <!-- Mensaje Fijo -->
@@ -101,20 +96,27 @@ const getDuration = () => {
     <!-- Sección Principal -->
     <section class="flex justify-content-between">
       <span>
-        <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
-        <h3 class="w-full text-primary m-0">{{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
-        <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
-        <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
+        <h2 class="w-full text-primary m-0 text-3xl">
+          {{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}
+        </h2>
+        <h3 class="w-full text-primary m-0">
+          {{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}
+        </h3>
+        <h3 class="w-full text-primary m-0">
+          {{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}
+        </h3>
+        <h3 class="w-full text-primary m-0">
+          {{ $t("Duration") }}: {{ getDuration() }}
+        </h3>
       </span>
       <span class="flex align-items-center">
         <!-- Botón Generate AI Report -->
-        <Button 
-          :label="t('Generate AI report')" 
-          class="border-round-3xl flex mb-4" 
-          icon="pi pi-file-edit" 
-          icon-pos="left" 
-          @click="openAIReportDialog()" 
-          v-if="showAdvancedSummaries"
+        <Button
+          :label="t('Generate AI report')"
+          class="border-round-3xl flex mb-4"
+          icon="pi pi-file-edit"
+          icon-pos="left"
+          @click="openAIReportDialog()"
         />
       </span>
     </section>
@@ -123,34 +125,27 @@ const getDuration = () => {
     <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
       <PatientSummary />
       <SleepSummary />
-
-      <!-- AhiSummary -->
-      <AhiSummary v-if="showAdvancedSummaries" />
-
-      <!-- ODISummary -->
-      <ODISummary v-if="showAdvancedSummaries && hasOxymetryData" />
-
-      <!-- MovementSummary -->
-      <MovementSummary v-if="showAdvancedSummaries && hasMovementData" />
-
+      <AhiSummary />
+      <ODISummary v-if="hasOxymetryData" />
+      <MovementSummary v-if="hasMovementData" />
       <AudioSummary />
     </section>
 
     <!-- Botón Advanced View -->
-    <Button 
-      :label="t('view-analysis')" 
-      class="btn-go border-round-3xl hidden sm:flex" 
-      icon="pi pi-chevron-right" 
-      icon-pos="right" 
-      @click="goToSession" 
-      v-if="showAdvancedSummaries"
+    <Button
+      :label="t('view-analysis')"
+      class="btn-go border-round-3xl hidden sm:flex"
+      icon="pi pi-chevron-right"
+      icon-pos="right"
+      @click="goToSession"
     />
   </div>
 </template>
+
 <style>
+/* Estilos básicos */
 .summary-card {
-  background-color: #e2e2e241;
-  backdrop-filter: blur(4px);
+  background-color: rgba(226, 226, 226, 0.7); /* Cambiar backdrop-filter por un color sólido */
   border-radius: 10px;
   max-width: 37rem;
   min-width: 25rem;
@@ -170,31 +165,9 @@ const getDuration = () => {
   transition: all 0.3s ease;
 }
 
-.btn-go:after {
-  position: absolute;
-  content: "";
-  width: 0;
-  height: 100%;
-  bottom: 0;
-  right: 0;
-  direction: ltr;
-  z-index: -1;
-  background: #117064;
-  transition: all 0.3s ease;
-}
-
 .btn-go:hover {
   color: rgb(0, 0, 0);
-}
-
-.btn-go:hover:after {
-  right: auto;
-  left: 0;
-  width: 100%;
-}
-
-.btn-go:active {
-  bottom: 2px;
+  background-color: #117064; /* Cambiar efecto hover para compatibilidad */
 }
 
 .info-banner {
