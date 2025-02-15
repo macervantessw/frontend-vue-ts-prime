@@ -14,26 +14,27 @@ import MovementSummary from "../components/Summary/MovementSummary.vue";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
+import { useUsersStore } from "../store";
 
 const dialog = useDialog();
-const showOptionalElements = ref(true);
+const showOptionalElements = computed(() => usersStore.isProfessional || usersStore.isAdmin);
 
 dayjs.extend(duration);
 const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const route = useRoute();
-
-const updateShowOptionalElements = () => {
-  showOptionalElements.value = window.innerWidth > 1024;
-};
+const usersStore = useUsersStore();
 
 onMounted(() => {
-  updateShowOptionalElements();
-  window.addEventListener("resize", updateShowOptionalElements);
+  window.addEventListener("resize", () => {
+    console.log("Ventana redimensionada"); // Depuración opcional
+  });
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateShowOptionalElements);
+  window.removeEventListener("resize", () => {
+    console.log("Se eliminó el evento de redimensionado"); // Depuración opcional
+  });
 });
 
 if (route.params.sessionId) {

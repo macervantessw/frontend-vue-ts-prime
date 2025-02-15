@@ -5,7 +5,6 @@ import { useMessagesStore } from "./messages.store";
 import { auth, db } from "../firebase/firebaseInit";
 import { child, get, ref, set } from "firebase/database";
 import { User } from "../interfaces";
-
 import i18n from "../i18n";
 
 const { t } = i18n.global;
@@ -13,6 +12,7 @@ export const useUsersStore = defineStore("Users", {
   state: () => ({
     userToken: useLocalStorage<string>("token", ""),
     userId: useStorage<string>("userId", "", sessionStorage),
+    userIsProfessional: false, // 🔥 Se inicializa con `ref` para mejor reactividad
     user: useLocalStorage<User | null>("user", null, {
       serializer: {
         read: (v: string) => (v ? JSON.parse(v) : null),
@@ -32,14 +32,34 @@ export const useUsersStore = defineStore("Users", {
     canEdit(): boolean {
       return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2" || this.userId === "W3kgbH7b6ueZImJwiNqtMXUA4Ni1";
     },
+    isProfessional():boolean{
+      return this.userIsProfessional;
+    },
   },
   actions: {
-    loginUserWithEmailAndPassword(email: string, password: string, rememberMe: boolean) {
+    async loginUserWithEmailAndPassword(email: string, password: string, rememberMe: boolean) {
       const messagesStore = useMessagesStore();
       return setPersistence(auth, rememberMe ? browserLocalPersistence : inMemoryPersistence).then(() => {
         return signInWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
+          .then(async (userCredential) => {
             this.userId = userCredential.user.uid;
+    
+            // 🔹 Obtener datos del usuario desde Firebase
+            const userData = await this.getUserFromDatabase(this.userId);
+            if (userData) {
+              console.log("✅ Datos del usuario obtenidos:", userData);
+              
+              this.$patch({
+                userIsProfessional: Boolean(userData["IsProfessional"] ?? false), // 🔥 Forzamos actualización en Pinia
+              });
+              
+    
+              console.log("🎯 ¿Es profesional después del update?", userData["IsProfessional"]);
+            } else {
+              console.warn("⚠️ No se pudieron obtener los datos del usuario.");
+              this.$patch({ userIsProfessional: false });// ✅ Si no se encuentra el usuario, también se inicializa a false
+            }
+    
             return userCredential.user;
           })
           .catch((error) => {
