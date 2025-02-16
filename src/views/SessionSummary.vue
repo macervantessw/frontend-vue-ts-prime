@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useSessionsStore } from "../store";
+import { useUsersStore } from "../store";
+import { getDatabase, ref as dbRef, get, child } from "firebase/database";
 import Button from "primevue/button";
 import i18n from "../i18n";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
@@ -14,26 +16,43 @@ import MovementSummary from "../components/Summary/MovementSummary.vue";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
-import { useUsersStore } from "../store";
 
 const dialog = useDialog();
-const showOptionalElements = computed(() => usersStore.isProfessional || usersStore.isAdmin);
+const sessionsStore = useSessionsStore();
+const usersStore = useUsersStore();
+const route = useRoute();
+const isProfessional = ref<boolean | null>(null);
 
 dayjs.extend(duration);
 const { t } = i18n.global;
-const sessionsStore = useSessionsStore();
-const route = useRoute();
-const usersStore = useUsersStore();
+
+// Función para obtener el estado de IsProfessional desde Firebase
+const fetchUserProfessionalStatus = async () => {
+  if (!usersStore.userId) return;
+  try {
+    const db = getDatabase();
+    const snapshot = await get(child(dbRef(db), `users/${usersStore.userId}/IsProfessional`));
+    if (snapshot.exists()) {
+      isProfessional.value = Boolean(snapshot.val());
+    } else {
+      isProfessional.value = false;
+    }
+  } catch (error) {
+    console.error("Error al obtener datos de Firebase:", error);
+    isProfessional.value = false;
+  }
+};
 
 onMounted(() => {
+  fetchUserProfessionalStatus();
   window.addEventListener("resize", () => {
-    console.log("Ventana redimensionada"); // Depuración opcional
+    console.log("Ventana redimensionada");
   });
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", () => {
-    console.log("Se eliminó el evento de redimensionado"); // Depuración opcional
+    console.log("Se eliminó el evento de redimensionado");
   });
 });
 
@@ -58,11 +77,14 @@ const goToSession = () => {
 const formatDate = (date: number) => {
   return dayjs.unix(date).format("DD/MM/YYYY HH:mm:ss");
 };
+
 const getDuration = () => {
   if (!sessionsStore.selectedSession) return;
   return dayjs.duration(sessionsStore.selectedSession?.SessionEndTime * 1000 - sessionsStore.selectedSession?.SessionStartTime * 1000).format("HH:mm:ss");
 };
+
 const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
+
 const openAIReportDialog = () => {
   dialog.open(AIReportDialog, {
     props: {
@@ -89,6 +111,9 @@ const hasOxymetryData = computed(() => {
 const hasMovementData = computed(() => {
   return !sessionsStore.selectedSession?.SessionPLMIndex ? false : true;
 });
+
+// Computed basado en el valor actualizado desde Firebase
+const showOptionalElements = computed(() => isProfessional.value || usersStore.isAdmin);
 </script>
 
 <template>
@@ -98,7 +123,7 @@ const hasMovementData = computed(() => {
         {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
       </p>
     </div>
-    
+
     <section class="flex justify-content-between">
       <span>
         <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
@@ -110,7 +135,7 @@ const hasMovementData = computed(() => {
         <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
       </span>
     </section>
-    
+
     <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
       <PatientSummary />
       <SleepSummary />
@@ -119,7 +144,7 @@ const hasMovementData = computed(() => {
       <ODISummary v-if="hasOxymetryData && showOptionalElements" />
       <MovementSummary v-if="hasMovementData && showOptionalElements" />
     </section>
-    
+
     <Button v-if="showOptionalElements" :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
   </div>
 </template>
@@ -171,37 +196,5 @@ const hasMovementData = computed(() => {
 
 .btn-go:active {
   bottom: 2px;
-}
-</style>
-<style lang="scss">
-.ai-button {
-  --b: 0.5em; /* border width */
-  --c: 3em; /* corner size */
-  --r: 2em; /* corner rounding */
-  position: relative;
-  margin: 1em auto;
-  border: solid var(--b) transparent;
-  padding: 1em;
-  max-width: 23em;
-  font:
-    1.25em ubuntu,
-    sans-serif;
-
-  &::before {
-    position: absolute;
-    z-index: -1;
-    inset: calc(-1 * var(--b));
-    border: inherit;
-    border-radius: var(--r);
-    background: linear-gradient(orange, deeppink, purple) border-box;
-    --corner: conic-gradient(from -90deg at var(--c) var(--c), red 25%, #0000 0) 0 0 / calc(100% - var(--c)) calc(100% - var(--c)) border-box;
-    --inner: conic-gradient(red 0 0) padding-box;
-    -webkit-mask: var(--corner), var(--inner);
-    -webkit-mask-composite: source-out;
-    mask:
-      var(--corner) subtract,
-      var(--inner);
-    content: "";
-  }
 }
 </style>
