@@ -84,5 +84,7 @@
     " Awakes": "Num. Despertares"
   },
   "sleep-latency": "Latencia",
-  "Micro awakes per hour": "Microdespertares por hora"
+  "Micro awakes per hour": "Microdespertares por hora",
+  "InvalidSession-Badsignal": "Sesión inválida: Señal insuficiente.",
+  "InvalidSession-Badpossition": "Sessión Inválida: Cámara mal posicionada."
 }

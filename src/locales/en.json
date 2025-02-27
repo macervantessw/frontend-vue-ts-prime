@@ -82,5 +82,7 @@
   "Num": {
     " Awakes": "Num. Awakes"
   },
-  "Micro awakes per hour": "Micro awakes per hour"
+  "Micro awakes per hour": "Micro awakes per hour",
+  "InvalidSession-Badsignal": "Invalid Session: Poor Signal.",
+  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned."
 }

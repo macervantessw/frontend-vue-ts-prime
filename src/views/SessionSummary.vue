@@ -80,7 +80,9 @@ const formatDate = (date: number) => {
 
 const getDuration = () => {
   if (!sessionsStore.selectedSession) return;
-  return dayjs.duration(sessionsStore.selectedSession?.SessionEndTime * 1000 - sessionsStore.selectedSession?.SessionStartTime * 1000).format("HH:mm:ss");
+  return dayjs
+    .duration(sessionsStore.selectedSession.SessionEndTime * 1000 - sessionsStore.selectedSession.SessionStartTime * 1000)
+    .format("HH:mm:ss");
 };
 
 const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
@@ -102,9 +104,12 @@ const openAIReportDialog = () => {
 };
 
 const hasOxymetryData = computed(() => {
-  if (!sessionsStore.selectedSession?.SessionOxAverage || Number(sessionsStore.selectedSession?.SessionOxAverage) === 0) return false;
-  else if (sessionsStore.selectedSession?.SessionOxCT90 === "100" && sessionsStore.selectedSession?.SessionOxCT80 === "100") return false;
-  else if (sessionsStore.selectedSession?.SessionOxCT90 === "1" && sessionsStore.selectedSession?.SessionOxCT80 === "1") return false;
+  if (!sessionsStore.selectedSession?.SessionOxAverage || Number(sessionsStore.selectedSession?.SessionOxAverage) === 0)
+    return false;
+  else if (sessionsStore.selectedSession?.SessionOxCT90 === "100" && sessionsStore.selectedSession?.SessionOxCT80 === "100")
+    return false;
+  else if (sessionsStore.selectedSession?.SessionOxCT90 === "1" && sessionsStore.selectedSession?.SessionOxCT80 === "1")
+    return false;
   else return true;
 });
 
@@ -114,42 +119,90 @@ const hasMovementData = computed(() => {
 
 // Computed basado en el valor actualizado desde Firebase
 const showOptionalElements = computed(() => isProfessional.value || usersStore.isAdmin);
+
+// Criterio para determinar si la sesión es inválida
+const sessionError = computed(() => {
+  const session = sessionsStore.selectedSession;
+  if (!session) return null;
+  
+  const { SessionDuration, SessionSleepTime, SessionAwakeTime, SessionMovementSignalAverage } = session;
+  
+  // Evitar división por cero
+  if (SessionDuration <= 0) return null;
+  
+  const indeterminateTime = SessionDuration - (SessionSleepTime + SessionAwakeTime);
+  const isTimeInvalid = (indeterminateTime / SessionDuration) > 0.2;
+  
+  // Verificar la señal de movimiento solo si está definida
+  const isMovementInvalid = typeof SessionMovementSignalAverage === "number"
+    ? SessionMovementSignalAverage < 10000
+    : false;
+  
+  if (isMovementInvalid) {
+    return t('InvalidSession-Badsignal');
+  }
+  if (isTimeInvalid) {
+    return t('InvalidSession-Badpossition');
+  }
+  
+  return null;
+});
+
 </script>
 
 <template>
-  <div v-if="sessionsStore.selectedSession" id="session-summary">
-    <div class="info-banner">
-      <p>
-        {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
-      </p>
+  <div v-if="sessionsStore.selectedSession">
+    <!-- Banner de sesión inválida -->
+    <div v-if="sessionError" class="invalid-session-banner">
+      <p>{{ sessionError }}</p>
     </div>
 
-    <section class="flex justify-content-between">
-      <span>
-        <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
-        <h3 class="w-full text-primary m-0">{{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
-        <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
-        <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
-      </span>
-      <span v-if="showOptionalElements" class="flex align-items-center">
-        <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
-      </span>
-    </section>
+    <!-- Contenido normal de la sesión -->
+    <div v-else id="session-summary">
+      <div class="info-banner">
+        <p>
+          {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
+        </p>
+      </div>
 
-    <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
-      <PatientSummary />
-      <SleepSummary />
-      <AhiSummary v-if="showOptionalElements" />
-      <AudioSummary />
-      <ODISummary v-if="hasOxymetryData && showOptionalElements" />
-      <MovementSummary v-if="hasMovementData && showOptionalElements" />
-    </section>
+      <section class="flex justify-content-between">
+        <span>
+          <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
+          <h3 class="w-full text-primary m-0">{{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
+          <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
+          <h3 class="w-full text-primary m-0">{{ $t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
+          <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
+        </span>
+        <span v-if="showOptionalElements" class="flex align-items-center">
+          <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
+        </span>
+      </section>
 
-    <Button v-if="showOptionalElements" :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
+      <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
+        <PatientSummary />
+        <SleepSummary />
+        <AhiSummary v-if="showOptionalElements" />
+        <AudioSummary />
+        <ODISummary v-if="hasOxymetryData && showOptionalElements" />
+        <MovementSummary v-if="hasMovementData && showOptionalElements" />
+      </section>
+
+      <Button v-if="showOptionalElements" :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
+    </div>
   </div>
 </template>
 
 <style>
+.invalid-session-banner {
+  background-color: #ffcccc;
+  color: #cc0000;
+  padding: 1rem;
+  border: 1px solid #cc0000;
+  border-radius: 5px;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
 .summary-card {
   background-color: #e2e2e241;
   backdrop-filter: blur(4px);

@@ -72,6 +72,7 @@ export interface Session {
   SessionOxODI4: number;
   SessionOxODI3: number;
   SessionOxODI2: number;
+  SessionMovementSignalAverage: number;
   Surname: string;
   TimeZoneOffset: number;
   Type: string;

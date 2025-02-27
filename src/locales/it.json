@@ -84,5 +84,7 @@
   "Micro-awake": "Micro-sveglia",
   "BMI": "BMI",
   "sleep-latency": "Latenza",
-  "Micro awakes per hour": "Micro risvegli per ora"
+  "Micro awakes per hour": "Micro risvegli per ora",
+  "InvalidSession-Badsignal": "Invalid Session: Poor Signal.",
+  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned."
 }
