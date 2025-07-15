@@ -203,8 +203,23 @@ const userItems = [
 ];
 
 function toggleMenu(event: Event) {
+  // Abre/cierra el menú
   menu.value.toggle(event);
+
+  // Esperar al siguiente tick para que el menú exista en el DOM
+  setTimeout(() => {
+    const menuEl = document.getElementById("user_menu");
+    const triggerEl = event.currentTarget as HTMLElement;
+    if (menuEl && triggerEl) {
+      const triggerWidth = triggerEl.offsetWidth;
+      // Puedes ajustar aquí si quieres más ancho extra:
+      const extraWidth = 20; // o 0 si quieres exactamente igual
+      menuEl.style.minWidth = (triggerWidth + extraWidth) + "px";
+      menuEl.style.width = (triggerWidth + extraWidth) + "px";
+    }
+  }, 0);
 }
+
 </script>
 
 <template>
@@ -275,6 +290,15 @@ function toggleMenu(event: Event) {
 </template>
 
 <style>
+#user_menu {
+  min-width: 300px !important;
+  width: 300px !important;
+}
+
+#user_menu .p-menuitem {
+  width: 100%;
+}
+
 .navbar {
   border-bottom: 1px solid var(--surface-border);
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.02);
