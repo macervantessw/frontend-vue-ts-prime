@@ -11,10 +11,11 @@ import { useToast } from "primevue/usetoast";
 import i18n from "../i18n";
 import { ref } from "vue";
 import { auth } from "../firebase/firebaseInit";
-import { getDatabase, ref as dbRef, push, set } from "firebase/database";
+import { getDatabase, ref as dbRef, push, set, child, get } from "firebase/database";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { version } from "../../package.json";
+import { computed } from "vue";
 
 const { t } = i18n.global;
 
@@ -146,7 +147,7 @@ async function confirmTransferCredit() {
   }
 }
 
-const userItems = [
+const userItems = computed(() => [
   {
     items: [
       {
@@ -160,7 +161,7 @@ const userItems = [
         disabled: true,
       },
       {
-        label: `Crédito: ${usersStore.user?.Credit ?? '-'}`,
+        label: `Crédito: ${usersStore.user?.Credit ?? '-'}`, // Reactivo
         icon: "pi pi-wallet",
         disabled: true,
       },
@@ -169,19 +170,28 @@ const userItems = [
         icon: "pi pi-id-card",
         disabled: true,
       },
-      {
-        label: usersStore.userIsProfessional ? "Profesional" : "No profesional",
-        icon: "pi pi-briefcase",
-        disabled: true,
-      },
+      ...(usersStore.userIsProfessional
+        ? [
+            {
+              label: "Profesional",
+              icon: "pi pi-briefcase",
+              disabled: true,
+            },
+          ]
+        : []),
       {
         separator: true,
       },
-      {
-        label: "Importar sesión",
-        icon: "pi pi-upload",
-        command: importSession,
-      },
+      // Mostrar "Importar sesión" solo si el usuario es profesional
+      ...(usersStore.userIsProfessional
+        ? [
+            {
+              label: "Importar sesión",
+              icon: "pi pi-upload",
+              command: importSession,
+            },
+          ]
+        : []),
       {
         label: "Transferir crédito",
         icon: "pi pi-exchange",
@@ -200,9 +210,33 @@ const userItems = [
       },
     ],
   },
-];
+]);
+
+async function fetchUserData() {
+  try {
+    console.log("🔄 Iniciando fetch de datos del usuario desde Firebase...");
+    const db = getDatabase();
+    const snapshot = await get(child(dbRef(db), `users/${usersStore.user?.userID}`));
+    if (snapshot.exists()) {
+      const userData = snapshot.val();
+      usersStore.$patch({
+        user: {
+          ...usersStore.user,
+          Credit: userData.Credit,
+          NotifToken: userData.NotifToken,
+        },
+      });
+      console.log("✅ Datos del usuario actualizados desde Firebase:", userData);
+    } else {
+      console.warn("⚠️ No se encontraron datos del usuario en Firebase.");
+    }
+  } catch (error) {
+    console.error("❌ Error al obtener datos del usuario desde Firebase:", error);
+  }
+}
 
 function toggleMenu(event: Event) {
+  fetchUserData();
   // Abre/cierra el menú
   menu.value.toggle(event);
 
