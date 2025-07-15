@@ -7,6 +7,8 @@ export interface User extends FireUser {
   Credit: string;
   NotifToken?: string;
   userID: string;
+  IsProfessional?: boolean;
+  GiftCredit?: string;
 }
 
 export interface Serie<T extends keyof SeriesOptionsMap> {
