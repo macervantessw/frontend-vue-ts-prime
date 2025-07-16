@@ -150,8 +150,11 @@ export const useUsersStore = defineStore("Users", {
         name: name,
         lastName: surname,
         email: email,
-        Credit: "100",
+        Credit: "0",
+        NotifToken: "",
         userID: userId,
+        IsProfessional: false,
+        GiftCredit: "2",
       } as User;
 
       return firebaseSet(ref(db, "users/" + userId), user); // Usar firebaseSet en lugar de set
