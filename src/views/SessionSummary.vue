@@ -3,6 +3,7 @@ import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount 
 import { useSessionsStore } from "../store";
 import { useUsersStore } from "../store";
 import { getDatabase, ref as dbRef, get, child } from "firebase/database";
+import { getStorage, ref as storageRef, listAll, getDownloadURL } from "firebase/storage";
 import Button from "primevue/button";
 import i18n from "../i18n";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
@@ -16,8 +17,10 @@ import MovementSummary from "../components/Summary/MovementSummary.vue";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
+import { useToast } from "primevue/usetoast";
 
 const dialog = useDialog();
+const toast = useToast();
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const route = useRoute();
@@ -43,17 +46,18 @@ const fetchUserProfessionalStatus = async () => {
   }
 };
 
+// Handler para resize
+const handleResize = () => {
+  console.log("Ventana redimensionada");
+};
+
 onMounted(() => {
   fetchUserProfessionalStatus();
-  window.addEventListener("resize", () => {
-    console.log("Ventana redimensionada");
-  });
+  window.addEventListener("resize", handleResize);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", () => {
-    console.log("Se eliminó el evento de redimensionado");
-  });
+  window.removeEventListener("resize", handleResize);
 });
 
 if (route.params.sessionId) {
@@ -80,9 +84,15 @@ const formatDate = (date: number) => {
 
 const getDuration = () => {
   if (!sessionsStore.selectedSession) return;
-  return dayjs
-    .duration(sessionsStore.selectedSession.SessionEndTime * 1000 - sessionsStore.selectedSession.SessionStartTime * 1000)
-    .format("HH:mm:ss");
+  const diff =
+    sessionsStore.selectedSession.SessionEndTime * 1000 -
+    sessionsStore.selectedSession.SessionStartTime * 1000;
+
+  const dur = dayjs.duration(diff);
+  const hours = String(Math.floor(dur.asHours())).padStart(2, "0");
+  const minutes = String(dur.minutes()).padStart(2, "0");
+  const seconds = String(dur.seconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 };
 
 const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
@@ -113,12 +123,10 @@ const hasOxymetryData = computed(() => {
   else return true;
 });
 
-const hasMovementData = computed(() => {
-  return !sessionsStore.selectedSession?.SessionPLMIndex ? false : true;
-});
+const hasMovementData = computed(() => !!sessionsStore.selectedSession?.SessionPLMIndex);
 
 // Computed basado en el valor actualizado desde Firebase
-const showOptionalElements = computed(() => isProfessional.value || usersStore.isAdmin);
+const showOptionalElements = computed(() => !!isProfessional.value || usersStore.isAdmin);
 
 // Criterio para determinar si la sesión es inválida
 const sessionError = computed(() => {
@@ -127,13 +135,11 @@ const sessionError = computed(() => {
   
   const { SessionDuration, SessionSleepTime, SessionAwakeTime, SessionMovementSignalAverage } = session;
   
-  // Evitar división por cero
   if (SessionDuration <= 0) return null;
   
   const indeterminateTime = SessionDuration - (SessionSleepTime + SessionAwakeTime);
   const isTimeInvalid = (indeterminateTime / SessionDuration) > 0.2;
   
-  // Verificar la señal de movimiento solo si está definida
   const isMovementInvalid = typeof SessionMovementSignalAverage === "number"
     ? SessionMovementSignalAverage < 10000
     : false;
@@ -148,6 +154,50 @@ const sessionError = computed(() => {
   return null;
 });
 
+// Nueva función para descargar el reporte PDF
+const downloadReport = async () => {
+  if (!usersStore.userId || !sessionsStore.selectedSession) return;
+
+  try {
+    const storage = getStorage();
+
+    const sessionRef = storageRef(
+      storage,
+      `Sessions/${usersStore.userId}/${sessionsStore.selectedSession.DeviceId}`
+    );
+
+    const list = await listAll(sessionRef);
+
+    const fileRef = list.items.find(
+      (itemRef) => itemRef.name === `${sessionsStore.selectedSession?.SessionId}_R.pdf`
+    );
+
+    if (!fileRef) {
+      toast.add({
+        severity: "warn",
+        summary: t("Download report"),
+        detail: t("No report available"),
+        life: 3000,
+      });
+      return;
+    }
+
+    const url = await getDownloadURL(fileRef);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${sessionsStore.selectedSession?.SessionId}_R.pdf`;
+    link.click();
+  } catch (error) {
+    console.error("Error descargando el reporte:", error);
+    toast.add({
+      severity: "error",
+      summary: t("Download report"),
+      detail: t("Error downloading the report"),
+      life: 3000,
+    });
+  }
+};
 </script>
 
 <template>
@@ -173,8 +223,9 @@ const sessionError = computed(() => {
           <h3 class="w-full text-primary m-0">{{ $t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
           <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
         </span>
-        <span v-if="showOptionalElements" class="flex align-items-center">
+        <span v-if="showOptionalElements" class="flex align-items-center gap-2">
           <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
+          <Button :label="t('Download report')" class="border-round-3xl flex" icon="pi pi-download" icon-pos="left" @click="downloadReport()" />
         </span>
       </section>
 
