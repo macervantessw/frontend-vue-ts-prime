@@ -156,48 +156,58 @@ const sessionError = computed(() => {
 
 // Nueva función para descargar el reporte PDF
 const downloadReport = async () => {
-  if (!usersStore.userId || !sessionsStore.selectedSession) return;
+  const session = sessionsStore.selectedSession;
+  const usersStore = useUsersStore();
+  if (!session) return;
+
+  // 🔑 Si la sesión tiene userId úsalo, si no, fallback al usersStore.userId
+  const ownerUserId = session.userId ?? usersStore.userId;
+  const deviceId = session.DeviceId;
+  const sessionId = session.SessionId;
+
+  if (!ownerUserId) {
+    console.error("No se encontró userId válido", { session, storeUserId: usersStore.userId });
+    toast.add({
+      severity: "warn",
+      summary: t("Download report"),
+      detail: "No se encontró el usuario de la sesión",
+      life: 5000,
+    });
+    return;
+  }
+
+  console.log("🔎 selectedSession.userId:", sessionsStore.selectedSession?.userId);
+console.log("🔎 usersStore.userId:", usersStore.userId);
+console.log("🔎 session object:", JSON.stringify(sessionsStore.selectedSession, null, 2));
+
+
+  const path = `Sessions/${ownerUserId}/${deviceId}/${sessionId}_R.pdf`;
 
   try {
     const storage = getStorage();
+    console.log("Intentando descargar:", path);
 
-    const sessionRef = storageRef(
-      storage,
-      `Sessions/${usersStore.userId}/${sessionsStore.selectedSession.DeviceId}`
-    );
-
-    const list = await listAll(sessionRef);
-
-    const fileRef = list.items.find(
-      (itemRef) => itemRef.name === `${sessionsStore.selectedSession?.SessionId}_R.pdf`
-    );
-
-    if (!fileRef) {
-      toast.add({
-        severity: "warn",
-        summary: t("Download report"),
-        detail: t("No report available"),
-        life: 3000,
-      });
-      return;
-    }
-
+    const fileRef = storageRef(storage, path);
     const url = await getDownloadURL(fileRef);
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${sessionsStore.selectedSession?.SessionId}_R.pdf`;
+    link.download = `${sessionId}_R.pdf`;
     link.click();
   } catch (error) {
-    console.error("Error descargando el reporte:", error);
+    console.error(`Error descargando el reporte [${path}]:`, error);
     toast.add({
       severity: "error",
       summary: t("Download report"),
-      detail: t("Error downloading the report"),
-      life: 3000,
+      detail: `${t("Error downloading the report")} (${path})`,
+      life: 5000,
     });
   }
 };
+
+
+
+
 </script>
 
 <template>
