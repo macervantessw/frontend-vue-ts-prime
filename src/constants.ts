@@ -63,6 +63,7 @@ export const CHART_OPTIONS: DeepPartial<TimeChartOptions> = {
   layout: {
     background: { color: "#ffffff00" },
   },
+  watermark: { visible: false },
   autoSize: true,
   leftPriceScale: {
     visible: false,

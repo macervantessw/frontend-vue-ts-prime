@@ -1,7 +1,7 @@
 {
   "name": "-sleepwise-frontend",
   "private": true,
-  "version": "0.0.76(S)",
+  "version": "0.0.77(S)",
   "scripts": {
     "dev": "vite --mode dev",
     "build": "vue-tsc --noEmit && vite build",
@@ -23,7 +23,7 @@
     "fancy-canvas": "^2.1.0",
     "firebase": "^10.4.0",
     "jszip": "^3.10.1",
-    "lightweight-charts": "^4.1.0",
+    "lightweight-charts": "^3.8.0",
     "lodash": "^4.17.21",
     "openai": "^4.24.1",
     "pinia": "^2.1.6",
