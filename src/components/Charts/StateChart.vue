@@ -112,8 +112,22 @@ const showContextualMenu = (event: any) => {
 };
 
 function modifyStateEvents(eventType: number) {
-  const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.findLast((event) => event.startTime * 1000 <= selectedFrom);
-  const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 >= selectedTo);
+  //const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.findLast((event) => event.startTime * 1000 <= selectedFrom);
+  //const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find((event) => event.endTime * 1000 >= selectedTo);
+
+  // esta modificacion es para que no se puedan solapar eventos de tipo UNKNOWN o MICROAWAKE con los de AWAKE o SLEEPING
+  // La ha hecho Miquel Angel Cervantes (consultar con Marc Baldevey si es correcta)
+  const previousEvent = sessionsStore.selectedSession?.Data.StateEvents?.findLast(
+  (event) =>
+    event.startTime * 1000 <= selectedFrom &&
+    (event.eventType === STATES.AWAKE || event.eventType === STATES.SLEEPING)
+);
+
+const nextEvent = sessionsStore.selectedSession?.Data.StateEvents?.find(
+  (event) =>
+    event.endTime * 1000 >= selectedTo &&
+    (event.eventType === STATES.AWAKE || event.eventType === STATES.SLEEPING)
+);
 
   if (!previousEvent || !nextEvent) return;
 
