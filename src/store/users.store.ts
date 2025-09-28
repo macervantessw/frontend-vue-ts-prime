@@ -63,7 +63,7 @@ export const useUsersStore = defineStore("Users", {
       return this.userId === "snv5CHpk48VEeWHp7PHnNsoBpYB2" || this.userId === "W3kgbH7b6ueZImJwiNqtMXUA4Ni1";
     },
     canEdit(): boolean {
-      return this.isAdmin;
+      return this.isAdmin || this.isProfessional;
     },
     isProfessional(): boolean {
       return this.userIsProfessional;
