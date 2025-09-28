@@ -6,7 +6,7 @@
         <h3 class="m-0 text-600">{{ sessionDate() }}</h3>
       </span>
       <span class="flex align-items-end">
-        <h3 class="m-0 text-600">{{ $t("visible-range") }}: {{ chartsStore.selectionRangeDuration }}</h3>
+        <h3 class="m-0 text-600">{{ t("visible-range") }}: {{ chartsStore.selectionRangeDuration }}</h3>
       </span>
     </section>
     <MinimapChart
@@ -75,6 +75,9 @@ import RespiratoryChart from "../components/Charts/RespiratoryChart.vue";
 import StateChart from "../components/Charts/StateChart.vue";
 import VideoPlayer from "../components/Video/VideoPlayer.vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 dayjs.extend(duration);
 

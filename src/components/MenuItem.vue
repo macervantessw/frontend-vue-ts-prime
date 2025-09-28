@@ -3,6 +3,10 @@ import { PropType } from "vue";
 import { Session } from "../interfaces";
 import dayjs from "dayjs";
 import { useMainStore, useSessionsStore, useChartsStore } from "../store";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+
 
 const sessionsStore = useSessionsStore();
 const mainStore = useMainStore();
@@ -30,7 +34,7 @@ const goToSessionSummary = () => {
   <div class="m-2">
     <router-link
       class="menuitem p-2 shadow-1 flex w-full justify-content-between cursor-pointer"
-      :class="{ active: $route.params.sessionId === session.SessionId }"
+      :class="{ active: route.params.sessionId === session.SessionId }"
       active-class="active shadow-4"
       :to="`/sessionSummary/${session.SessionId}`"
       @click="goToSessionSummary()"

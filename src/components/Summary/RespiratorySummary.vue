@@ -6,9 +6,13 @@ import VueApexCharts from "vue3-apexcharts";
 import { useSessionsStore } from "../../store";
 import SummaryCard from "./SummaryCard.vue";
 import RespiratoryLegendBar from "./RespiratoryLegendBar.vue";
-import i18n from "../../i18n";
+import { useI18n } from "vue-i18n";
 
-const { t } = i18n.global;
+const { t } = useI18n();
+
+//import i18n from "../../i18n";
+
+//const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 const iah = computed(() => Number(selectedSession.value?.SessionIAH || 0));
@@ -86,7 +90,7 @@ const toggleTooltip = () => {
 </script>
 
 <template>
-  <SummaryCard :title="$t('respiratory-analysis')">
+  <SummaryCard :title="t('respiratory-analysis')">
     <!-- Botón de información en la esquina superior derecha -->
     <div class="absolute top-0 right-0 p-3">
       <button
@@ -129,14 +133,14 @@ const toggleTooltip = () => {
         >{{ selectedSession?.SessionNumRespEvents }}</span>
       </div>
       <div class="flex flex-1 flex-column align-items-center">
-        <span class="text-lg">{{ $t("Central") }}</span>
+        <span class="text-lg">{{ t("Central") }}</span>
         <span
           class="text-3xl"
           style="font-weight: 900; color: #68b0a7"
         >{{ selectedSession?.SessionCentralApneas }}</span>
       </div>
       <div class="flex flex-1 flex-column align-items-center">
-        <span class="text-lg">{{ $t("Total") }}</span>
+        <span class="text-lg">{{ t("Total") }}</span>
         <span
           class="text-3xl"
           style="font-weight: 900; color: #f3a658"

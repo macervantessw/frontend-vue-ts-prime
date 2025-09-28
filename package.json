@@ -1,7 +1,7 @@
 {
   "name": "-sleepwise-frontend",
   "private": true,
-  "version": "0.0.75(S)",
+  "version": "0.0.76(S)",
   "scripts": {
     "dev": "vite --mode dev",
     "build": "vue-tsc --noEmit && vite build",
@@ -18,7 +18,7 @@
     "apexcharts": "^3.42.0",
     "axios": "^1.5.1",
     "chart.js": "^4.4.0",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.18",
     "downsample": "^1.4.0",
     "fancy-canvas": "^2.1.0",
     "firebase": "^10.4.0",

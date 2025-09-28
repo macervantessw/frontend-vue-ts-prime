@@ -7,14 +7,17 @@ import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import VueApexCharts from "vue3-apexcharts";
 import { ApexOptions } from "apexcharts";
-import i18n from "../../i18n";
+//import i18n from "../../i18n";
 import SummaryCard from "./SummaryCard.vue";
 import DataComponent from "../DataComponent.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-const { t } = i18n.global;
+//const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 
@@ -133,7 +136,7 @@ const toggleTooltip = () => {
     <div class="grid m-0">
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
-        :title="$t('Sleep Time')"
+        :title="t('Sleep Time')"
         :value="getMinutes(selectedSession?.SessionSleepTime)"
         units="min"
         icon="icon-park-solid:sleep"
@@ -141,7 +144,7 @@ const toggleTooltip = () => {
       />
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
-        :title="$t('Awake time')"
+        :title="t('Awake time')"
         :value="getMinutes(selectedSession?.SessionAwakeTime)"
         units="min"
         icon="mdi:eye"
@@ -149,24 +152,24 @@ const toggleTooltip = () => {
       />
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
-        :title="$t('others-time')"
+        :title="t('others-time')"
         :value="getMinutes(series[2] * 60)"
         units="min"
         icon="carbon:unknown-filled"
         color="hsl(30,60%,85%)"
       />
-      <DataComponent class="col-12 xl:col-6 p-0 pr-1" :title="$t('Num. Awakes')" :value="selectedSession?.SessionNumAwakes" icon="octicon:number-16" />
-      <DataComponent class="col-12 xl:col-6 p-0 pr-1" :title="$t('Awakes per hour')" :value="awakesPerHour().toFixed(2)" icon="ion:time" />
+      <DataComponent class="col-12 xl:col-6 p-0 pr-1" :title="t('Num. Awakes')" :value="selectedSession?.SessionNumAwakes" icon="octicon:number-16" />
+      <DataComponent class="col-12 xl:col-6 p-0 pr-1" :title="t('Awakes per hour')" :value="awakesPerHour().toFixed(2)" icon="ion:time" />
       <DataComponent
         class="col-12 xl:col-6 p-0 pr-1"
-        :title="$t('sleep-latency')"
+        :title="t('sleep-latency')"
         :value="selectedSession?.SessionSleepLatency ? Number(selectedSession?.SessionSleepLatency) / 60 : '-'"
         units="min"
         icon="material-symbols:start"
       />
       <DataComponent
         class="col-12 xl:col-8 p-0 pr-1"
-        :title="$t('Micro awakes per hour')"
+        :title="t('Micro awakes per hour')"
         :value="selectedSession?.SessionMicroAwakeIndex ? Number(selectedSession?.SessionMicroAwakeIndex).toFixed(2) : '-'"
         icon="ion:time"
       />

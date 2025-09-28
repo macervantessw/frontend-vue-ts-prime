@@ -46,11 +46,12 @@ export const useUsersStore = defineStore("Users", {
     userId: useStorage<string>("userId", "", sessionStorage),
     userIsProfessional: false,
     user: useLocalStorage<User | null>("user", null, {
-      serializer: {
-        read: (v: string) => (v ? JSON.parse(v) : null),
-        write: (v: User) => JSON.stringify(v),
-      },
-    }),
+  serializer: {
+    read: (v: string): User | null => (v ? (JSON.parse(v) as User) : null),
+    write: (v: User | null): string => (v ? JSON.stringify(v) : ""),
+  },
+}),
+
     authToken: "",
     loading: true, // Bandera para manejar el estado de carga
   }),

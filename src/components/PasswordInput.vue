@@ -1,3 +1,4 @@
+
 <template>
   <div>
     <label for="password" class="block text-900 font-medium mb-2">{{ fieldLabel }}</label>
@@ -8,32 +9,32 @@
       :class="[v?.$error ? 'p-invalid' : '']"
       toggle-mask
       :feedback="suggestions"
-      :weak-label="$t('Weak')"
-      :medium-label="$t('medium')"
-      :strong-label="$t('strong')"
-      :prompt-label="$t('pick-a-password')"
+      :weak-label="t('Weak')"
+      :medium-label="t('medium')"
+      :strong-label="t('strong')"
+      :prompt-label="t('pick-a-password')"
       @input="changed"
       @blur="v?.$touch()"
     >
       <template v-if="suggestions" #header>
-        <h6 class="text-lg mt-0 mb-4">{{ $t("pick-a-password") }}</h6>
+        <h6 class="text-lg mt-0 mb-4">{{ t("pick-a-password") }}</h6>
       </template>
       <template v-if="suggestions" #footer="sp: any">
         {{ sp.level }}
         <Divider />
-        <p class="mt-2">{{ $t("suggestions") }}</p>
+        <p class="mt-2">{{ t("suggestions") }}</p>
         <ul class="pl-2 ml-2 mt-0" style="line-height: 1.5">
-          <li>{{ $t("password.suggestions.lowercase") }}</li>
-          <li>{{ $t("password.suggestions.capital") }}</li>
-          <li>{{ $t("password.suggestions.number") }}</li>
-          <li>{{ $t("password.suggestions.min-chars", ["8"]) }}</li>
+          <li>{{ t("password.suggestions.lowercase") }}</li>
+          <li>{{ t("password.suggestions.capital") }}</li>
+          <li>{{ t("password.suggestions.number") }}</li>
+          <li>{{ t("password.suggestions.min-chars", ["8"]) }}</li>
         </ul>
       </template>
     </Password>
     <span v-if="v?.$error">
       <span v-for="(error, index) of v?.$errors" id="name-error" :key="index">
         <small class="p-error">
-          <p :id="id + '-error-' + index">{{ $t(error.$message as string) }}</p></small
+          <p :id="id + '-error-' + index">{{ t(error.$message as string) }}</p></small
         >
       </span>
     </span>
@@ -44,6 +45,9 @@
 import { ref } from "vue";
 import Divider from "primevue/divider";
 import Password from "primevue/password";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   v: {

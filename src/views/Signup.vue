@@ -8,11 +8,11 @@
         <router-link to="login" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Login!</router-link>
       </div>
       <div>
-        <TextInputWithLabel id="name" v-model:textInputValue="name" :field-label="$t('Name')" class="w-full p-2 mb-1" :v="v$.name" />
-        <TextInputWithLabel id="surname" v-model:textInputValue="surname" :field-label="$t('Surname')" class="w-full p-2 mb-1" :v="v$.surname" />
-        <TextInputWithLabel id="email" v-model:textInputValue="emailInput" :field-label="$t('Email')" class="w-full p-2 mb-1" :v="v$.emailInput" />
-        <PasswordInput id="password" v-model:password-value="password" class="w-full p-2" :field-label="$t('Password')" :v="v$.password" :suggestions="true" />
-        <PasswordInput id="password2" v-model:password-value="password2" class="w-full p-2" :field-label="$t('Repeat password')" :v="v$.password2" :suggestions="true" />
+        <TextInputWithLabel id="name" v-model:textInputValue="name" :field-label="t('Name')" class="w-full p-2 mb-1" :v="v$.name" />
+        <TextInputWithLabel id="surname" v-model:textInputValue="surname" :field-label="t('Surname')" class="w-full p-2 mb-1" :v="v$.surname" />
+        <TextInputWithLabel id="email" v-model:textInputValue="emailInput" :field-label="t('Email')" class="w-full p-2 mb-1" :v="v$.emailInput" />
+        <PasswordInput id="password" v-model:password-value="password" class="w-full p-2" :field-label="t('Password')" :v="v$.password" :suggestions="true" />
+        <PasswordInput id="password2" v-model:password-value="password2" class="w-full p-2" :field-label="t('Repeat password')" :v="v$.password2" :suggestions="true" />
         <Button label="Sign Up" icon="pi pi-user" class="w-full mt-6" @click="doSignup"></Button>
       </div>
     </div>
@@ -26,13 +26,17 @@ import { required, email, sameAs, helpers } from "@vuelidate/validators";
 import { computed, ref } from "vue";
 import TextInputWithLabel from "../components/TextInputWithLabel.vue";
 import PasswordInput from "../components/PasswordInput.vue";
-import i18n from "../i18n";
+//import i18n from "../i18n";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useMessagesStore, useUsersStore } from "../store";
 import { auth } from "../firebase/firebaseInit";
 import { User } from "../interfaces";
+import { useI18n } from "vue-i18n";
 
-const { t } = i18n.global;
+const { t } = useI18n();
+
+
+//const { t } = i18n.global;
 
 const name = ref("");
 const surname = ref("");

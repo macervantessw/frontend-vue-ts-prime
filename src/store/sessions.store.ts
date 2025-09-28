@@ -15,11 +15,13 @@ export const useSessionsStore = defineStore("Session", {
     patients: [] as string[],
     sessions: [] as Session[],
     selectedSession: useLocalStorage<Session | null>("selectedSession", null, {
-      serializer: {
-        read: (v: string) => (v ? JSON.parse(v) : null),
-        write: (v: Session) => JSON.stringify(v),
-      },
-    }),
+  serializer: {
+    read: (v: string): Session | null => (v ? (JSON.parse(v) as Session) : null),
+    write: (v: Session | null): string => (v ? JSON.stringify(v) : ""),
+  },
+}),
+
+
   }),
 
   actions: {

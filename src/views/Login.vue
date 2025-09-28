@@ -3,12 +3,12 @@
     <div class="surface-card p-4 border-round shadow-7 login-panel w-full sm:w-28rem md:w-30rem">
       <div class="text-center mb-5">
         <img src="../assets/logo.png" alt="Image" width="150" class="mb-6 mt-3" />
-        <div class="text-900 text-3xl font-medium mb-3">{{ $t("Welcome Back") }}</div>
-        <span class="text-600 font-medium line-height-3">{{ $t("Do not have an account") }}</span>
-        <router-link to="signup" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">{{ $t("Create today") }}</router-link>
+        <div class="text-900 text-3xl font-medium mb-3">{{ t("Welcome Back") }}</div>
+        <span class="text-600 font-medium line-height-3">{{ t("Do not have an account") }}</span>
+        <router-link to="signup" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">{{ t("Create today") }}</router-link>
       </div>
       <div>
-        <TextInputWithLabel id="email" v-model:textInputValue="emailInput" :field-label="$t('Email')" class="w-full p-2 mb-1" :v="v$.email" @keyup.enter="logIn" />
+        <TextInputWithLabel id="email" v-model:textInputValue="emailInput" :field-label="t('Email')" class="w-full p-2 mb-1" :v="v$.email" @keyup.enter="logIn" />
         <PasswordInput
           id="password"
           v-model:password-value="password"
@@ -21,11 +21,11 @@
         <div class="flex align-items-center justify-content-between mb-6">
           <div class="flex align-items-center pl-2">
             <Checkbox id="rememberme1" v-model="rememberMe" :binary="true" class="mr-2"></Checkbox>
-            <label for="rememberme1">{{ $t("Remember me") }}</label>
+            <label for="rememberme1">{{ t("Remember me") }}</label>
           </div>
-          <RouterLink class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer" :to="'/forgotPassword'">{{ $t("Forgot password") }}</RouterLink>
+          <RouterLink class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer" :to="'/forgotPassword'">{{ t("Forgot password") }}</RouterLink>
         </div>
-        <Button id="login-button" :label="$t('Log In')" icon="pi pi-user" class="w-full" :loading="loading" :disabled="loading" @click="logIn"></Button>
+        <Button id="login-button" :label="t('Log In')" icon="pi pi-user" class="w-full" :loading="loading" :disabled="loading" @click="logIn"></Button>
       </div>
     </div>
   </div>
@@ -42,10 +42,14 @@ import { useRoute } from "vue-router";
 import { useVuelidate } from "@vuelidate/core";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
-import i18n from "../i18n";
+//import i18n from "../i18n";
 import PasswordInput from "../components/PasswordInput.vue";
 import router from "../router";
 import TextInputWithLabel from "../components/TextInputWithLabel.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 
 const messagesStore = useMessagesStore();
 const usersStore = useUsersStore();
@@ -72,7 +76,7 @@ const rules = computed(() => {
 const v$ = useVuelidate(rules, { password: password, email: emailInput });
 
 const logIn = () => {
-  const { t } = i18n.global;
+  //const { t } = i18n.global;
   if (!emailInput.value || !password.value) {
     messagesStore.setErrorMessage(t("Please fill in all fields"));
     return;

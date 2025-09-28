@@ -33,6 +33,8 @@ import ChartTooltip from "./ChartTooltip.vue";
 import ContextMenu from "primevue/contextmenu";
 import ZoomControls from "./ZoomControls.vue";
 import { useUsersStore } from "../../store";
+import type { MenuItem } from "primevue/menuitem";
+
 
 dayjs.extend(duration);
 
@@ -47,6 +49,7 @@ const selectedTime = ref("");
 const sessionsStore = useSessionsStore();
 const showTooltip = ref(false);
 const tooltip = ref();
+
 
 let addedEvents: Box[] = [];
 let chart: IChartApi | null = null;

@@ -6,7 +6,7 @@
         <div class="flex align-items-center w-full">
           <span class="p-input-icon-left w-full">
             <i class="pi pi-search" />
-            <InputText v-model="searchText" class="w-full my-1" :placeholder="$t('Search')" />
+            <InputText v-model="searchText" class="w-full my-1" :placeholder="t('Search')" />
           </span>
         </div>
         <div v-if="usersStore.isAdmin">
@@ -47,6 +47,10 @@ import AccordionTab from "primevue/accordiontab";
 import { useRoute } from "vue-router";
 import InputText from "primevue/inputtext";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();

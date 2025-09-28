@@ -5,7 +5,7 @@ import { useUsersStore } from "../store";
 import { getDatabase, ref as dbRef, get, child } from "firebase/database";
 import { getStorage, ref as storageRef, listAll, getDownloadURL } from "firebase/storage";
 import Button from "primevue/button";
-import i18n from "../i18n";
+//import i18n from "../i18n";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
 import router from "../router";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
@@ -19,6 +19,11 @@ import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
 import { useToast } from "primevue/usetoast";
 
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
+
 const dialog = useDialog();
 const toast = useToast();
 const sessionsStore = useSessionsStore();
@@ -27,7 +32,7 @@ const route = useRoute();
 const isProfessional = ref<boolean | null>(null);
 
 dayjs.extend(duration);
-const { t } = i18n.global;
+//const { t } = i18n.global;
 
 
 // Función para obtener el estado de IsProfessional desde Firebase
@@ -222,17 +227,17 @@ console.log("🔎 session object:", JSON.stringify(sessionsStore.selectedSession
     <div v-else id="session-summary">
       <div class="info-banner">
         <p>
-          {{ $t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
+          {{ t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
         </p>
       </div>
 
       <section class="flex justify-content-between">
         <span>
-          <h2 class="w-full text-primary m-0 text-3xl">{{ $t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
-          <h3 class="w-full text-primary m-0">{{ $t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
-          <h3 class="w-full text-primary m-0">{{ $t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
-          <h3 class="w-full text-primary m-0">{{ $t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
-          <h3 class="w-full text-primary m-0">{{ $t("Duration") }}: {{ getDuration() }}</h3>
+          <h2 class="w-full text-primary m-0 text-3xl">{{ t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
+          <h3 class="w-full text-primary m-0">{{ t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
         </span>
         <span v-if="showOptionalElements" class="flex align-items-center gap-2">
           <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />

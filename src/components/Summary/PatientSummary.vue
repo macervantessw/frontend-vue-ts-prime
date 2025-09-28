@@ -2,11 +2,15 @@
 import { useSessionsStore } from "../../store";
 import { storeToRefs } from "pinia";
 import SummaryCard from "./SummaryCard.vue";
-import i18n from "../../i18n";
+//import i18n from "../../i18n";
 import DataComponent from "../DataComponent.vue";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
-const { t } = i18n.global;
+const { t } = useI18n();
+
+
+//const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 
@@ -22,13 +26,13 @@ const computedBMI = computed(() => {
 
 <template>
   <SummaryCard :title="t('Patient info')">
-    <DataComponent class="col-12 p-0" :title="$t('Name')" :value="getFullName()" icon="material-symbols:person" color="#d2e1f9" />
-    <DataComponent class="col-12 p-0" :title="$t('Age')" :value="selectedSession?.PAtientAge || selectedSession?.Age" icon="ic:baseline-cake" color="#d2f2f9" />
-    <DataComponent class="col-12 p-0" :title="$t('Weight')" :value="selectedSession?.Weight" icon="icon-park-solid:weight" color="#d2f9e8" />
-    <DataComponent class="col-12 p-0" :title="$t('Height')" :value="selectedSession?.Height" icon="fluent:ruler-32-filled" color="#f6f9d2" />
+    <DataComponent class="col-12 p-0" :title="t('Name')" :value="getFullName()" icon="material-symbols:person" color="#d2e1f9" />
+    <DataComponent class="col-12 p-0" :title="t('Age')" :value="selectedSession?.PAtientAge || selectedSession?.Age" icon="ic:baseline-cake" color="#d2f2f9" />
+    <DataComponent class="col-12 p-0" :title="t('Weight')" :value="selectedSession?.Weight" icon="icon-park-solid:weight" color="#d2f9e8" />
+    <DataComponent class="col-12 p-0" :title="t('Height')" :value="selectedSession?.Height" icon="fluent:ruler-32-filled" color="#f6f9d2" />
     <DataComponent
       class="col-12 p-0"
-      :title="$t('BMI')"
+      :title="t('BMI')"
       :value="selectedSession?.PatientBMI ? selectedSession.PatientBMI.toFixed(2) : computedBMI"
       icon="lucide:scale"
       color="#fbc4ab"

@@ -6,9 +6,12 @@ import VueApexCharts from "vue3-apexcharts";
 import { useSessionsStore } from "../../store";
 import SummaryCard from "./SummaryCard.vue";
 import PLMLegendBar from "./PLMLegendBar.vue";
-import i18n from "../../i18n";
+import { useI18n } from "vue-i18n";
 
-const { t } = i18n.global;
+const { t } = useI18n();
+
+//import i18n from "../../i18n";
+// const { t } = i18n.global;
 const sessionsStore = useSessionsStore();
 const { selectedSession } = storeToRefs(sessionsStore);
 const PLMIndex = computed(() => Number(selectedSession.value?.SessionPLMIndex || 0));
@@ -86,7 +89,7 @@ const toggleTooltip = () => {
 </script>
 
 <template>
-  <SummaryCard :title="$t('movement-analysis')">
+  <SummaryCard :title="t('movement-analysis')">
     <!-- Botón de información en la esquina superior derecha -->
     <div class="absolute top-0 right-0 p-3">
       <button
@@ -120,13 +123,13 @@ const toggleTooltip = () => {
     <PLMLegendBar :plm="PLMIndex" />
     <div class="flex justify-content-between pt-6 sm:pt-2 px-3 h-full align-items-end">
       <div class="flex flex-1 flex-column align-items-center">
-        <span class="text-lg overflow-hidden">{{ $t("PLM Index") }}</span>
+        <span class="text-lg overflow-hidden">{{ t("PLM Index") }}</span>
         <span class="text-3xl" style="font-weight: 900; color: #5586f3">
           {{ Number(selectedSession?.SessionPLMIndex).toFixed(2) }}
         </span>
       </div>
       <div class="flex flex-1 flex-column align-items-center">
-        <span class="text-lg">{{ $t("Total") }}</span>
+        <span class="text-lg">{{ t("Total") }}</span>
         <span class="text-3xl" style="font-weight: 900; color: #f3a658">
           {{ Number(selectedSession?.SessionNumPLMEvents).toFixed(0) }}
         </span>
