@@ -29,6 +29,7 @@ const isProfessional = ref<boolean | null>(null);
 dayjs.extend(duration);
 const { t } = i18n.global;
 
+
 // Función para obtener el estado de IsProfessional desde Firebase
 const fetchUserProfessionalStatus = async () => {
   if (!usersStore.userId) return;
