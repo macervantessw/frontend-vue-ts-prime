@@ -146,7 +146,7 @@ onMounted(() => {
 
   chart.subscribeDblClick((param: MouseEventParams) => {
     const usersStore = useUsersStore();
-    if (!usersStore.canEdit) return;
+    //if (!usersStore.canEdit) return;
     if (!param.time || !props.respiratoryEvents) return;
     const time = (param.time as UTCTimestamp) / 1000;
 
