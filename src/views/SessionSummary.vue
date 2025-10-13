@@ -160,57 +160,6 @@ const sessionError = computed(() => {
   return null;
 });
 
-// Nueva función para descargar el reporte PDF
-/*const downloadReport = async () => {
-  const session = sessionsStore.selectedSession;
-  const usersStore = useUsersStore();
-  if (!session) return;
-
-  // 🔑 Si la sesión tiene userId úsalo, si no, fallback al usersStore.userId
-  const ownerUserId = session.userId ?? usersStore.userId;
-  const deviceId = session.DeviceId;
-  const sessionId = session.SessionId;
-
-  if (!ownerUserId) {
-    console.error("No se encontró userId válido", { session, storeUserId: usersStore.userId });
-    toast.add({
-      severity: "warn",
-      summary: t("Download report"),
-      detail: "No se encontró el usuario de la sesión",
-      life: 5000,
-    });
-    return;
-  }
-
-console.log("🔎 selectedSession.userId:", sessionsStore.selectedSession?.userId);
-console.log("🔎 usersStore.userId:", usersStore.userId);
-console.log("🔎 session object:", JSON.stringify(sessionsStore.selectedSession, null, 2));
-
-
-  const path = `Sessions/${ownerUserId}/${deviceId}/${sessionId}_R.pdf`;
-
-  try {
-    const storage = getStorage();
-    console.log("Intentando descargar:", path);
-
-    const fileRef = storageRef(storage, path);
-    const url = await getDownloadURL(fileRef);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${sessionId}_R.pdf`;
-    link.click();
-  } catch (error) {
-    console.error(`Error descargando el reporte [${path}]:`, error);
-    toast.add({
-      severity: "error",
-      summary: t("Download report"),
-      detail: `${t("Error downloading the report")} (${path})`,
-      life: 5000,
-    });
-  }
-};
-*/
 const downloadReport = async () => {
   const session = sessionsStore.selectedSession;
   const usersStore = useUsersStore();
@@ -221,7 +170,6 @@ const downloadReport = async () => {
   const sessionId = session.SessionId;
 
   if (!ownerUserId) {
-    console.error("No se encontró userId válido", { session, storeUserId: usersStore.userId });
     toast.add({
       severity: "warn",
       summary: t("Download report"),
@@ -232,12 +180,19 @@ const downloadReport = async () => {
   }
 
   try {
-    // 🔗 Llamada al backend (ruta relativa → pasa por el proxy de Vite)
+    // 🕐 Mostrar mensaje de espera
+    toast.add({
+      severity: "info",
+      summary: t("Generando informe"),
+      detail: "El PDF se está generando, por favor espere...",
+      group: "report",
+      life: 10000, // sin duración
+    });
+
+    // 🔗 Llamada al backend
     const response = await fetch("https://swserver.onrender.com/reporte", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: ownerUserId,
         deviceId,
@@ -252,12 +207,11 @@ const downloadReport = async () => {
     const result = await response.json();
     console.log("✅ Respuesta del servidor:", result);
 
-
     if (!result.url) {
       throw new Error("El servidor no devolvió la URL del PDF.");
     }
 
-const pdfResp = await fetch(result.url);
+    const pdfResp = await fetch(result.url);
 
     if (!pdfResp.ok) {
       throw new Error("No se pudo descargar el PDF desde Firebase Storage");
@@ -272,10 +226,13 @@ const pdfResp = await fetch(result.url);
     link.click();
     URL.revokeObjectURL(link.href);
 
+    // ✅ Mostrar éxito (reemplaza visualmente el anterior)
+    await new Promise(r => setTimeout(r, 100));
     toast.add({
       severity: "success",
       summary: t("Download report"),
       detail: "El informe PDF se descargó correctamente",
+      group: "report",
       life: 5000,
     });
   } catch (err) {
@@ -284,6 +241,7 @@ const pdfResp = await fetch(result.url);
     toast.add({
       severity: "error",
       summary: t("Download report"),
+      group: "report",
       detail: msg,
       life: 7000,
     });
@@ -294,10 +252,13 @@ const pdfResp = await fetch(result.url);
 
 
 
+
 </script>
 
 <template>
   <div v-if="sessionsStore.selectedSession">
+    <!-- ✅ Toast para mensajes del reporte -->
+    <Toast group="report" position="top-right" />
     <!-- Banner de sesión inválida -->
     <div v-if="sessionError" class="invalid-session-banner">
       <p>{{ sessionError }}</p>
