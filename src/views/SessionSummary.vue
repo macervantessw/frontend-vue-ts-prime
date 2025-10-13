@@ -161,7 +161,7 @@ const sessionError = computed(() => {
 });
 
 // Nueva función para descargar el reporte PDF
-const downloadReport = async () => {
+/*const downloadReport = async () => {
   const session = sessionsStore.selectedSession;
   const usersStore = useUsersStore();
   if (!session) return;
@@ -182,7 +182,7 @@ const downloadReport = async () => {
     return;
   }
 
-  console.log("🔎 selectedSession.userId:", sessionsStore.selectedSession?.userId);
+console.log("🔎 selectedSession.userId:", sessionsStore.selectedSession?.userId);
 console.log("🔎 usersStore.userId:", usersStore.userId);
 console.log("🔎 session object:", JSON.stringify(sessionsStore.selectedSession, null, 2));
 
@@ -210,6 +210,86 @@ console.log("🔎 session object:", JSON.stringify(sessionsStore.selectedSession
     });
   }
 };
+*/
+const downloadReport = async () => {
+  const session = sessionsStore.selectedSession;
+  const usersStore = useUsersStore();
+  if (!session) return;
+
+  const ownerUserId = session.userId ?? usersStore.userId;
+  const deviceId = session.DeviceId;
+  const sessionId = session.SessionId;
+
+  if (!ownerUserId) {
+    console.error("No se encontró userId válido", { session, storeUserId: usersStore.userId });
+    toast.add({
+      severity: "warn",
+      summary: t("Download report"),
+      detail: "No se encontró el usuario de la sesión",
+      life: 5000,
+    });
+    return;
+  }
+
+  try {
+    // 🔗 Llamada al backend (ruta relativa → pasa por el proxy de Vite)
+    const response = await fetch("https://swserver.onrender.com/reporte", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: ownerUserId,
+        deviceId,
+        sessionId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Respuesta del servidor:", result);
+
+
+    if (!result.url) {
+      throw new Error("El servidor no devolvió la URL del PDF.");
+    }
+
+const pdfResp = await fetch(result.url);
+
+    if (!pdfResp.ok) {
+      throw new Error("No se pudo descargar el PDF desde Firebase Storage");
+    }
+
+    const blob = await pdfResp.blob();
+
+    // Descargar en el navegador
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${sessionId}_report.pdf`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    toast.add({
+      severity: "success",
+      summary: t("Download report"),
+      detail: "El informe PDF se descargó correctamente",
+      life: 5000,
+    });
+  } catch (err) {
+    console.error("❌ Error al generar o descargar el PDF:", err);
+    const msg = err instanceof Error ? err.message : "Error al generar o descargar el informe";
+    toast.add({
+      severity: "error",
+      summary: t("Download report"),
+      detail: msg,
+      life: 7000,
+    });
+  }
+};
+
 
 
 
