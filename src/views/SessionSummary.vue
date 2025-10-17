@@ -189,16 +189,27 @@ const downloadReport = async () => {
       life: 10000, // sin duración
     });
 
+
+    console.log("🧠 MODE:", import.meta.env.MODE);
+    console.log("🧠 API base URL:", import.meta.env.VITE_API_BASE_URL);
+    console.log("✅ sessionId:", sessionId);
+    console.log("✅ API base:", import.meta.env.VITE_API_BASE_URL);
+
     // 🔗 Llamada al backend
-    const response = await fetch("https://swserver.onrender.com/reporte", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: ownerUserId,
-        deviceId,
-        sessionId,
-      }),
-    });
+    //const response = await fetch("https://swserver.onrender.com/reporte", {
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+const response = await fetch(`${apiBaseUrl}/reporte`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId: ownerUserId,
+    deviceId,
+    sessionId,
+  }),
+});
+
+
 
     if (!response.ok) {
       throw new Error(`Error HTTP ${response.status}: ${await response.text()}`);

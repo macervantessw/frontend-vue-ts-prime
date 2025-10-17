@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.78(S)",
   "scripts": {
-    "dev": "vite --mode dev",
+    "dev": "vite --mode development",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy"
