@@ -115,6 +115,8 @@ async function confirmTransferCredit() {
   }
 
   try {
+    // === 🔴 MÉTODO ANTIGUO (comentado)
+    /*
     const db = getDatabase();
     const newRef = push(dbRef(db, "ShareCreditRequests"));
 
@@ -136,12 +138,48 @@ async function confirmTransferCredit() {
       life: 4000
     });
     transferDialogVisible.value = false;
-  } catch (error) {
+    */
+
+    // === 🟢 NUEVO MÉTODO: petición directa al servidor Express
+    const response = await fetch("https://swserver.onrender.com/transfer-credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fromUserId: usersStore.user?.userID,
+        toUserId: transferUserID.value,
+        amount: transferAmount.value
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Error al contactar con el servidor");
+    }
+
+    const result = await response.json();
+
+    // Mostrar mensaje
+    toast.add({
+      severity: "success",
+      summary: "Transferencia completada",
+      detail: result.message || `Se han transferido ${transferAmount.value} créditos.`,
+      life: 4000
+    });
+
+    // ✅ Actualizar crédito localmente
+    if (result.newFromCredits !== undefined) {
+      usersStore.user!.Credit = String(result.newFromCredits);
+    }
+
+    transferDialogVisible.value = false;
+
+  } catch (error: any) {
+
     console.error(error);
     toast.add({
       severity: "error",
       summary: "Error",
-      detail: `No se pudo registrar la transferencia.`,
+      detail: `No se pudo completar la transferencia: ${error.message}`,
       life: 4000
     });
   }
