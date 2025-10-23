@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import videojs from "video.js";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import Player from "video.js/dist/types/player";
+import type Player from "video.js/dist/types/player";
 import "video.js/dist/video-js.css";
 import { useChartsStore } from "../../store";
 

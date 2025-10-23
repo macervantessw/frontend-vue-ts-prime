@@ -13,6 +13,7 @@ import { createPinia } from "pinia";
 import ToastService from "primevue/toastservice";
 import Tooltip from "primevue/tooltip";
 import DialogService from "primevue/dialogservice";
+import Toast from "primevue/toast"; // ✅ <--- ESTA ES LA LÍNEA CLAVE
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -26,4 +27,8 @@ app.use(router);
 app.use(DialogService);
 app.directive("ripple", Ripple);
 app.directive("tooltip", Tooltip);
+
+// ✅ registra el componente Toast globalmente
+app.component("Toast", Toast);
+
 app.mount("#app");
