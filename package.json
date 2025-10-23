@@ -1,7 +1,7 @@
 {
   "name": "-sleepwise-frontend",
   "private": true,
-  "version": "0.0.81(S)",
+  "version": "0.0.82(S)",
   "scripts": {
     "dev": "vite --mode development",
     "build": "vue-tsc --noEmit && vite build",
