@@ -2,10 +2,11 @@
 import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useSessionsStore } from "../store";
 import { useUsersStore } from "../store";
-import { getDatabase, ref as dbRef, get, child } from "firebase/database";
+import { getDatabase, ref as dbRef, get, child, update } from "firebase/database";
 import { getStorage, ref as storageRef, listAll, getDownloadURL } from "firebase/storage";
 import Button from "primevue/button";
-//import i18n from "../i18n";
+import Toast from "primevue/toast";
+import Textarea from "primevue/textarea";
 import PatientSummary from "../components/Summary/PatientSummary.vue";
 import router from "../router";
 import SleepSummary from "../components/Summary/SleepSummary.vue";
@@ -18,11 +19,10 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useDialog } from "primevue/usedialog";
 import { useToast } from "primevue/usetoast";
-
 import { useI18n } from "vue-i18n";
+import { getAuth } from "firebase/auth";
 
 const { t } = useI18n();
-
 
 const dialog = useDialog();
 const toast = useToast();
@@ -32,8 +32,16 @@ const route = useRoute();
 const isProfessional = ref<boolean | null>(null);
 
 dayjs.extend(duration);
-//const { t } = i18n.global;
 
+// ----------------- NUEVO: estado de notas -----------------
+const notes = ref<string>("");
+const savingNotes = ref(false);
+const notesLoaded = ref(false);
+
+// Ajusta este path a tu estructura real si difiere
+const getSessionPath = (session: any, ownerUserId: string) =>
+  `users/${ownerUserId}/Sessions/${session.DeviceId}\\${session.SessionId}\\`;
+// ----------------------------------------------------------
 
 // Función para obtener el estado de IsProfessional desde Firebase
 const fetchUserProfessionalStatus = async () => {
@@ -60,6 +68,7 @@ const handleResize = () => {
 onMounted(() => {
   fetchUserProfessionalStatus();
   window.addEventListener("resize", handleResize);
+  loadNotes(); // cargar notas al montar (si ya hay selectedSession)
 });
 
 onBeforeUnmount(() => {
@@ -78,6 +87,12 @@ watch(
     if (session) sessionsStore.selectedSession = session;
   },
   { deep: true },
+);
+
+// también recargar notas cuando cambia la sesión seleccionada
+watch(
+  () => sessionsStore.selectedSession?.SessionId,
+  () => loadNotes()
 );
 
 const goToSession = () => {
@@ -138,27 +153,93 @@ const showOptionalElements = computed(() => !!isProfessional.value || usersStore
 const sessionError = computed(() => {
   const session = sessionsStore.selectedSession;
   if (!session) return null;
-  
+
   const { SessionDuration, SessionSleepTime, SessionAwakeTime, SessionMovementSignalAverage } = session;
-  
+
   if (SessionDuration <= 0) return null;
-  
+
   const indeterminateTime = SessionDuration - (SessionSleepTime + SessionAwakeTime);
   const isTimeInvalid = (indeterminateTime / SessionDuration) > 0.2;
-  
+
   const isMovementInvalid = typeof SessionMovementSignalAverage === "number"
     ? SessionMovementSignalAverage < 10000
     : false;
-  
+
   if (isMovementInvalid) {
     return t('InvalidSession-Badsignal');
   }
   if (isTimeInvalid) {
     return t('InvalidSession-Badpossition');
   }
-  
+
   return null;
 });
+
+// ----------------- NUEVO: carga y guardado de notas -----------------
+const loadNotes = async () => {
+  const session = sessionsStore.selectedSession;
+  const ownerUserId = session?.userId ?? usersStore.userId;
+  notesLoaded.value = false;
+  if (!session || !ownerUserId) {
+    notes.value = "";
+    notesLoaded.value = true;
+    return;
+  }
+
+  try {
+    const db = getDatabase();
+    const path = `${getSessionPath(session, ownerUserId)}/Notes`;
+    const snap = await get(dbRef(db, path));
+    notes.value = snap.exists() ? String(snap.val()) : "";
+  } catch (e) {
+    console.error("Error cargando notas:", e);
+    notes.value = "";
+  } finally {
+    notesLoaded.value = true;
+  }
+};
+
+const saveNotes = async () => {
+
+const auth = getAuth();
+ 
+  
+  const session = sessionsStore.selectedSession;
+  const ownerUserId = session?.userId ?? usersStore.userId;
+  if (!session || !ownerUserId) return;
+
+
+ console.log("👤 auth.uid:", auth.currentUser?.uid);
+  console.log("🧩 ownerUserId:", ownerUserId);
+  console.log("📂 path:", getSessionPath(session, ownerUserId));
+
+  try {
+    savingNotes.value = true;
+    const db = getDatabase();
+    const path = getSessionPath(session, ownerUserId);
+    await update(dbRef(db, path), {
+      Notes: notes.value,
+      NotesUpdatedAt: Date.now(),
+    });
+
+    toast.add({
+      severity: "success",
+      summary: t("Notas guardadas"),
+      detail: t("Las notas se han guardado correctamente."),
+      life: 4000,
+    });
+  } catch (e: any) {
+    toast.add({
+      severity: "error",
+      summary: t("Error"),
+      detail: e?.message ?? t("No se pudieron guardar las notas."),
+      life: 6000,
+    });
+  } finally {
+    savingNotes.value = false;
+  }
+};
+// -------------------------------------------------------------------
 
 const downloadReport = async () => {
   const session = sessionsStore.selectedSession;
@@ -186,30 +267,25 @@ const downloadReport = async () => {
       summary: t("Generando informe"),
       detail: "El PDF se está generando, por favor espere...",
       group: "report",
-      life: 10000, // sin duración
+      life: 10000,
     });
-
 
     console.log("🧠 MODE:", import.meta.env.MODE);
     console.log("🧠 API base URL:", import.meta.env.VITE_API_BASE_URL);
     console.log("✅ sessionId:", sessionId);
     console.log("✅ API base:", import.meta.env.VITE_API_BASE_URL);
 
-    // 🔗 Llamada al backend
-    //const response = await fetch("https://swserver.onrender.com/reporte", {
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-const response = await fetch(`${apiBaseUrl}/reporte`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    userId: ownerUserId,
-    deviceId,
-    sessionId,
-  }),
-});
-
-
+    const response = await fetch(`${apiBaseUrl}/reporte`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: ownerUserId,
+        deviceId,
+        sessionId,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(`Error HTTP ${response.status}: ${await response.text()}`);
@@ -237,8 +313,7 @@ const response = await fetch(`${apiBaseUrl}/reporte`, {
     link.click();
     URL.revokeObjectURL(link.href);
 
-    // ✅ Mostrar éxito (reemplaza visualmente el anterior)
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100));
     toast.add({
       severity: "success",
       summary: t("Download report"),
@@ -258,12 +333,6 @@ const response = await fetch(`${apiBaseUrl}/reporte`, {
     });
   }
 };
-
-
-
-
-
-
 </script>
 
 <template>
@@ -279,17 +348,21 @@ const response = await fetch(`${apiBaseUrl}/reporte`, {
     <div v-else id="session-summary">
       <div class="info-banner">
         <p>
-          {{ t('Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.') }}
+          {{
+            t(
+              'Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.'
+            )
+          }}
         </p>
       </div>
 
       <section class="flex justify-content-between">
         <span>
           <h2 class="w-full text-primary m-0 text-3xl">{{ t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
-          <h3 class="w-full text-primary m-0">{{ t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
-          <h3 class="w-full text-primary m-0">{{ t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
-          <h3 class="w-full text-primary m-0">{{ t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
-          <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
+        <h3 class="w-full text-primary m-0">{{ t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
+        <h3 class="w-full text-primary m-0">{{ t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
+        <h3 class="w-full text-primary m-0">{{ t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
+        <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
         </span>
         <span v-if="showOptionalElements" class="flex align-items-center gap-2">
           <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
@@ -306,7 +379,38 @@ const response = await fetch(`${apiBaseUrl}/reporte`, {
         <MovementSummary v-if="hasMovementData && showOptionalElements" />
       </section>
 
-      <Button v-if="showOptionalElements" :label="t('view-analysis')" class="btn-go border-round-3xl hidden sm:flex" icon="pi pi-chevron-right" icon-pos="right" @click="goToSession"></Button>
+      <!-- NUEVO: Notas del profesional -->
+      <section v-if="showOptionalElements" class="notes-card w-full grid justify-content-center sm:justify-content-start">
+        <h3 class="m-0 mb-2 text-primary">{{ t('Notas del profesional') }}</h3>
+
+        <Textarea
+          v-model="notes"
+          :autoResize="true"
+          rows="5"
+          :disabled="!notesLoaded"
+          class="w-full"
+          :placeholder="t('Añade observaciones clínicas de esta sesión...')"
+        />
+
+        <div class="mt-2 flex gap-2">
+          <Button
+            :label="savingNotes ? t('Guardando...') : t('Guardar notas')"
+            icon="pi pi-save"
+            class="border-round-3xl"
+            :disabled="savingNotes || !notesLoaded"
+            @click="saveNotes"
+          />
+        </div>
+      </section>
+
+      <Button
+        v-if="showOptionalElements"
+        :label="t('view-analysis')"
+        class="btn-go border-round-3xl hidden sm:flex"
+        icon="pi pi-chevron-right"
+        icon-pos="right"
+        @click="goToSession"
+      />
     </div>
   </div>
 </template>
@@ -329,6 +433,16 @@ const response = await fetch(`${apiBaseUrl}/reporte`, {
   max-width: 37rem;
   min-width: 25rem;
 }
+
+.notes-card {
+  background: #f6f9f8;
+  border: 1px solid #d9e7e4;
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 37rem;
+  margin-top: 1rem;
+}
+
 .btn-go {
   position: absolute;
   bottom: 0;
