@@ -88,7 +88,7 @@
 
           <!-- 📋 Vista plana -->
           <template v-else>
-            <div class="flex flex-column gap-1 overflow-auto">
+            <div class="flex flex-column gap-0 overflow-auto">
               <MenuItem
                 v-for="session in sortedSessions"
                 :key="session.SessionId"
@@ -119,7 +119,7 @@
 
           <!-- 📋 Vista plana -->
           <template v-else>
-            <div class="flex flex-column gap-2 overflow-auto">
+            <div class="flex flex-column gap-0 overflow-auto">
               <MenuItem
                 v-for="session in sortedSessions"
                 :key="session.SessionId"
@@ -172,8 +172,9 @@ const route = useRoute();
 const searchText = ref("");
 
 // 👁️ modo de visualización y orden
-const viewMode = ref<"tree" | "flat">("tree");
-const sortOrder = ref<"asc" | "desc">("desc");
+// 👁️ modo de visualización y orden
+const viewMode = ref<"tree" | "flat">("flat"); 
+const sortOrder = ref<"asc" | "desc">("desc"); 
 
 // 🌳 Agrupado por DeviceID (usuarios normales)
 const groupedByDevice = computed(() => {
