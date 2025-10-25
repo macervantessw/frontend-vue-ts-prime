@@ -2,6 +2,7 @@
   <div class="sessions flex flex-column h-full w-full">
     <NavigationBar />
 
+    <!-- 🌐 Contenido principal -->
     <div class="flex h-full w-full min-h-0">
       <SideMenu v-if="!route.query.token">
         <!-- 🔍 Campo de búsqueda -->
@@ -17,7 +18,9 @@
         </div>
 
         <!-- 🎛️ Botonera debajo -->
-        <div class="flex justify-content-around align-items-center w-full mb-3 gap-2">
+        <div
+          class="flex justify-content-around align-items-center w-full mb-3 gap-2"
+        >
           <!-- 🌳 Árbol -->
           <Button
             icon="pi pi-sitemap"
@@ -59,75 +62,86 @@
           />
         </div>
 
-        <!-- 👨‍💼 Vista para ADMIN -->
-        <div v-if="usersStore.isAdmin">
-          <!-- 🌳 Vista en árbol -->
-          <template v-if="viewMode === 'tree'">
-            <Accordion :key="sessionsGrouped" :active-index="0">
-              <AccordionTab
-                v-for="(user, userId) in sessionsGrouped"
-                :key="userId"
-                :header="userId.toString()"
-              >
-                <Accordion :key="user" :active-index="0">
-                  <AccordionTab
-                    v-for="(device, deviceName) in user"
-                    :key="deviceName"
-                    :header="deviceName.toString()"
-                  >
-                    <MenuItem
-                      v-for="session in sortSessions(device)"
-                      :key="session.SessionId"
-                      :session="session"
-                    />
-                  </AccordionTab>
-                </Accordion>
-              </AccordionTab>
-            </Accordion>
-          </template>
+        <!-- 🕒 Mensaje mientras carga -->
+        <template v-if="sessionsStore.sessions.length === 0">
+          <div class="flex flex-column align-items-center justify-content-center p-3 text-center text-500">
+            <i class="pi pi-spin pi-spinner mb-2" style="font-size: 4rem"></i>
+            <span>{{ t('Loading sessions...') }}</span>
+          </div>
+        </template>
 
-          <!-- 📋 Vista plana -->
-          <template v-else>
-            <div class="flex flex-column gap-0 overflow-auto">
-              <MenuItem
-                v-for="session in sortedSessions"
-                :key="session.SessionId"
-                :session="session"
-              />
-            </div>
-          </template>
-        </div>
+        <!-- ✅ Contenido cuando hay sesiones -->
+        <template v-else>
+          <!-- 👨‍💼 Vista para ADMIN -->
+          <div v-if="usersStore.isAdmin">
+            <!-- 🌳 Vista en árbol -->
+            <template v-if="viewMode === 'tree'">
+              <Accordion :key="sessionsGrouped" :active-index="0">
+                <AccordionTab
+                  v-for="(user, userId) in sessionsGrouped"
+                  :key="userId"
+                  :header="userId.toString()"
+                >
+                  <Accordion :key="user" :active-index="0">
+                    <AccordionTab
+                      v-for="(device, deviceName) in user"
+                      :key="deviceName"
+                      :header="deviceName.toString()"
+                    >
+                      <MenuItem
+                        v-for="session in sortSessions(device)"
+                        :key="session.SessionId"
+                        :session="session"
+                      />
+                    </AccordionTab>
+                  </Accordion>
+                </AccordionTab>
+              </Accordion>
+            </template>
 
-        <!-- 👤 Vista para usuario normal -->
-        <div v-else>
-          <!-- 🌳 Vista agrupada por DeviceID -->
-          <template v-if="viewMode === 'tree'">
-            <Accordion :active-index="0">
-              <AccordionTab
-                v-for="(device, deviceId) in groupedByDevice"
-                :key="deviceId"
-                :header="deviceId.toString()"
-              >
+            <!-- 📋 Vista plana -->
+            <template v-else>
+              <div class="flex flex-column gap-0 overflow-auto">
                 <MenuItem
-                  v-for="session in sortSessions(device)"
+                  v-for="session in sortedSessions"
                   :key="session.SessionId"
                   :session="session"
                 />
-              </AccordionTab>
-            </Accordion>
-          </template>
+              </div>
+            </template>
+          </div>
 
-          <!-- 📋 Vista plana -->
-          <template v-else>
-            <div class="flex flex-column gap-0 overflow-auto">
-              <MenuItem
-                v-for="session in sortedSessions"
-                :key="session.SessionId"
-                :session="session"
-              />
-            </div>
-          </template>
-        </div>
+          <!-- 👤 Vista para usuario normal -->
+          <div v-else>
+            <!-- 🌳 Vista agrupada por DeviceID -->
+            <template v-if="viewMode === 'tree'">
+              <Accordion :active-index="0">
+                <AccordionTab
+                  v-for="(device, deviceId) in groupedByDevice"
+                  :key="deviceId"
+                  :header="deviceId.toString()"
+                >
+                  <MenuItem
+                    v-for="session in sortSessions(device)"
+                    :key="session.SessionId"
+                    :session="session"
+                  />
+                </AccordionTab>
+              </Accordion>
+            </template>
+
+            <!-- 📋 Vista plana -->
+            <template v-else>
+              <div class="flex flex-column gap-0 overflow-auto">
+                <MenuItem
+                  v-for="session in sortedSessions"
+                  :key="session.SessionId"
+                  :session="session"
+                />
+              </div>
+            </template>
+          </div>
+        </template>
       </SideMenu>
 
       <!-- 🌐 Contenedor derecho: detalle de sesión -->
@@ -143,6 +157,7 @@
     </div>
   </div>
 </template>
+
 
 <script lang="ts" setup>
 import { ref, computed, onBeforeMount } from "vue";
