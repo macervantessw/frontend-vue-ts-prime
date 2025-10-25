@@ -84,5 +84,22 @@
   },
   "Micro awakes per hour": "Micro awakes per hour",
   "InvalidSession-Badsignal": "Invalid Session: Poor Signal.",
-  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned."
+  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned.",
+  "Notas guardadas": "Notes saved",
+  "Las notas se han guardado correctamente.": "The notes have been saved successfully.",
+  "No se pudieron guardar las notas.": "The notes could not be saved.",
+  "Error": "Error",
+  "No se encontró el usuario de la sesión": "The session owner could not be found.",
+  "El PDF se está generando, por favor espere...": "The PDF report is being generated, please wait...",
+  "El servidor no devolvió la URL del PDF.": "The server did not return the PDF URL.",
+  "No se pudo descargar el PDF desde Firebase Storage": "The PDF could not be downloaded from Firebase Storage.",
+  "El informe PDF se descargó correctamente": "The PDF report was downloaded successfully.",
+  "Error al generar o descargar el informe": "Error generating or downloading the report.",
+  "Añade observaciones clínicas de esta sesión...": "Add clinical observations for this session...",
+  "Notas del profesional": "Professional notes",
+  "Guardar notas": "Save notes",
+  "Guardando...": "Saving..."
+
+
+  
 }

@@ -86,5 +86,21 @@
   "sleep-latency": "Latenza",
   "Micro awakes per hour": "Micro risvegli per ora",
   "InvalidSession-Badsignal": "Invalid Session: Poor Signal.",
-  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned."
+  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned.",
+  "Notas guardadas": "Note salvate",
+  "Las notas se han guardado correctamente.": "Le note sono state salvate correttamente.",
+  "No se pudieron guardar las notas.": "Impossibile salvare le note.",
+  "Error": "Errore",
+  "No se encontró el usuario de la sesión": "Impossibile trovare l'utente della sessione.",
+  "El PDF se está generando, por favor espere...": "Il PDF è in fase di generazione, attendere prego...",
+  "El servidor no devolvió la URL del PDF.": "Il server non ha restituito l'URL del PDF.",
+  "No se pudo descargar el PDF desde Firebase Storage": "Impossibile scaricare il PDF da Firebase Storage.",
+  "El informe PDF se descargó correctamente": "Il rapporto PDF è stato scaricato correttamente.",
+  "Error al generar o descargar el informe": "Errore durante la generazione o il download del rapporto.",
+  "Añade observaciones clínicas de esta sesión...": "Aggiungi osservazioni cliniche per questa sessione...",
+  "Notas del profesional": "Note del professionista",
+  "Guardar notas": "Salva note",
+  "Guardando...": "Salvataggio..."
+
+
 }

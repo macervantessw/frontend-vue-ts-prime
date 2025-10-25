@@ -254,7 +254,7 @@ const downloadReport = async () => {
     toast.add({
       severity: "warn",
       summary: t("Download report"),
-      detail: "No se encontró el usuario de la sesión",
+      detail: t("No se encontró el usuario de la sesión"),
       life: 5000,
     });
     return;
@@ -265,7 +265,7 @@ const downloadReport = async () => {
     toast.add({
       severity: "info",
       summary: t("Generando informe"),
-      detail: "El PDF se está generando, por favor espere...",
+      detail: t("El PDF se está generando, por favor espere..."),
       group: "report",
       life: 10000,
     });
@@ -295,13 +295,13 @@ const downloadReport = async () => {
     console.log("✅ Respuesta del servidor:", result);
 
     if (!result.url) {
-      throw new Error("El servidor no devolvió la URL del PDF.");
+      throw new Error(t("El servidor no devolvió la URL del PDF."));
     }
 
     const pdfResp = await fetch(result.url);
 
     if (!pdfResp.ok) {
-      throw new Error("No se pudo descargar el PDF desde Firebase Storage");
+      throw new Error(t("No se pudo descargar el PDF desde Firebase Storage"));
     }
 
     const blob = await pdfResp.blob();
@@ -317,12 +317,12 @@ const downloadReport = async () => {
     toast.add({
       severity: "success",
       summary: t("Download report"),
-      detail: "El informe PDF se descargó correctamente",
+      detail: t("El informe PDF se descargó correctamente"),
       group: "report",
       life: 5000,
     });
   } catch (err) {
-    console.error("❌ Error al generar o descargar el PDF:", err);
+    console.error(t("Error al generar o descargar el PDF:"), err);
     const msg = err instanceof Error ? err.message : "Error al generar o descargar el informe";
     toast.add({
       severity: "error",
