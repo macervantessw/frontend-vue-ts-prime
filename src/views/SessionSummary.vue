@@ -416,6 +416,9 @@ const downloadReport = async () => {
 </template>
 
 <style>
+
+
+
 .invalid-session-banner {
   background-color: #ffcccc;
   color: #cc0000;
@@ -483,4 +486,17 @@ const downloadReport = async () => {
 .btn-go:active {
   bottom: 2px;
 }
+/* En pantallas grandes (desktop) la sección de notas se expande */
+@media (min-width: 1024px) {
+  .notes-card {
+    max-width: none;        /* Quita el límite de 37rem */
+    width: 100%;            /* Ocupar todo el ancho del contenedor */
+    margin-top: 2rem;
+  }
+
+  .notes-card textarea {
+    width: 100%;            /* El área de texto ocupa todo el ancho */
+  }
+}
+
 </style>
