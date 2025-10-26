@@ -64,7 +64,9 @@
 
         <!-- 🕒 Mensaje mientras carga -->
         <template v-if="sessionsStore.sessions.length === 0">
-          <div class="flex flex-column align-items-center justify-content-center p-3 text-center text-500">
+          <div
+            class="flex flex-column align-items-center justify-content-center p-3 text-center text-500"
+          >
             <i class="pi pi-spin pi-spinner mb-2" style="font-size: 4rem"></i>
             <span>{{ t('Loading sessions...') }}</span>
           </div>
@@ -76,13 +78,13 @@
           <div v-if="usersStore.isAdmin">
             <!-- 🌳 Vista en árbol -->
             <template v-if="viewMode === 'tree'">
-              <Accordion :key="sessionsGrouped" :active-index="0">
+              <Accordion :key="'adminTree-' + searchText" :active-index="0">
                 <AccordionTab
                   v-for="(user, userId) in sessionsGrouped"
                   :key="userId"
                   :header="userId.toString()"
                 >
-                  <Accordion :key="user" :active-index="0">
+                  <Accordion :active-index="0">
                     <AccordionTab
                       v-for="(device, deviceName) in user"
                       :key="deviceName"
@@ -101,7 +103,10 @@
 
             <!-- 📋 Vista plana -->
             <template v-else>
-              <div class="flex flex-column gap-0 overflow-auto">
+              <div
+                class="flex flex-column gap-0 overflow-auto"
+                :key="'flatList-admin-' + searchText + sortOrder"
+              >
                 <MenuItem
                   v-for="session in sortedSessions"
                   :key="session.SessionId"
@@ -115,7 +120,7 @@
           <div v-else>
             <!-- 🌳 Vista agrupada por DeviceID -->
             <template v-if="viewMode === 'tree'">
-              <Accordion :active-index="0">
+              <Accordion :key="'userTree-' + searchText" :active-index="0">
                 <AccordionTab
                   v-for="(device, deviceId) in groupedByDevice"
                   :key="deviceId"
@@ -132,7 +137,10 @@
 
             <!-- 📋 Vista plana -->
             <template v-else>
-              <div class="flex flex-column gap-0 overflow-auto">
+              <div
+                class="flex flex-column gap-0 overflow-auto"
+                :key="'flatList-user-' + searchText + sortOrder"
+              >
                 <MenuItem
                   v-for="session in sortedSessions"
                   :key="session.SessionId"
@@ -157,6 +165,7 @@
     </div>
   </div>
 </template>
+
 
 
 <script lang="ts" setup>
