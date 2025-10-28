@@ -9,9 +9,10 @@ import Button from "primevue/button";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import i18n from "../i18n";
-import { ref, computed } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { auth } from "../firebase/firebaseInit";
-import { getDatabase, ref as dbRef, push, set, child, get } from "firebase/database";
+import { onAuthStateChanged } from "firebase/auth";
+import { getDatabase, ref as dbRef, push, set, child, get, onValue, off } from "firebase/database";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { version } from "../../package.json";
@@ -25,6 +26,7 @@ const route = useRoute();
 const { menuVisible } = storeToRefs(useMainStore());
 const toast = useToast();
 
+// ─────────────────────────────────────────────────────────────
 // Estado diálogo importar sesión
 const importDialogVisible = ref(false);
 const importSessionID = ref("");
@@ -34,13 +36,91 @@ const transferDialogVisible = ref(false);
 const transferUserID = ref("");
 const transferAmount = ref<number | null>(null);
 
-// Mostrar diálogo importar sesión
+// ─────────────────────────────────────────────────────────────
+// ⚠️ Banner de créditos bajos (en la barra de navegación)
+const LOW_CREDITS_THRESHOLD = 5;
+
+// Convierte " 3 " / "03" / null a número seguro
+function toNumber(val: unknown): number {
+  const n = Number(String(val ?? "0").trim());
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+}
+
+const numericCredits = computed(() => toNumber(usersStore.user?.Credit));
+const lowCredits = computed(() => numericCredits.value < LOW_CREDITS_THRESHOLD);
+
+// “No volver a mostrar” (por sesión del navegador)
+const BANNER_KEY = "lowCreditsBannerDismissed";
+const bannerDismissed = ref(false);
+
+onMounted(() => {
+  bannerDismissed.value = sessionStorage.getItem(BANNER_KEY) === "1";
+});
+
+// Mostrar el banner si: hay navbar, hay pocos créditos y no se ha ocultado esta sesión
+const showCreditsBanner = computed(() =>
+  /* si usas ?token=... para ocultar la navbar, mantenlo */
+  !route.query.token && lowCredits.value && !bannerDismissed.value
+);
+
+function dismissCreditsBanner() {
+  bannerDismissed.value = true;
+  sessionStorage.setItem(BANNER_KEY, "1");
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🔁 Suscripción en tiempo real a /users/<uid>/Credit
+let stopAuth: (() => void) | null = null;
+let creditRefPath: string | null = null;
+
+function attachCreditListener(uid: string) {
+  const db = getDatabase();
+  creditRefPath = `users/${uid}/Credit`;
+  const ref = dbRef(db, creditRefPath);
+  onValue(ref, (snap) => {
+    const creditVal = snap.val();
+    // Actualiza el store con el dato en crudo (string) y tu vista lo convierte
+    if (!usersStore.user) {
+      usersStore.$patch({ user: { userID: uid, Credit: String(creditVal ?? "0") } as any });
+    } else {
+      usersStore.user.Credit = String(creditVal ?? "0");
+    }
+    // Debug útil si no aparece el banner
+    // console.log("RTDB Credit →", creditVal, " (num:", toNumber(creditVal), ")");
+  });
+}
+
+function detachCreditListener() {
+  if (!creditRefPath) return;
+  const db = getDatabase();
+  off(dbRef(db, creditRefPath));
+  creditRefPath = null;
+}
+
+onMounted(() => {
+  stopAuth = onAuthStateChanged(auth, (user) => {
+    detachCreditListener();
+    if (user?.uid) {
+      attachCreditListener(user.uid);
+    } else {
+      // Usuario no autenticado
+      if (usersStore.user) usersStore.user.Credit = "0";
+    }
+  });
+});
+
+onBeforeUnmount(() => {
+  detachCreditListener();
+  if (stopAuth) stopAuth();
+});
+
+// ─────────────────────────────────────────────────────────────
+// (Tu lógica existente) Importar sesión
 function importSession() {
   importSessionID.value = "";
   importDialogVisible.value = true;
 }
 
-// Confirmar importación
 async function confirmImportSession() {
   if (!importSessionID.value) {
     toast.add({
@@ -83,14 +163,14 @@ async function confirmImportSession() {
   }
 }
 
-// Mostrar diálogo transferir crédito
+// ─────────────────────────────────────────────────────────────
+// (Tu lógica existente) Transferir créditos
 function transferCredit() {
   transferUserID.value = "";
   transferAmount.value = null;
   transferDialogVisible.value = true;
 }
 
-// Confirmar transferencia
 async function confirmTransferCredit() {
   if (!transferUserID.value || !transferAmount.value || transferAmount.value <= 0) {
     toast.add({
@@ -102,7 +182,7 @@ async function confirmTransferCredit() {
     return;
   }
 
-  const currentCredit = Number(usersStore.user?.Credit ?? 0);
+  const currentCredit = toNumber(usersStore.user?.Credit);
   if (transferAmount.value > currentCredit) {
     toast.add({
       severity: "error",
@@ -160,7 +240,7 @@ const userItems = computed(() => [
   {
     items: [
       {
-        label: `${usersStore.user?.name} ${usersStore.user?.lastName}`,
+        label: `${usersStore.user?.name ?? ""} ${usersStore.user?.lastName ?? ""}`.trim(),
         icon: "pi pi-user",
         disabled: true,
       },
@@ -180,29 +260,13 @@ const userItems = computed(() => [
         disabled: true,
       },
       ...(usersStore.userIsProfessional
-        ? [
-            {
-              label: t("Profesional"),
-              icon: "pi pi-briefcase",
-              disabled: true,
-            },
-          ]
+        ? [{ label: t("Profesional"), icon: "pi pi-briefcase", disabled: true }]
         : []),
       { separator: true },
       ...(usersStore.userIsProfessional
-        ? [
-            {
-              label: t("Importar sesión"),
-              icon: "pi pi-upload",
-              command: importSession,
-            },
-          ]
+        ? [{ label: t("Importar sesión"), icon: "pi pi-upload", command: importSession }]
         : []),
-      {
-        label: t("Transferir crédito"),
-        icon: "pi pi-exchange",
-        command: transferCredit,
-      },
+      { label: t("Transferir crédito"), icon: "pi pi-exchange", command: transferCredit },
       { separator: true },
       {
         label: t("Logout"),
@@ -216,9 +280,9 @@ const userItems = computed(() => [
   },
 ]);
 
+// (Opcional) fetch manual extra si lo deseas mantener
 async function fetchUserData() {
   try {
-    console.log("🔄 Iniciando fetch de datos del usuario desde Firebase...");
     const db = getDatabase();
     const snapshot = await get(child(dbRef(db), `users/${usersStore.user?.userID}`));
     if (snapshot.exists()) {
@@ -230,12 +294,9 @@ async function fetchUserData() {
           NotifToken: userData.NotifToken,
         },
       });
-      console.log("✅ Datos del usuario actualizados desde Firebase:", userData);
-    } else {
-      console.warn("⚠️ No se encontraron datos del usuario en Firebase.");
     }
   } catch (error) {
-    console.error("❌ Error al obtener datos del usuario desde Firebase:", error);
+    console.error("❌ Error al obtener datos del usuario:", error);
   }
 }
 
@@ -256,6 +317,7 @@ function toggleMenu(event: Event) {
 </script>
 
 <template>
+  <!-- Barra superior -->
   <div v-if="!route.query.token" class="navbar flex align-items-center justify-content-between w-full">
     <div class="navbar-left flex">
       <div class="flex align-items-center mr-4 md:hidden relative">
@@ -279,6 +341,7 @@ function toggleMenu(event: Event) {
       </div>
       <div class="flex align-items-end ml-5">{{ version }}</div>
     </div>
+
     <div class="navbar-right flex align-items-center cursor-pointer" @click="toggleMenu">
       <Avatar
         :label="usersStore.userInitials"
@@ -291,6 +354,20 @@ function toggleMenu(event: Event) {
       </span>
     </div>
   </div>
+
+  <!-- 🔴 Banner de créditos bajos (debajo de la navbar) -->
+  <div v-if="showCreditsBanner" class="credits-banner">
+    <div class="credits-inner">
+      <span class="credits-message">
+        {{ t('lowCredits.warningCount', { n: numericCredits }) }}
+      </span>
+ <!--     <div class="credits-actions">
+        <button class="credits-close" @click="dismissCreditsBanner">{{ t('common.close') }}</button>
+      </div>-->
+    </div>
+  </div>
+
+  <!-- Menú de usuario -->
   <Menu id="user_menu" ref="menu" :model="userItems" :popup="true" />
 
   <!-- Dialogo importar sesión -->
@@ -348,4 +425,34 @@ function toggleMenu(event: Event) {
 .navbar-right:hover { background: var(--surface-ground); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* ── Banner bajo la navbar ─────────────────────────────────── */
+.credits-banner {
+  background: #d32f2f;      /* rojo aviso */
+  color: #fff;
+}
+.credits-inner {
+  max-width: 1200px;        /* opcional, alinea con tu layout */
+  margin: 0 auto;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.credits-message {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.credits-actions { display: flex; align-items: center; gap: 8px; }
+.credits-close {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.75);
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.credits-close:hover { border-color: #fff; }
 </style>

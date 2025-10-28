@@ -122,5 +122,13 @@
   "No tienes suficientes créditos. Disponibles: {available}.": "You do not have enough credits. Available: {available}.",
   "Transferencia completada": "Transfer completed",
   "Se han transferido {amount} créditos.": "{amount} credits have been transferred.",
-  "No se pudo completar la transferencia: {message}": "The transfer could not be completed: {message}"
+  "No se pudo completar la transferencia: {message}": "The transfer could not be completed: {message}",
+  "lowCredits": {
+    "title": "Attention",
+    "warningCount": "⚠️ Attention: your credits ({n}) are about to run out.",
+    "manage": "Manage credits"
+  },
+  "common": {
+    "close": "Close"
+  }
 }
