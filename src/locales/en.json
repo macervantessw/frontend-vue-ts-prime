@@ -99,8 +99,28 @@
   "Notas del profesional": "Professional notes",
   "Guardar notas": "Save notes",
   "Guardando...": "Saving...",
-  "Loading sessions...": "Loading sessions..."
-
-
-  
+  "Loading sessions...": "Loading sessions...",
+  "Atención": "Attention",
+  "Error al contactar con el servidor": "Error contacting the server",
+  "Crédito: {credit}": "Credit: {credit}",
+  "ID: {id}": "ID: {id}",
+  "Profesional": "Professional",
+  "Importar sesión": "Import session",
+  "Transferir crédito": "Transfer credit",
+  "ID de la sesión": "Session ID",
+  "ID del usuario destino": "Destination user ID",
+  "Cantidad de créditos": "Credit amount",
+  "Cancelar": "Cancel",
+  "Importar": "Import",
+  "Transferir": "Transfer",
+  "Debes introducir un ID de sesión.": "You must enter a session ID.",
+  "Importación correcta": "Import successful",
+  "La sesión {id} ha sido importada.": "Session {id} has been imported.",
+  "No se pudo importar la sesión.": "The session could not be imported.",
+  "Debes introducir un ID de usuario y un importe válido.": "You must enter a user ID and a valid amount.",
+  "Saldo insuficiente": "Insufficient balance",
+  "No tienes suficientes créditos. Disponibles: {available}.": "You do not have enough credits. Available: {available}.",
+  "Transferencia completada": "Transfer completed",
+  "Se han transferido {amount} créditos.": "{amount} credits have been transferred.",
+  "No se pudo completar la transferencia: {message}": "The transfer could not be completed: {message}"
 }

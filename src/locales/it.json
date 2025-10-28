@@ -101,7 +101,28 @@
   "Notas del profesional": "Note del professionista",
   "Guardar notas": "Salva note",
   "Guardando...": "Salvataggio...",
-  "Loading sessions...": "Caricamento delle sessioni..."
-
-
+  "Loading sessions...": "Caricamento delle sessioni...",
+  "Atención": "Attenzione",
+  "Error al contactar con el servidor": "Errore nel contattare il server",
+  "Crédito: {credit}": "Credito: {credit}",
+  "ID: {id}": "ID: {id}",
+  "Profesional": "Professionista",
+  "Importar sesión": "Importa sessione",
+  "Transferir crédito": "Trasferisci credito",
+  "ID de la sesión": "ID sessione",
+  "ID del usuario destino": "ID utente di destinazione",
+  "Cantidad de créditos": "Quantità di crediti",
+  "Cancelar": "Annulla",
+  "Importar": "Importa",
+  "Transferir": "Trasferisci",
+  "Debes introducir un ID de sesión.": "Devi inserire un ID di sessione.",
+  "Importación correcta": "Importazione riuscita",
+  "La sesión {id} ha sido importada.": "La sessione {id} è stata importata.",
+  "No se pudo importar la sesión.": "Impossibile importare la sessione.",
+  "Debes introducir un ID de usuario y un importe válido.": "Devi inserire un ID utente e un importo valido.",
+  "Saldo insuficiente": "Saldo insufficiente",
+  "No tienes suficientes créditos. Disponibles: {available}.": "Non hai crediti sufficienti. Disponibili: {available}.",
+  "Transferencia completada": "Trasferimento completato",
+  "Se han transferido {amount} créditos.": "Sono stati trasferiti {amount} crediti.",
+  "No se pudo completar la transferencia: {message}": "Impossibile completare il trasferimento: {message}"
 }

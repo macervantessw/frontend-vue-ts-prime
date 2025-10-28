@@ -9,13 +9,12 @@ import Button from "primevue/button";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import i18n from "../i18n";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { auth } from "../firebase/firebaseInit";
 import { getDatabase, ref as dbRef, push, set, child, get } from "firebase/database";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { version } from "../../package.json";
-import { computed } from "vue";
 
 const { t } = i18n.global;
 
@@ -46,8 +45,8 @@ async function confirmImportSession() {
   if (!importSessionID.value) {
     toast.add({
       severity: "warn",
-      summary: "Atención",
-      detail: "Debes introducir un ID de sesión.",
+      summary: t("Atención"),
+      detail: t("Debes introducir un ID de sesión."),
       life: 3000
     });
     return;
@@ -68,8 +67,8 @@ async function confirmImportSession() {
 
     toast.add({
       severity: "success",
-      summary: "Importación correcta",
-      detail: `La sesión ${importSessionID.value} ha sido importada.`,
+      summary: t("Importación correcta"),
+      detail: t("La sesión {id} ha sido importada.", { id: importSessionID.value }),
       life: 4000
     });
     importDialogVisible.value = false;
@@ -77,8 +76,8 @@ async function confirmImportSession() {
     console.error(error);
     toast.add({
       severity: "error",
-      summary: "Error",
-      detail: `No se pudo importar la sesión.`,
+      summary: t("Error"),
+      detail: t("No se pudo importar la sesión."),
       life: 4000
     });
   }
@@ -96,8 +95,8 @@ async function confirmTransferCredit() {
   if (!transferUserID.value || !transferAmount.value || transferAmount.value <= 0) {
     toast.add({
       severity: "warn",
-      summary: "Atención",
-      detail: "Debes introducir un ID de usuario y un importe válido.",
+      summary: t("Atención"),
+      detail: t("Debes introducir un ID de usuario y un importe válido."),
       life: 3000
     });
     return;
@@ -107,41 +106,16 @@ async function confirmTransferCredit() {
   if (transferAmount.value > currentCredit) {
     toast.add({
       severity: "error",
-      summary: "Saldo insuficiente",
-      detail: `No tienes suficientes créditos. Disponibles: ${currentCredit}.`,
+      summary: t("Saldo insuficiente"),
+      detail: t("No tienes suficientes créditos. Disponibles: {available}.", { available: currentCredit }),
       life: 4000
     });
     return;
   }
 
   try {
-    // === 🔴 MÉTODO ANTIGUO (comentado)
-    /*
-    const db = getDatabase();
-    const newRef = push(dbRef(db, "ShareCreditRequests"));
-
-    const requestData = {
-      SourceUserID: usersStore.user?.userID ?? "-",
-      DestinationUserID: transferUserID.value,
-      NumberOfCredits: transferAmount.value,
-      NotificationToken: usersStore.user?.NotifToken ?? "",
-      timeStamp: Math.floor(Date.now() / 1000),
-      status: "pending"
-    };
-
-    await set(newRef, requestData);
-
-    toast.add({
-      severity: "success",
-      summary: "Transferencia registrada",
-      detail: `Se han solicitado ${transferAmount.value} créditos para el usuario ${transferUserID.value}.`,
-      life: 4000
-    });
-    transferDialogVisible.value = false;
-    */
-
-    // === 🟢 NUEVO MÉTODO: petición directa al servidor Express
-    const response = await fetch("https://swserver.onrender.com/transfer-credits", {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const response = await fetch(`${apiBaseUrl}/transfer-credits`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -153,20 +127,18 @@ async function confirmTransferCredit() {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(errorText || "Error al contactar con el servidor");
+      throw new Error(errorText || t("Error al contactar con el servidor"));
     }
 
     const result = await response.json();
 
-    // Mostrar mensaje
     toast.add({
       severity: "success",
-      summary: "Transferencia completada",
-      detail: result.message || `Se han transferido ${transferAmount.value} créditos.`,
+      summary: t("Transferencia completada"),
+      detail: result.message || t("Se han transferido {amount} créditos.", { amount: transferAmount.value }),
       life: 4000
     });
 
-    // ✅ Actualizar crédito localmente
     if (result.newFromCredits !== undefined) {
       usersStore.user!.Credit = String(result.newFromCredits);
     }
@@ -174,12 +146,11 @@ async function confirmTransferCredit() {
     transferDialogVisible.value = false;
 
   } catch (error: any) {
-
     console.error(error);
     toast.add({
       severity: "error",
-      summary: "Error",
-      detail: `No se pudo completar la transferencia: ${error.message}`,
+      summary: t("Error"),
+      detail: t("No se pudo completar la transferencia: {message}", { message: error.message }),
       life: 4000
     });
   }
@@ -199,45 +170,40 @@ const userItems = computed(() => [
         disabled: true,
       },
       {
-        label: `Crédito: ${usersStore.user?.Credit ?? '-'}`, // Reactivo
+        label: t("Crédito: {credit}", { credit: usersStore.user?.Credit ?? "-" }),
         icon: "pi pi-wallet",
         disabled: true,
       },
       {
-        label: `ID: ${usersStore.user?.userID ?? '-'}`,
+        label: t("ID: {id}", { id: usersStore.user?.userID ?? "-" }),
         icon: "pi pi-id-card",
         disabled: true,
       },
       ...(usersStore.userIsProfessional
         ? [
             {
-              label: "Profesional",
+              label: t("Profesional"),
               icon: "pi pi-briefcase",
               disabled: true,
             },
           ]
         : []),
-      {
-        separator: true,
-      },
-      // Mostrar "Importar sesión" solo si el usuario es profesional
+      { separator: true },
       ...(usersStore.userIsProfessional
         ? [
             {
-              label: "Importar sesión",
+              label: t("Importar sesión"),
               icon: "pi pi-upload",
               command: importSession,
             },
           ]
         : []),
       {
-        label: "Transferir crédito",
+        label: t("Transferir crédito"),
         icon: "pi pi-exchange",
         command: transferCredit,
       },
-      {
-        separator: true,
-      },
+      { separator: true },
       {
         label: t("Logout"),
         icon: "pi pi-sign-out",
@@ -275,23 +241,18 @@ async function fetchUserData() {
 
 function toggleMenu(event: Event) {
   fetchUserData();
-  // Abre/cierra el menú
   menu.value.toggle(event);
-
-  // Esperar al siguiente tick para que el menú exista en el DOM
   setTimeout(() => {
     const menuEl = document.getElementById("user_menu");
     const triggerEl = event.currentTarget as HTMLElement;
     if (menuEl && triggerEl) {
       const triggerWidth = triggerEl.offsetWidth;
-      // Puedes ajustar aquí si quieres más ancho extra:
-      const extraWidth = 20; // o 0 si quieres exactamente igual
+      const extraWidth = 20;
       menuEl.style.minWidth = (triggerWidth + extraWidth) + "px";
       menuEl.style.width = (triggerWidth + extraWidth) + "px";
     }
   }, 0);
 }
-
 </script>
 
 <template>
@@ -333,28 +294,28 @@ function toggleMenu(event: Event) {
   <Menu id="user_menu" ref="menu" :model="userItems" :popup="true" />
 
   <!-- Dialogo importar sesión -->
-  <Dialog header="Importar sesión" v-model:visible="importDialogVisible" modal style="width: 400px">
+  <Dialog :header="t('Importar sesión')" v-model:visible="importDialogVisible" modal style="width: 400px">
     <div class="p-fluid">
-      <label for="sessionId">ID de la sesión</label>
+      <label for="sessionId">{{ t('ID de la sesión') }}</label>
       <InputText id="sessionId" v-model="importSessionID" />
     </div>
     <template #footer>
-      <Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="importDialogVisible = false" />
-      <Button label="Importar" icon="pi pi-check" @click="confirmImportSession" />
+      <Button :label="t('Cancelar')" icon="pi pi-times" class="p-button-text" @click="importDialogVisible = false" />
+      <Button :label="t('Importar')" icon="pi pi-check" @click="confirmImportSession" />
     </template>
   </Dialog>
 
   <!-- Dialogo transferir crédito -->
-  <Dialog header="Transferir crédito" v-model:visible="transferDialogVisible" modal style="width: 400px">
+  <Dialog :header="t('Transferir crédito')" v-model:visible="transferDialogVisible" modal style="width: 400px">
     <div class="p-fluid">
-      <label for="userId">ID del usuario destino</label>
+      <label for="userId">{{ t('ID del usuario destino') }}</label>
       <InputText id="userId" v-model="transferUserID" />
-      <label for="amount" class="mt-3">Cantidad de créditos</label>
+      <label for="amount" class="mt-3">{{ t('Cantidad de créditos') }}</label>
       <InputNumber id="amount" v-model="transferAmount" mode="decimal" showButtons />
     </div>
     <template #footer>
-      <Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="transferDialogVisible = false" />
-      <Button label="Transferir" icon="pi pi-check" @click="confirmTransferCredit" />
+      <Button :label="t('Cancelar')" icon="pi pi-times" class="p-button-text" @click="transferDialogVisible = false" />
+      <Button :label="t('Transferir')" icon="pi pi-check" @click="confirmTransferCredit" />
     </template>
   </Dialog>
 
@@ -366,11 +327,7 @@ function toggleMenu(event: Event) {
   min-width: 300px !important;
   width: 300px !important;
 }
-
-#user_menu .p-menuitem {
-  width: 100%;
-}
-
+#user_menu .p-menuitem { width: 100%; }
 .navbar {
   border-bottom: 1px solid var(--surface-border);
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.02);
@@ -387,20 +344,8 @@ function toggleMenu(event: Event) {
   color: var(--text-color);
   transition: transform 0.4s cubic-bezier(0.05, 0.74, 0.2, 0.99);
 }
-.navbar-right {
-  border-radius: 4px;
-  z-index: 999;
-  padding: 4px;
-}
-.navbar-right:hover {
-  background: var(--surface-ground);
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.navbar-right { border-radius: 4px; z-index: 999; padding: 4px; }
+.navbar-right:hover { background: var(--surface-ground); }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
