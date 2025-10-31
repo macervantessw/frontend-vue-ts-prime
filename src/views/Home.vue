@@ -18,10 +18,7 @@
         </div>
 
         <!-- 🎛️ Botonera debajo -->
-        <div
-          class="flex justify-content-around align-items-center w-full mb-3 gap-2"
-        >
-          <!-- 🌳 Árbol -->
+        <div class="flex justify-content-around align-items-center w-full mb-3 gap-2">
           <Button
             icon="pi pi-sitemap"
             :class="{ 'p-button-outlined': viewMode !== 'tree' }"
@@ -30,8 +27,6 @@
             rounded
             aria-label="Tree view"
           />
-
-          <!-- 📋 Lista -->
           <Button
             icon="pi pi-list"
             :class="{ 'p-button-outlined': viewMode !== 'flat' }"
@@ -40,8 +35,6 @@
             rounded
             aria-label="List view"
           />
-
-          <!-- 🔽 Más nuevo primero -->
           <Button
             icon="pi pi-sort-amount-down"
             :class="{ 'p-button-outlined': sortOrder !== 'desc' }"
@@ -50,8 +43,6 @@
             rounded
             aria-label="Newest first"
           />
-
-          <!-- 🔼 Más viejo primero -->
           <Button
             icon="pi pi-sort-amount-up-alt"
             :class="{ 'p-button-outlined': sortOrder !== 'asc' }"
@@ -62,15 +53,43 @@
           />
         </div>
 
-        <!-- 🕒 Mensaje mientras carga -->
-        <template v-if="sessionsStore.sessions.length === 0">
-          <div
-            class="flex flex-column align-items-center justify-content-center p-3 text-center text-500"
-          >
+        <!-- 🕒 Cargando -->
+        <template v-if="isLoading">
+          <div class="flex flex-column align-items-center justify-content-center p-3 text-center text-500">
             <i class="pi pi-spin pi-spinner mb-2" style="font-size: 4rem"></i>
             <span>{{ t('Loading sessions...') }}</span>
           </div>
         </template>
+
+        <!-- ❌ Error de carga -->
+        <template v-else-if="loadError">
+          <div class="flex flex-column align-items-center justify-content-center p-3 text-center text-500">
+            <i class="pi pi-exclamation-triangle mb-2" style="font-size: 2rem"></i>
+            <span>{{ t('There was a problem loading sessions') }}</span>
+            <Button class="mt-3" icon="pi pi-refresh" label="Reintentar" @click="reload" />
+          </div>
+        </template>
+
+        <!-- 🟨 Sin resultados por búsqueda (solo cuando NO está cargando) -->
+        <template v-else-if="!isLoading && sortedSessions.length === 0 && searchText">
+          <div class="flex flex-column align-items-center justify-content-center p-3 text-center text-500">
+            <i class="pi pi-search mb-2" style="font-size: 2rem"></i>
+            <span>{{ t('No results for') }} “{{ searchText }}”</span>
+          </div>
+        </template>
+
+        <!-- 🟩 Lista vacía (sin filtros) solo cuando ya “decidimos” dejar de cargar -->
+        <!-- 🟩 Estado vacío minimalista -->
+        <template v-else-if="!isLoading && hasLoadedOnce && sortedSessions.length === 0">
+          <div class="flex flex-column align-items-center justify-content-center p-4 text-center text-500">
+            <i class="pi pi-inbox mb-3" style="font-size: 3rem; opacity: .6"></i>
+            <div class="mb-3" style="opacity:.8">{{ t('') }}</div>
+            <div class="flex gap-2">
+              <Button icon="pi pi-refresh" :label="t('Reload')" @click="reload" />
+            </div>
+          </div>
+        </template>
+
 
         <!-- ✅ Contenido cuando hay sesiones -->
         <template v-else>
@@ -103,10 +122,7 @@
 
             <!-- 📋 Vista plana -->
             <template v-else>
-              <div
-                class="flex flex-column gap-0 overflow-auto"
-                :key="'flatList-admin-' + searchText + sortOrder"
-              >
+              <div class="flex flex-column gap-0 overflow-auto" :key="'flatList-admin-' + searchText + sortOrder">
                 <MenuItem
                   v-for="session in sortedSessions"
                   :key="session.SessionId"
@@ -137,10 +153,7 @@
 
             <!-- 📋 Vista plana -->
             <template v-else>
-              <div
-                class="flex flex-column gap-0 overflow-auto"
-                :key="'flatList-user-' + searchText + sortOrder"
-              >
+              <div class="flex flex-column gap-0 overflow-auto" :key="'flatList-user-' + searchText + sortOrder">
                 <MenuItem
                   v-for="session in sortedSessions"
                   :key="session.SessionId"
@@ -166,15 +179,11 @@
   </div>
 </template>
 
-
-
 <script lang="ts" setup>
-import { ref, computed, onBeforeMount } from "vue";
-import { useSessionsStore, useUsersStore } from "../store";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 
-// 🧩 Componentes UI
 import NavigationBar from "../components/NavigationBar.vue";
 import SideMenu from "../components/SideMenu.vue";
 import MenuItem from "../components/MenuItem.vue";
@@ -184,7 +193,8 @@ import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Tooltip from "primevue/tooltip";
 
-// Activar tooltips (si no lo tienes global)
+import { useSessionsStore, useUsersStore } from "../store";
+
 defineExpose({ Tooltip });
 
 const { t } = useI18n();
@@ -192,17 +202,25 @@ const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const route = useRoute();
 
-// 🔎 texto de búsqueda
+// 🔎 búsqueda
 const searchText = ref("");
 
-// 👁️ modo de visualización y orden
-// 👁️ modo de visualización y orden
-const viewMode = ref<"tree" | "flat">("flat"); 
-const sortOrder = ref<"asc" | "desc">("desc"); 
+// 👁️ vista/orden
+const viewMode = ref<"tree" | "flat">("flat");
+const sortOrder = ref<"asc" | "desc">("desc");
+
+// 🔁 flags LOCALES
+const isLoading = ref(true);
+const loadError = ref<unknown | null>(null);
+const hasLoadedOnce = ref(false);
+
+// ⏱️ control de timeout y watcher para la primera carga
+let emptyTimeout: ReturnType<typeof setTimeout> | null = null;
+let stopFirstWatch: (() => void) | null = null;
 
 // 🌳 Agrupado por DeviceID (usuarios normales)
 const groupedByDevice = computed(() => {
-  const grouped: any = {};
+  const grouped: Record<string, any[]> = {};
   sessionsStore.sessions
     .filter((session) => filterSession(session))
     .forEach((session) => {
@@ -222,7 +240,7 @@ const sessionsGrouped = computed(() => {
         grouped[session.userId][session.DeviceId] = [];
       grouped[session.userId][session.DeviceId].push(session);
       return grouped;
-    }, {} as any);
+    }, {} as Record<string, Record<string, any[]>>);
 });
 
 // 📋 Lista plana, ordenada según sortOrder
@@ -243,7 +261,7 @@ function filterSession(session: any) {
   return (
     session.Name?.toLowerCase().includes(s) ||
     session.Surname?.toLowerCase().includes(s) ||
-    session.SessionId?.toLowerCase().includes(s)
+    String(session.SessionId ?? "").toLowerCase().includes(s)
   );
 }
 
@@ -256,9 +274,54 @@ function sortSessions(sessions: any[]) {
   );
 }
 
-// 🔄 Cargar sesiones al montar
-onBeforeMount(async () => {
-  await sessionsStore.fetchAllSessions();
+// 🔄 Lógica de carga robusta sin tocar el store
+async function reload() {
+  // Reinicio de control
+  if (emptyTimeout) { clearTimeout(emptyTimeout); emptyTimeout = null; }
+  if (stopFirstWatch) { stopFirstWatch(); stopFirstWatch = null; }
+
+  isLoading.value = true;
+  loadError.value = null;
+  hasLoadedOnce.value = false;
+
+  try {
+    // 1) Disparar la carga (no dependas de que devuelva/espere una promesa real)
+    const maybePromise = sessionsStore.fetchAllSessions?.();
+    if (maybePromise && typeof maybePromise.then === "function") {
+      // Aun si “resuelve” antes de poblar datos, mantendremos el spinner por el watcher/timeout
+      maybePromise.catch((e: unknown) => { loadError.value = e; });
+    }
+
+    // 2) Watch: si entra algún dato, cerramos loading enseguida
+    stopFirstWatch = watch(
+      () => sessionsStore.sessions.length,
+      (len) => {
+        if (len > 0) {
+          isLoading.value = false;
+          hasLoadedOnce.value = true;
+          if (emptyTimeout) { clearTimeout(emptyTimeout); emptyTimeout = null; }
+          if (stopFirstWatch) { stopFirstWatch(); stopFirstWatch = null; }
+        }
+      },
+      { immediate: false }
+    );
+
+    // 3) Timeout de respaldo: si pasado X ms no llegan datos, mostramos vacío
+    emptyTimeout = setTimeout(() => {
+      isLoading.value = false;
+      hasLoadedOnce.value = true; // “decidimos” que de momento no hay sesiones
+      if (stopFirstWatch) { stopFirstWatch(); stopFirstWatch = null; }
+    }, 5000); // ajusta a tu gusto (2–8s suele ir bien)
+  } catch (e) {
+    loadError.value = e;
+    isLoading.value = false;
+    hasLoadedOnce.value = true;
+  }
+}
+
+// 🚀 Lanzar carga tras el primer render (spinner visible desde el inicio)
+onMounted(() => {
+  reload();
 });
 </script>
 
