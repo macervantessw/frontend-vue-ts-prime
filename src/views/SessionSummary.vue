@@ -365,7 +365,7 @@ const downloadReport = async () => {
         <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
         </span>
         <span v-if="showOptionalElements" class="flex align-items-center gap-2">
-          <Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />
+          <!--<Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />-->
           <Button :label="t('Download report')" class="border-round-3xl flex" icon="pi pi-download" icon-pos="left" @click="downloadReport()" />
         </span>
       </section>
