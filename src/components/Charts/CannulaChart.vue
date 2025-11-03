@@ -36,6 +36,7 @@ import { useUsersStore } from "../../store";
 import type { MenuItem } from "primevue/menuitem";
 
 
+
 dayjs.extend(duration);
 
 const { t } = i18n.global;
@@ -63,6 +64,7 @@ let series: Serie<"Line">[] = [];
 let timeFrom = 0;
 let timeTo = 0;
 let maxScaleValue = ref(10000);
+let zeroPriceLine: ReturnType<ISeriesApi<"Line">["createPriceLine"]> | null = null;
 
 const props = defineProps({
   files: {
@@ -191,17 +193,34 @@ onUnmounted(() => {
   }
 });
 
+function addZeroPriceLine(serie: ISeriesApi<"Line">) {
+  if (zeroPriceLine) {
+    try { serie.removePriceLine(zeroPriceLine); } catch {}
+    zeroPriceLine = null;
+  }
+  zeroPriceLine = serie.createPriceLine({
+    price: 0,
+    color: "#9aa0a6",
+    lineWidth: 1,
+    lineStyle: 2,         // punteada
+    axisLabelVisible: false,
+    title: "",
+  });
+}
+
+
 function zoom(quantity: number) {
-  // Suaviza el paso (igual que hacías)
+  // Misma suavización que usabas
   if (maxScaleValue.value < 20000) quantity = quantity / 6;
   else if (maxScaleValue.value < 35000) quantity = quantity / 2;
 
   maxScaleValue.value = Math.max(0, Math.floor(maxScaleValue.value + quantity));
 
-  // Calcula bound simétrico de CÁNULA en cada click a partir de lo pintado
+  // Localiza la serie de CÁNULA
   const cannula = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
   if (!cannula) return;
 
+  // Calcula bound simétrico ± a partir de lo ya pintado
   const data = Array.from(cannula.data()) as Array<{ time: Time; value?: number; close?: number }>;
   let min = 0, max = 0;
   for (const d of data) {
@@ -209,17 +228,17 @@ function zoom(quantity: number) {
     if (v < min) min = v;
     if (v > max) max = v;
   }
-  const bound = Math.max(Math.abs(min), Math.abs(max), 1) * (quantity >= 0 ? 1.0 : 0.9); // leve ajuste si quieres
+  // Ajuste leve si quieres que el "-" cierre un poco
+  const bound = Math.max(Math.abs(min), Math.abs(max), 1) * (quantity >= 0 ? 1.0 : 0.9);
 
-  // Aplica SOLO a CÁNULA un rango ± que incluya 0
   cannula.applyOptions({
     autoscaleInfoProvider: () => ({
-      priceRange: { minValue: -bound, maxValue: bound },
+      priceRange: { minValue: -bound, maxValue: bound },   // ← incluye 0, muestra negativos
     }),
   });
   cannula.priceScale().applyOptions({ autoScale: true });
 
-  // Limpia cualquier autoscale forzado de otras series (por si quedó algo de pruebas)
+  // Limpia autoscale forzado en otras series (por si quedó algo de pruebas)
   for (const s of series) {
     if (s.serie && s.id !== SIGNALS.CANNULA) {
       (s.serie as any).applyOptions({ autoscaleInfoProvider: undefined });
@@ -227,8 +246,7 @@ function zoom(quantity: number) {
     }
   }
 
-  // Asegura que NO se dibujen ejes ni haya márgenes añadidos
-  // (por si el chart cambió opciones en algún momento)
+  // Garantiza que no se dibujen ejes ni haya márgenes reservados
   chart?.applyOptions({
     leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
     rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
@@ -246,18 +264,22 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       props.files,
       chartsStore.timeAxis,
       signal,
-      false,
+      /* invertValues */ false,
       isCannula ? { signed: true, removeMean: true } : undefined
     )
       .then((data) => {
-        const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color, priceScaleId: 'left' });
+        const serie = chart?.addLineSeries({
+          ...LINE_OPTIONS,
+          color,
+          priceScaleId: 'left',   // todas tus series de este chart en la misma escala oculta
+        });
         if (!serie) return resolve();
 
         serie.setData(data as any);
         series.push({ name, serie, id: signal });
 
         if (isCannula) {
-          // Autoscale ± basado en los datos iniciales (incluye 0)
+          // Autoscale simétrico ± basado en los datos cargados (incluye 0)
           let min = 0, max = 0;
           for (const d of data as any[]) {
             const v = d.value as number;
@@ -272,9 +294,12 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
             }),
           });
           serie.priceScale().applyOptions({ autoScale: true });
+
+          // Línea horizontal en 0
+          addZeroPriceLine(serie);
         }
 
-        // Eventos como antes
+        // Eventos como ya tenías
         if (props.respiratoryEvents && signal === SIGNALS.AIR_FLOW) {
           addedEvents =
             showRespiratoryEvents(chart!, serie, data as unknown as LineData<Time>[], props.respiratoryEvents) || [];
@@ -365,76 +390,60 @@ watch(
     const promises: Promise<void>[] = [];
     const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
 
+    // Usa siempre generateLineSeries para mantener la lógica unificada
     promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
-    getData(props.files, chartsStore.timeAxis, SIGNALS.CANNULA, false, { signed: true, removeMean: true })
-  .then((data) => {
-    const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color: "#80b918", priceScaleId: 'left', });
-    serie?.setData(data as any);
-    series.push({ name: "Cannula", serie: serie!, id: SIGNALS.CANNULA });
-  });
+    promises.push(generateLineSeries(SIGNALS.CANNULA, "Cannula", "#80b918"));
 
     Promise.all(promises).then(() => {
       chart?.timeScale().setVisibleRange({
         from: chartsStore.timeAxis[0] as UTCTimestamp,
-        to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
+        to:   (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
       });
 
-      const airFlowSeries = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
+      const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
       const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
-      const cannula = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
+      const cannulaSeries      = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
 
       maxScaleValue.value = Math.floor(average * 3);
 
       const autoScaleInfoProvider = {
-        priceRange: {
-          minValue: 0,
-          maxValue: maxScaleValue.value,
-        },
+        priceRange: { minValue: 0, maxValue: maxScaleValue.value },
       };
 
       if (airFlowSeries) {
-        airFlowSeries.applyOptions({
-          autoscaleInfoProvider: () => autoScaleInfoProvider,
-        });
-        airFlowSeries.priceScale().applyOptions({
-          autoScale: true,
-          scaleMargins: {
-            top: 0,
-            bottom: 0.1,
-          },
-        });
+        airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
+        airFlowSeries.priceScale().applyOptions({ autoScale: true, scaleMargins: { top: 0, bottom: 0.1 } });
         airFlowSeries.createPriceLine({
           color: "#ffb703",
           price: average,
-          title: "Average: " + average.toFixed(0) + "",
+          title: "Average: " + average.toFixed(0),
           lineStyle: 1,
           lineWidth: 1,
           axisLabelVisible: true,
         });
       }
+
       if (basalAirFlowSeries) {
-        basalAirFlowSeries.applyOptions({
-          autoscaleInfoProvider: () => autoScaleInfoProvider,
-        });
-        basalAirFlowSeries.priceScale().applyOptions({
-          autoScale: true,
+        basalAirFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
+        basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
+      }
+
+      if (cannulaSeries) {
+        // Aquí NO imponemos min=0; generateLineSeries ya puso autoscale ± y la línea de 0.
+        // Solo aseguramos autoscale activo y ningún margen ni ejes visibles.
+        cannulaSeries.priceScale().applyOptions({ autoScale: true });
+        chart?.applyOptions({
+          leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
+          rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
         });
       }
-      if (cannula) {
-        cannula.applyOptions({
-          autoscaleInfoProvider: () => autoScaleInfoProvider,
-          lineWidth: 1,
-        });
-        cannula.priceScale().applyOptions({
-          autoScale: true,
-        });
-      }
-      // console.log("Respiratory Chart has been rendered");
+
       chartsStore.respiratoryChartRendered = true;
     });
   },
 );
+
 </script>
 
 <style scoped>
