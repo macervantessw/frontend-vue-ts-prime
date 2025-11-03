@@ -281,6 +281,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
         }
         cannulaBaseBound.value = Math.max(Math.abs(min), Math.abs(max)) || 1;
 
+         cannulaZoomFactor.value = 0.40;
         // aplica usando el factor acumulativo actual
         serie.applyOptions({
           autoscaleInfoProvider: () => ({
