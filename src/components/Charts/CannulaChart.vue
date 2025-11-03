@@ -194,18 +194,22 @@ onUnmounted(() => {
 });
 
 function addZeroPriceLine(serie: ISeriesApi<"Line">) {
-  if (zeroPriceLine) {
-    try { serie.removePriceLine(zeroPriceLine); } catch {}
-    zeroPriceLine = null;
-  }
-  zeroPriceLine = serie.createPriceLine({
-    price: 0,
-    color: "#9aa0a6",
-    lineWidth: 1,
-    lineStyle: 2,         // punteada
-    axisLabelVisible: false,
-    title: "",
-  });
+ // borra la anterior si existe
+if (zeroPriceLine) {
+  try { serie.removePriceLine(zeroPriceLine); } catch {}
+  zeroPriceLine = null;
+}
+
+// línea de 0 bien visible
+zeroPriceLine = serie.createPriceLine({
+  price: 0,
+  color: "#111827",      // gris casi negro (ajústalo)
+  lineWidth: 1,          // más gruesa
+  lineStyle: 0,          // 0 = sólida
+  axisLabelVisible: false,
+  title: "",             // o "0" si quieres texto
+});
+
 }
 
 
@@ -288,11 +292,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
         });
         serie.priceScale().applyOptions({ autoScale: true });
 
-        // (opcional) línea horizontal en 0
-        if (zeroPriceLine) { try { serie.removePriceLine(zeroPriceLine); } catch {} zeroPriceLine = null; }
-        zeroPriceLine = serie.createPriceLine({
-          price: 0, color: "#9aa0a6", lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: "",
-        });
+         addZeroPriceLine(serie); // 👈 sólida y visible
       }
 
       // eventos como ya tenías...
