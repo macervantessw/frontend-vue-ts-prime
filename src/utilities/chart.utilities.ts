@@ -190,106 +190,110 @@ export function syncronizeCrosshairs(
   chart2Ref: any,
   chart3Ref: any,
   chart4Ref: any,
+  chart5Ref: any,                // 🔹 nuevo: ref del CannulaChart
   mainSerie1Id: string,
   mainSerie2Id: string,
   mainSerie3Id: string,
   mainSerie4Id: string,
+  mainSerie5Id: string,          // 🔹 nuevo: id de la serie principal de cánula
 ) {
-  // const chartsStore = useChartsStore();
-  const chart1: IChartApi = chart1Ref?.getChart();
-  const chart2: IChartApi = chart2Ref?.getChart();
-  const chart3: IChartApi = chart3Ref?.getChart();
-  const chart4: IChartApi = chart4Ref?.getChart();
+  const chart1: IChartApi | undefined = chart1Ref?.getChart?.();
+  const chart2: IChartApi | undefined = chart2Ref?.getChart?.();
+  const chart3: IChartApi | undefined = chart3Ref?.getChart?.();
+  const chart4: IChartApi | undefined = chart4Ref?.getChart?.();
+  const chart5: IChartApi | undefined = chart5Ref?.getChart?.();
 
-  let series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
-  let series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
-  let series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
-  let series4 = chart4Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie4Id);
+  // Busca (perezosamente) la serie principal de cada chart por id
+  let series1: Serie<"Line"> | undefined;
+  let series2: Serie<"Line"> | undefined;
+  let series3: Serie<"Line"> | undefined;
+  let series4: Serie<"Line"> | undefined;
+  let series5: Serie<"Line"> | undefined;
 
-  let mainSeries1: ISeriesApi<"Line"> | undefined = undefined;
-  let mainSeries2: ISeriesApi<"Line"> | undefined = undefined;
-  let mainSeries3: ISeriesApi<"Line"> | undefined = undefined;
-  let mainSeries4: ISeriesApi<"Line"> | undefined = undefined;
+  let main1: ISeriesApi<"Line"> | undefined;
+  let main2: ISeriesApi<"Line"> | undefined;
+  let main3: ISeriesApi<"Line"> | undefined;
+  let main4: ISeriesApi<"Line"> | undefined;
+  let main5: ISeriesApi<"Line"> | undefined;
 
-  const checkSeries = () => {
+  const ensureSeries = () => {
     if (!series1) {
-      series1 = chart1Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie1Id);
-      mainSeries1 = series1?.serie;
+      series1 = chart1Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie1Id);
+      main1 = series1?.serie;
     }
     if (!series2) {
-      series2 = chart2Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie2Id);
-      mainSeries2 = series2?.serie;
+      series2 = chart2Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie2Id);
+      main2 = series2?.serie;
     }
     if (!series3) {
-      series3 = chart3Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie3Id);
-      mainSeries3 = series3?.serie;
+      series3 = chart3Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie3Id);
+      main3 = series3?.serie;
     }
     if (!series4) {
-      series4 = chart4Ref?.getSeries().find((serie: Serie<"Line">) => serie.id === mainSerie4Id);
-      mainSeries4 = series4?.serie;
+      series4 = chart4Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie4Id);
+      main4 = series4?.serie;
+    }
+    if (!series5) {
+      series5 = chart5Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie5Id);
+      main5 = series5?.serie;
     }
   };
-  chart1.subscribeCrosshairMove((param) => {
-    checkSeries();
-    if (!mainSeries1 || !mainSeries2 || !mainSeries3 || !mainSeries4) return;
 
-    const dataPoint = getCrosshairDataPoint(mainSeries1, param);
-    syncCrosshair(chart2, mainSeries2, dataPoint);
-    syncCrosshair(chart3, mainSeries3, dataPoint);
-    syncCrosshair(chart4, mainSeries4, dataPoint);
-    // chartsStore.setCurrentTime(dataPoint?.time as number);
-  });
-  chart2.subscribeCrosshairMove((param) => {
-    checkSeries();
-    if (!mainSeries1 || !mainSeries2 || !mainSeries3 || !mainSeries4) return;
+  // Helper para sincronizar a todos excepto el origen
+  const syncAllExcept = (originChart?: IChartApi, dataPoint?: any) => {
+    const pairs: Array<[IChartApi | undefined, ISeriesApi<"Line"> | undefined]> = [
+      [chart1, main1],
+      [chart2, main2],
+      [chart3, main3],
+      [chart4, main4],
+      [chart5, main5],
+    ];
+    for (const [c, s] of pairs) {
+      if (!c || !s || c === originChart) continue;
+      syncCrosshair(c, s, dataPoint);
+    }
+  };
 
-    const dataPoint = getCrosshairDataPoint(mainSeries2, param);
-    syncCrosshair(chart1, mainSeries1, dataPoint);
-    syncCrosshair(chart3, mainSeries3, dataPoint);
-    syncCrosshair(chart4, mainSeries4, dataPoint);
-    // chartsStore.setCurrentTime(dataPoint?.time as number);
-  });
+  const subscribe = (c?: IChartApi, s?: ISeriesApi<"Line">) => {
+    if (!c || !s) return;
+    c.subscribeCrosshairMove((param) => {
+      ensureSeries();
+      if (!main1 || !main2 || !main3 || !main4 || !main5) {
+        // si aún faltan series, no sincronizamos
+      }
+      const dp = getCrosshairDataPoint(s, param);
+      syncAllExcept(c, dp);
+    });
+  };
 
-  chart3.subscribeCrosshairMove((param) => {
-    checkSeries();
-    if (!mainSeries1 || !mainSeries2 || !mainSeries3 || !mainSeries4) return;
+  ensureSeries();
 
-    const dataPoint = getCrosshairDataPoint(mainSeries3, param);
-    syncCrosshair(chart1, mainSeries1, dataPoint);
-    syncCrosshair(chart2, mainSeries2, dataPoint);
-    syncCrosshair(chart4, mainSeries4, dataPoint);
-    // chartsStore.setCurrentTime(dataPoint?.time as number);
-  });
-
-  chart4?.subscribeCrosshairMove((param) => {
-    checkSeries();
-    if (!mainSeries1 || !mainSeries2 || !mainSeries3 || !mainSeries4) return;
-
-    const dataPoint = getCrosshairDataPoint(mainSeries4, param);
-    syncCrosshair(chart1, mainSeries1, dataPoint);
-    syncCrosshair(chart2, mainSeries2, dataPoint);
-    syncCrosshair(chart3, mainSeries3, dataPoint);
-    // chartsStore.setCurrentTime(dataPoint?.time as number);
-  });
+  subscribe(chart1, main1);
+  subscribe(chart2, main2);
+  subscribe(chart3, main3);
+  subscribe(chart4, main4);
+  subscribe(chart5, main5);
 }
 
+// Igual que antes, pero robusto con value/close
 function getCrosshairDataPoint(series: ISeriesApi<"Line">, param: MouseEventParams<Time>) {
-  if (!param.time) {
-    return null;
-  }
-  const dataPoint = param.seriesData.get(series);
-  return dataPoint || null;
+  if (!param.time) return null;
+  const sd: any = param.seriesData.get(series);
+  if (!sd) return null;
+  // para Line suele ser { time, value }, pero por si acaso:
+  const value = sd.value !== undefined ? sd.value : sd.close;
+  return value !== undefined ? { time: sd.time, value } : null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function syncCrosshair(chart: IChartApi, series: ISeriesApi<"Line">, dataPoint: any) {
   if (!chart) return;
   if (dataPoint) {
     chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
-    return;
+  } else {
+    chart.clearCrosshairPosition();
   }
-  chart.clearCrosshairPosition();
 }
+
 
 export function calculateOxymetryEvents(basalOxymetryData: readonly Data[], oxymetryData: readonly Data[], percentage = 3): Event[] {
   const events = basalOxymetryData.reduce((acc: Event[], curr, index) => {
