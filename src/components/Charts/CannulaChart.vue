@@ -264,43 +264,69 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       signal,
       false,
       isCannula ? { signed: true, removeMean: true } : undefined
-    ).then((data) => {
-      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color, priceScaleId: 'left' });
-      if (!serie) return resolve();
+    )
+      .then((data) => {
+        const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color, priceScaleId: "left" });
+        if (!serie) return resolve();
 
-      serie.setData(data as any);
-      series.push({ name, serie, id: signal });
+        serie.setData(data as any);
+        series.push({ name, serie, id: signal });
 
-      if (isCannula) {
-        // calcula bound base UNA vez
-        let min = 0, max = 0;
-        for (const d of data as any[]) {
-          const v = d.value as number;
-          if (v < min) min = v;
-          if (v > max) max = v;
+        // 🔹 DIBUJAR EVENTOS aquí 🔹
+        if (props.respiratoryEvents && signal === SIGNALS.CANNULA && serie) {
+          addedEvents = showRespiratoryEvents(
+            chart,
+            serie,
+            data as LineData<Time>[],
+            props.respiratoryEvents
+          ) || [];
         }
-        cannulaBaseBound.value = Math.max(Math.abs(min), Math.abs(max)) || 1;
 
-         cannulaZoomFactor.value = 0.40;
-        // aplica usando el factor acumulativo actual
-        serie.applyOptions({
-          autoscaleInfoProvider: () => ({
-            priceRange: {
-              minValue: -cannulaBaseBound.value * cannulaZoomFactor.value,
-              maxValue:  cannulaBaseBound.value * cannulaZoomFactor.value,
-            },
-          }),
-        });
-        serie.priceScale().applyOptions({ autoScale: true });
+        if (props.movementEvents && signal === SIGNALS.CANNULA && serie) {
+          showMovementEvents(
+            chart,
+            serie,
+            data as LineData<Time>[],
+            props.movementEvents,
+            [11, 17],
+            undefined,
+            15
+          );
+        }
 
-         addZeroPriceLine(serie); // 👈 sólida y visible
-      }
+        // 🔸 Opcional: otras funciones como showSnoringEvents, showStateEvents, etc.
+        // showSnoringEvents(chart, serie, data as LineData<Time>[], props.snoringEvents);
 
-      // eventos como ya tenías...
-      resolve();
-    }).catch(() => resolve());
+        // 🔹 Resto de lógica específica de cánula
+        if (isCannula) {
+          let min = 0,
+            max = 0;
+          for (const d of data as any[]) {
+            const v = d.value as number;
+            if (v < min) min = v;
+            if (v > max) max = v;
+          }
+          cannulaBaseBound.value = Math.max(Math.abs(min), Math.abs(max)) || 1;
+          cannulaZoomFactor.value = 0.4;
+          serie.applyOptions({
+            autoscaleInfoProvider: () => ({
+              priceRange: {
+                minValue: -cannulaBaseBound.value * cannulaZoomFactor.value,
+                maxValue: cannulaBaseBound.value * cannulaZoomFactor.value,
+              },
+            }),
+          });
+          serie.priceScale().applyOptions({ autoScale: true });
+
+          addZeroPriceLine(serie); // 👈 línea sólida en 0
+        }
+
+        resolve();
+      })
+      .catch(() => resolve());
   });
 }
+
 
 
 
