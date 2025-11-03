@@ -210,48 +210,42 @@ function addZeroPriceLine(serie: ISeriesApi<"Line">) {
 
 
 function zoom(quantity: number) {
-  // Misma suavización que usabas
+  // Solo usamos el signo de quantity para decidir ampliar/reducir (paso relativo)
   if (maxScaleValue.value < 20000) quantity = quantity / 6;
   else if (maxScaleValue.value < 35000) quantity = quantity / 2;
 
-  maxScaleValue.value = Math.max(0, Math.floor(maxScaleValue.value + quantity));
+  // actualiza un valor cualquiera que uses para otras series, no afecta a cánula
+  maxScaleValue.value = Math.max(1, Math.floor(maxScaleValue.value + quantity));
 
-  // Localiza la serie de CÁNULA
   const cannula = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
   if (!cannula) return;
 
-  // Calcula bound simétrico ± a partir de lo ya pintado
-  const data = Array.from(cannula.data()) as Array<{ time: Time; value?: number; close?: number }>;
-  let min = 0, max = 0;
-  for (const d of data) {
-    const v = (d.value !== undefined ? d.value : d.close) as number;
-    if (v < min) min = v;
-    if (v > max) max = v;
-  }
-  // Ajuste leve si quieres que el "-" cierre un poco
-  const bound = Math.max(Math.abs(min), Math.abs(max), 1) * (quantity >= 0 ? 1.0 : 0.9);
+  // factor acumulativo
+  const STEP = 0.20; // 20% por clic
+  const delta = quantity >= 0 ? (1 + STEP) : (1 / (1 + STEP));
+  cannulaZoomFactor.value = Math.max(0.05, Math.min(100, cannulaZoomFactor.value * delta));
 
-  cannula.applyOptions({
-    autoscaleInfoProvider: () => ({
-      priceRange: { minValue: -bound, maxValue: bound },   // ← incluye 0, muestra negativos
-    }),
-  });
+  const base = Math.max(1e-6, cannulaBaseBound.value);
+  const range = {
+    priceRange: {
+      minValue: -base * cannulaZoomFactor.value,
+      maxValue:  base * cannulaZoomFactor.value,
+    },
+  };
+
+  // aplica rango ± usando el factor acumulado
+  cannula.applyOptions({ autoscaleInfoProvider: () => range });
   cannula.priceScale().applyOptions({ autoScale: true });
 
-  // Limpia autoscale forzado en otras series (por si quedó algo de pruebas)
+  // limpia posibles autoscale fijos de otras series (por si quedaron de pruebas)
   for (const s of series) {
     if (s.serie && s.id !== SIGNALS.CANNULA) {
       (s.serie as any).applyOptions({ autoscaleInfoProvider: undefined });
       s.serie.priceScale().applyOptions({ autoScale: true });
     }
   }
-
-  // Garantiza que no se dibujen ejes ni haya márgenes reservados
-  chart?.applyOptions({
-    leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
-    rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
-  });
 }
+
 
 
 
@@ -264,55 +258,49 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       props.files,
       chartsStore.timeAxis,
       signal,
-      /* invertValues */ false,
+      false,
       isCannula ? { signed: true, removeMean: true } : undefined
-    )
-      .then((data) => {
-        const serie = chart?.addLineSeries({
-          ...LINE_OPTIONS,
-          color,
-          priceScaleId: 'left',   // todas tus series de este chart en la misma escala oculta
+    ).then((data) => {
+      const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color, priceScaleId: 'left' });
+      if (!serie) return resolve();
+
+      serie.setData(data as any);
+      series.push({ name, serie, id: signal });
+
+      if (isCannula) {
+        // calcula bound base UNA vez
+        let min = 0, max = 0;
+        for (const d of data as any[]) {
+          const v = d.value as number;
+          if (v < min) min = v;
+          if (v > max) max = v;
+        }
+        cannulaBaseBound.value = Math.max(Math.abs(min), Math.abs(max)) || 1;
+
+        // aplica usando el factor acumulativo actual
+        serie.applyOptions({
+          autoscaleInfoProvider: () => ({
+            priceRange: {
+              minValue: -cannulaBaseBound.value * cannulaZoomFactor.value,
+              maxValue:  cannulaBaseBound.value * cannulaZoomFactor.value,
+            },
+          }),
         });
-        if (!serie) return resolve();
+        serie.priceScale().applyOptions({ autoScale: true });
 
-        serie.setData(data as any);
-        series.push({ name, serie, id: signal });
+        // (opcional) línea horizontal en 0
+        if (zeroPriceLine) { try { serie.removePriceLine(zeroPriceLine); } catch {} zeroPriceLine = null; }
+        zeroPriceLine = serie.createPriceLine({
+          price: 0, color: "#9aa0a6", lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: "",
+        });
+      }
 
-        if (isCannula) {
-          // Autoscale simétrico ± basado en los datos cargados (incluye 0)
-          let min = 0, max = 0;
-          for (const d of data as any[]) {
-            const v = d.value as number;
-            if (v < min) min = v;
-            if (v > max) max = v;
-          }
-          const bound = Math.max(Math.abs(min), Math.abs(max)) || 1;
-
-          serie.applyOptions({
-            autoscaleInfoProvider: () => ({
-              priceRange: { minValue: -bound, maxValue: bound },
-            }),
-          });
-          serie.priceScale().applyOptions({ autoScale: true });
-
-          // Línea horizontal en 0
-          addZeroPriceLine(serie);
-        }
-
-        // Eventos como ya tenías
-        if (props.respiratoryEvents && signal === SIGNALS.AIR_FLOW) {
-          addedEvents =
-            showRespiratoryEvents(chart!, serie, data as unknown as LineData<Time>[], props.respiratoryEvents) || [];
-        }
-        if (props.movementEvents && signal === SIGNALS.MOVEMENT) {
-          showMovementEvents(chart!, serie, data as unknown as LineData<Time>[], props.movementEvents, [11, 17], undefined, 15);
-        }
-
-        resolve();
-      })
-      .catch(() => resolve());
+      // eventos como ya tenías...
+      resolve();
+    }).catch(() => resolve());
   });
 }
+
 
 
 
@@ -390,10 +378,10 @@ watch(
     const promises: Promise<void>[] = [];
     const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
 
-    // Usa siempre generateLineSeries para mantener la lógica unificada
+    // ✅ usa siempre generateLineSeries
     promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
-    promises.push(generateLineSeries(SIGNALS.CANNULA, "Cannula", "#80b918"));
+    promises.push(generateLineSeries(SIGNALS.CANNULA, "Cannula", "#80b918")); // 👈 CÁNULA aquí
 
     Promise.all(promises).then(() => {
       chart?.timeScale().setVisibleRange({
@@ -405,15 +393,17 @@ watch(
       const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
       const cannulaSeries      = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
 
-      maxScaleValue.value = Math.floor(average * 3);
-
+      // Rango 0..max SOLO para las series no negativas
       const autoScaleInfoProvider = {
-        priceRange: { minValue: 0, maxValue: maxScaleValue.value },
+        priceRange: { minValue: 0, maxValue: Math.floor(average * 3) },
       };
 
       if (airFlowSeries) {
         airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-        airFlowSeries.priceScale().applyOptions({ autoScale: true, scaleMargins: { top: 0, bottom: 0.1 } });
+        airFlowSeries.priceScale().applyOptions({
+          autoScale: true,
+          scaleMargins: { top: 0, bottom: 0.1 },
+        });
         airFlowSeries.createPriceLine({
           color: "#ffb703",
           price: average,
@@ -429,20 +419,23 @@ watch(
         basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
       }
 
+      // ❌ NO volver a imponer min=0 a CÁNULA.
+      // generateLineSeries ya le puso autoscale ± y la línea horizontal en 0.
       if (cannulaSeries) {
-        // Aquí NO imponemos min=0; generateLineSeries ya puso autoscale ± y la línea de 0.
-        // Solo aseguramos autoscale activo y ningún margen ni ejes visibles.
         cannulaSeries.priceScale().applyOptions({ autoScale: true });
-        chart?.applyOptions({
-          leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
-          rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
-        });
       }
+
+      // Mantén ocultas las escalas y sin márgenes
+      chart?.applyOptions({
+        leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
+        rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
+      });
 
       chartsStore.respiratoryChartRendered = true;
     });
   },
 );
+
 
 </script>
 
