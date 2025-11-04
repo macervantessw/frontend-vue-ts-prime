@@ -21,12 +21,13 @@ export const useChartsStore = defineStore("Charts", {
     audioChartRendered: false,
     minimapChartRendered: false,
     respiratoryChartRendered: false,
+    cannulaChartRendered: false,
     oxymetryEvents: [] as Event[],
     respiratoryEvents: [] as Event[],
   }),
   getters: {
     allRendered: (state) => {
-      return state.oxymetryChartRendered && state.stateChartRendered && state.audioChartRendered && state.minimapChartRendered && state.respiratoryChartRendered;
+      return state.oxymetryChartRendered && state.stateChartRendered && state.audioChartRendered && state.minimapChartRendered && state.respiratoryChartRendered && state.cannulaChartRendered;
     },
     selectionRangeDuration: (state) => {
       if (!state.selection.range?.to || !state.selection.range?.from) return VISIBLE_MINUTES + " min";
@@ -43,6 +44,7 @@ export const useChartsStore = defineStore("Charts", {
       this.audioChartRendered = false;
       this.minimapChartRendered = false;
       this.respiratoryChartRendered = false;
+      this.cannulaChartRendered = false;
     },
     setCurrentTime(time: number) {
       const sessionsStore = useSessionsStore();

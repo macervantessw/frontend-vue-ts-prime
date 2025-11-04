@@ -457,8 +457,7 @@ watch(
         leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
         rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
       });
-
-      chartsStore.respiratoryChartRendered = true;
+      chartsStore.cannulaChartRendered = true;
     });
   },
 );

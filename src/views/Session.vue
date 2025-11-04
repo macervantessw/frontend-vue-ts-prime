@@ -170,6 +170,7 @@ onMounted(() => {
     respiratoryChartRef.value,
     stateChartRef.value,
     audioChartRef.value,
+    cannulaChartRef.value, // 🔽 nou
     SIGNALS.OXIMETRY,
     SIGNALS.AIR_FLOW,
     SIGNALS.STATE,
