@@ -43,6 +43,7 @@
       @wheel.prevent="wheelHandler"
     />
     <!-- 🔽 Nou gràfic de cànula -->
+    <!--
     <CannulaChart
       v-if="sessionsStore.selectedSession"
       ref="cannulaChartRef"
@@ -52,6 +53,7 @@
       class="card chart-container h-full w-full shadow-2 relative"
       @wheel.prevent="wheelHandler"
     />
+    -->
     <AudioChart
       ref="audioChartRef"
       :files="zippedFiles"
@@ -86,13 +88,13 @@ import StateChart from "../components/Charts/StateChart.vue";
 import VideoPlayer from "../components/Video/VideoPlayer.vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import CannulaChart from "../components/Charts/CannulaChart.vue";
+//import CannulaChart from "../components/Charts/CannulaChart.vue";
 
 const { t } = useI18n();
 
 dayjs.extend(duration);
 
-const cannulaChartRef = ref();
+//const cannulaChartRef = ref();
 const keys = useMagicKeys();
 const audioChartRef = ref();
 const fromIndexRef = ref(-999);
@@ -130,11 +132,11 @@ onMounted(() => {
   const respiratoryChart: IChartApi = respiratoryChartRef.value?.getChart();
   const stateChart: IChartApi = stateChartRef.value?.getChart();
   const audioChart: IChartApi = audioChartRef.value?.getChart();
-  const cannulaChart: IChartApi = cannulaChartRef.value?.getChart(); // 🔽 nou
+  //const cannulaChart: IChartApi = cannulaChartRef.value?.getChart(); // 🔽 nou
 
   // helper per propagar el rang a tots menys l’origen
   const others = (origin: IChartApi) =>
-    [oxChart, respiratoryChart, stateChart, audioChart, cannulaChart].filter(c => c && c !== origin) as IChartApi[];
+    [oxChart, respiratoryChart, stateChart, audioChart].filter(c => c && c !== origin) as IChartApi[];
 
   oxChart.timeScale().subscribeVisibleLogicalRangeChange((timeRange) => {
     others(oxChart).forEach(c => c.timeScale().setVisibleLogicalRange(timeRange as Range<number>));
@@ -170,12 +172,12 @@ onMounted(() => {
     respiratoryChartRef.value,
     stateChartRef.value,
     audioChartRef.value,
-    cannulaChartRef.value, // 🔽 nou
+    //cannulaChartRef.value, // 🔽 nou
     SIGNALS.OXIMETRY,
     SIGNALS.AIR_FLOW,
     SIGNALS.STATE,
     SIGNALS.AUDIO,
-    SIGNALS.CANNULA, // 🔽 nou
+    //SIGNALS.CANNULA, // 🔽 nou
   );
 });
 

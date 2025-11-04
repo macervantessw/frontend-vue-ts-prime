@@ -21,7 +21,7 @@ export const useChartsStore = defineStore("Charts", {
     audioChartRendered: false,
     minimapChartRendered: false,
     respiratoryChartRendered: false,
-    cannulaChartRendered: false,
+    cannulaChartRendered: true,
     oxymetryEvents: [] as Event[],
     respiratoryEvents: [] as Event[],
   }),
@@ -44,7 +44,7 @@ export const useChartsStore = defineStore("Charts", {
       this.audioChartRendered = false;
       this.minimapChartRendered = false;
       this.respiratoryChartRendered = false;
-      this.cannulaChartRendered = false;
+      this.cannulaChartRendered = true;
     },
     setCurrentTime(time: number) {
       const sessionsStore = useSessionsStore();

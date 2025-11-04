@@ -190,18 +190,15 @@ export function syncronizeCrosshairs(
   chart2Ref: any,
   chart3Ref: any,
   chart4Ref: any,
-  chart5Ref: any,                // 🔹 nuevo: ref del CannulaChart
   mainSerie1Id: string,
   mainSerie2Id: string,
   mainSerie3Id: string,
   mainSerie4Id: string,
-  mainSerie5Id: string,          // 🔹 nuevo: id de la serie principal de cánula
 ) {
   const chart1: IChartApi | undefined = chart1Ref?.getChart?.();
   const chart2: IChartApi | undefined = chart2Ref?.getChart?.();
   const chart3: IChartApi | undefined = chart3Ref?.getChart?.();
   const chart4: IChartApi | undefined = chart4Ref?.getChart?.();
-  const chart5: IChartApi | undefined = chart5Ref?.getChart?.();
 
   // Busca (perezosamente) la serie principal de cada chart por id
   let series1: Serie<"Line"> | undefined;
@@ -233,10 +230,10 @@ export function syncronizeCrosshairs(
       series4 = chart4Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie4Id);
       main4 = series4?.serie;
     }
-    if (!series5) {
+    /*if (!series5) {
       series5 = chart5Ref?.getSeries?.().find((s: Serie<"Line">) => s.id === mainSerie5Id);
       main5 = series5?.serie;
-    }
+    }*/
   };
 
   // Helper para sincronizar a todos excepto el origen
@@ -246,7 +243,6 @@ export function syncronizeCrosshairs(
       [chart2, main2],
       [chart3, main3],
       [chart4, main4],
-      [chart5, main5],
     ];
     for (const [c, s] of pairs) {
       if (!c || !s || c === originChart) continue;
@@ -272,7 +268,7 @@ export function syncronizeCrosshairs(
   subscribe(chart2, main2);
   subscribe(chart3, main3);
   subscribe(chart4, main4);
-  subscribe(chart5, main5);
+
 }
 
 // Igual que antes, pero robusto con value/close
