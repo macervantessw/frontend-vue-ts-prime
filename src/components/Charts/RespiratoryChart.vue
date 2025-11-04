@@ -1,12 +1,28 @@
 <template>
   <div>
-    <div ref="chartContainer" class="lw-chart absolute w-full" :class="{ 'opacity-0': !chartsStore.allRendered }"></div>
+    <div
+      ref="chartContainer"
+      class="lw-chart absolute w-full"
+      :class="{ 'opacity-0': !chartsStore.allRendered }"
+    ></div>
 
+    <!-- Controles de zoom -->
     <ZoomControls
       class="absolute right-0 m-2 z-5"
       :class="{ 'opacity-0': !chartsStore.allRendered }"
       @zoom-in="zoom(10000)"
       @zoom-out="zoom(-10000)"
+    />
+
+    <!-- Selector de modo (solo si hay cánula disponible) -->
+    <SelectButton
+      v-if="hasCannula"
+      class="absolute right-28 top-0 m-2 z-5"
+      :class="{ 'opacity-0': !chartsStore.allRendered }"
+      :options="viewModes"
+      optionLabel="label"
+      optionValue="value"
+      v-model="mode"
     />
 
     <Skeleton v-if="!chartsStore.allRendered" class="w-full h-full absolute"></Skeleton>
@@ -19,7 +35,11 @@
       <div style="color: black">{{ dayjs(dateStr).format("HH:mm:ss:SSS") }}</div>
     </ChartTooltip>
 
-    <span v-if="selectedTime" id="selected-time" class="absolute p-1 px-3 m-1 text-lg z-5 font-semibold border-round">
+    <span
+      v-if="selectedTime"
+      id="selected-time"
+      class="absolute p-1 px-3 m-1 text-lg z-5 font-semibold border-round"
+    >
       {{ t("selected-time") }}: {{ selectedTime }}
     </span>
 
@@ -29,7 +49,7 @@
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType } from "vue";
+import { ref, onMounted, onUnmounted, watch, defineExpose, defineProps, PropType, computed } from "vue";
 import { IChartApi, ISeriesApi, LineData, MouseEventParams, Time, UTCTimestamp, createChart } from "lightweight-charts";
 import { useChartsStore, useSessionsStore } from "../../store";
 import { getData, getAverage } from "../../utilities/file.utilities";
@@ -47,6 +67,7 @@ import ContextMenu from "primevue/contextmenu";
 import ZoomControls from "./ZoomControls.vue";
 import { useUsersStore } from "../../store";
 import type { MenuItem } from "primevue/menuitem";
+import SelectButton from "primevue/selectbutton";
 
 dayjs.extend(duration);
 
@@ -74,11 +95,11 @@ let timeTo = 0;
 let maxScaleValue = ref(10000);
 
 // ---- modo cánula como CannulaChart
-const useCannula = ref(false);
 const cannulaBaseBound = ref(1);
 const cannulaZoomFactor = ref(0.4);
 let zeroPriceLine: ReturnType<ISeriesApi<"Line">["createPriceLine"]> | null = null;
 
+// ---- props
 const props = defineProps({
   files: {
     type: Object as PropType<Record<string, JSZip.JSZipObject>>,
@@ -94,17 +115,33 @@ const props = defineProps({
   },
 });
 
+// ---- helpers de señal y modo
 const hasSignal = (key: string) => !!props.files?.[key];
+const hasCannula = computed(() => hasSignal(SIGNALS.CANNULA));
 
+type ViewMode = "respiratory" | "cannula";
+const viewModes = ref([
+  { label: t("Movemet view"), value: "respiratory" as ViewMode },
+  { label: t("Cannula like to view"),     value: "cannula"     as ViewMode },
+]);
+
+// Arranque por defecto
+const mode = ref<ViewMode>(hasSignal(SIGNALS.CANNULA) ? "respiratory" : "respiratory");
+
+// Computados clave
+const useCannula = computed(() => hasCannula.value && mode.value === "cannula");
+const mainSerieId = computed(() => (useCannula.value ? SIGNALS.CANNULA : SIGNALS.AIR_FLOW));
+
+// ---- API pública
 const getChart = () => chart;
 const getSeries = () => series;
 defineExpose({ getChart, getSeries, changeEvent });
 
+// ---- montaje
 onMounted(() => {
   chart = createChart(chartContainer.value, {
     ...CHART_OPTIONS,
     timeScale: { visible: false },
-    // igual que en CannulaChart
     rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
     leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
   });
@@ -124,7 +161,7 @@ onMounted(() => {
       dateStr.value = param.time;
       showTooltip.value = true;
 
-      // atenuación con AirFlow y Basal (igual que siempre)
+      // atenuación con AirFlow y Basal
       const basalSerie = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW);
       const airFlowSerie = series.find((s) => s.id === SIGNALS.AIR_FLOW);
       if (basalSerie && airFlowSerie) {
@@ -151,8 +188,7 @@ onMounted(() => {
   });
 
   chart.subscribeClick((param: MouseEventParams) => {
-    const mainSerieId = useCannula.value ? SIGNALS.CANNULA : SIGNALS.AIR_FLOW;
-    const serie = series.find((s) => s.id === mainSerieId)?.serie as ISeriesApi<"Line"> | undefined;
+    const serie = series.find((s) => s.id === mainSerieId.value)?.serie as ISeriesApi<"Line"> | undefined;
     if (!serie) return;
 
     chartsStore.setCurrentTime(param.time as number);
@@ -246,12 +282,10 @@ function applyCannulaAutoscaleLikeCannulaChart(serie: ISeriesApi<"Line">, data: 
 // ================================================
 
 function zoom(quantity: number) {
-  // Igual que CannulaChart (vertical)
   if (maxScaleValue.value < 20000) quantity = quantity / 6;
   else if (maxScaleValue.value < 35000) quantity = quantity / 2;
   maxScaleValue.value = Math.max(1, Math.floor(maxScaleValue.value + quantity));
 
-  // Ajuste vertical 0..max en AirFlow/Basal
   const averageSeriesAuto = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
   const airFlowSeries = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
   const basalSeries   = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
@@ -261,7 +295,6 @@ function zoom(quantity: number) {
     s.priceScale().applyOptions({ autoScale: true });
   }
 
-  // Ajuste ± en Cánula
   const cannula = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
   if (cannula && useCannula.value) {
     const STEP = 0.20;
@@ -277,7 +310,6 @@ function zoom(quantity: number) {
     cannula.applyOptions({ autoscaleInfoProvider: () => range });
     cannula.priceScale().applyOptions({ autoScale: true });
 
-    // limpiar autoscale custom de otras series (igual que hacías)
     for (const s of series) {
       if (s.serie && s.id !== SIGNALS.CANNULA) {
         (s.serie as any).applyOptions({ autoscaleInfoProvider: undefined });
@@ -285,6 +317,120 @@ function zoom(quantity: number) {
       }
     }
   }
+}
+
+function clearSeries() {
+  if (chart) {
+    for (const s of series) {
+      try { chart.removeSeries(s.serie as any); } catch {}
+    }
+  }
+  series = [];
+  addedEvents = [];
+  zeroPriceLine = null;
+  selectionBox = undefined;
+  selectedEvent = undefined;
+  timeFrom = 0;
+  timeTo = 0;
+}
+
+async function buildAccordingToMode() {
+  if (!chart) return;
+
+  // 👇 GUARDAR RANGO VISIBLE ANTES DE RECONSTRUIR
+  const prevRange = chart.timeScale().getVisibleRange();
+
+  clearSeries();
+
+  const promises: Promise<void>[] = [];
+  const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
+
+  if (useCannula.value) {
+    // CANNULA MODE: AirFlow + Basal + Cannula
+    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
+    promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
+    promises.push(generateLineSeries(SIGNALS.CANNULA, "Cannula", "#80b918"));
+
+    await Promise.all(promises);
+
+    const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
+    const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
+    const cannulaSeries      = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
+
+    const autoScaleInfoProvider = { priceRange: { minValue: 0, maxValue: Math.floor(average * 3) } };
+
+    if (airFlowSeries) {
+      airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
+      airFlowSeries.priceScale().applyOptions({ autoScale: true, scaleMargins: { top: 0, bottom: 0.1 } });
+      airFlowSeries.createPriceLine({
+        color: "#ffb703",
+        price: average,
+        title: "Average: " + average.toFixed(0),
+        lineStyle: 1,
+        lineWidth: 1,
+        axisLabelVisible: true,
+      });
+    }
+    if (basalAirFlowSeries) {
+      basalAirFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
+      basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
+    }
+    if (cannulaSeries) {
+      cannulaSeries.priceScale().applyOptions({ autoScale: true });
+    }
+  } else {
+    // RESPIRATORY MODE: AirFlow + Basal + Movement
+    promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
+    promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
+    promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
+
+    await Promise.all(promises);
+
+    const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
+    const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
+    const movementSeries     = series.find((s) => s.id === SIGNALS.MOVEMENT)?.serie;
+
+    maxScaleValue.value = Math.floor(average * 3);
+    const autoScaleInfoProvider = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
+
+    if (airFlowSeries) {
+      airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
+      airFlowSeries.priceScale().applyOptions({ autoScale: true, scaleMargins: { top: 0, bottom: 0.1 } });
+      airFlowSeries.createPriceLine({
+        color: "#ffb703",
+        price: average,
+        title: "Average: " + average.toFixed(0),
+        lineStyle: 1,
+        lineWidth: 1,
+        axisLabelVisible: true,
+      });
+    }
+    if (basalAirFlowSeries) {
+      basalAirFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
+      basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
+    }
+    if (movementSeries) {
+      movementSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider, lineWidth: 1 });
+      movementSeries.priceScale().applyOptions({ autoScale: true });
+    }
+  }
+
+  // 👇 RESTAURAR RANGO VISIBLE SI LO HABÍA; si no, aplicar el inicial
+  if (prevRange && prevRange.from != null && prevRange.to != null) {
+    chart.timeScale().setVisibleRange(prevRange);
+  } else {
+    chart.timeScale().setVisibleRange({
+      from: chartsStore.timeAxis[0] as UTCTimestamp,
+      to:   (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
+    });
+  }
+
+  chart.applyOptions({
+    leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
+    rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
+  });
+
+  chartsStore.respiratoryChartRendered = true;
 }
 
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
@@ -299,14 +445,12 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       isCannula ? { signed: true, removeMean: true } : undefined
     )
       .then((data) => {
-        // 👉 EXACTO como CannulaChart: todas en priceScaleId "left"
         const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color, priceScaleId: "left" });
         if (!serie) return resolve();
 
         serie.setData(data as any);
         series.push({ name, serie, id: signal });
 
-        // Eventos según principal
         if (props.respiratoryEvents && (signal === SIGNALS.CANNULA || (!useCannula.value && signal === SIGNALS.AIR_FLOW))) {
           addedEvents = showRespiratoryEvents(
             chart,
@@ -320,7 +464,6 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
           showMovementEvents(chart, serie, data as LineData<Time>[], props.movementEvents, [11, 17], undefined, 15);
         }
 
-        // Ajuste vertical específico
         if (isCannula) {
           applyCannulaAutoscaleLikeCannulaChart(serie, data as LineData<Time>[]);
         }
@@ -348,8 +491,7 @@ function changeEvent(event: Event, eventType: number, i: number = index) {
   chartsStore.respiratoryEvents = [];
   event.eventType = eventType;
 
-  const mainSerieId = useCannula.value ? SIGNALS.CANNULA : SIGNALS.AIR_FLOW;
-  const serie = series.find((s) => s.id === mainSerieId)?.serie as ISeriesApi<"Line"> | undefined;
+  const serie = series.find((s) => s.id === mainSerieId.value)?.serie as ISeriesApi<"Line"> | undefined;
 
   const box = findBox(event);
   if (serie) removeBox(box, serie);
@@ -389,8 +531,7 @@ function drawEvent(event: Event) {
   if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 0.2)";
   else if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,0.2)";
 
-  const mainSerieId = useCannula.value ? SIGNALS.CANNULA : SIGNALS.AIR_FLOW;
-  const serie = series.find((s) => s.id === mainSerieId)?.serie as ISeriesApi<"Line"> | undefined;
+  const serie = series.find((s) => s.id === mainSerieId.value)?.serie as ISeriesApi<"Line"> | undefined;
   if (!serie) return;
   const box = drawBox(chart, from, to, serie, color);
   if (box) addedEvents.push(box);
@@ -403,141 +544,16 @@ const items = ref<MenuItem[]>([
   { label: t("Discard"), command: setEventAsDiscarded },
 ]);
 
+// ---- reconstrucción según eje temporal y modo
 watch(
   () => chartsStore.timeAxis,
-  async () => {
-    // ¿hay CÁNULA?
-    useCannula.value = hasSignal(SIGNALS.CANNULA);
+  async () => { await buildAccordingToMode(); },
+  { immediate: true }
+);
 
-    const promises: Promise<void>[] = [];
-
-    if (useCannula.value) {
-      // 👉 EXACTO como CannulaChart: todas en la misma escala "left"
-      const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
-
-      promises.push(generateLineSeries(SIGNALS.AIR_FLOW,   "Air Flow",       "#ffb703"));
-      promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
-      promises.push(generateLineSeries(SIGNALS.CANNULA,    "Cannula",        "#80b918"));
-
-      Promise.all(promises).then(() => {
-        chart?.timeScale().setVisibleRange({
-          from: chartsStore.timeAxis[0] as UTCTimestamp,
-          to:   (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
-        });
-
-        const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
-        const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
-        const cannulaSeries      = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
-
-        // Igual que CannulaChart:
-        // Rango 0..max SOLO para las series no negativas (Air/Basal)
-        const autoScaleInfoProvider = {
-          priceRange: { minValue: 0, maxValue: Math.floor(average * 3) },
-        };
-
-        if (airFlowSeries) {
-          airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-          airFlowSeries.priceScale().applyOptions({
-            autoScale: true,
-            scaleMargins: { top: 0, bottom: 0.1 },
-          });
-          airFlowSeries.createPriceLine({
-            color: "#ffb703",
-            price: average,
-            title: "Average: " + average.toFixed(0),
-            lineStyle: 1,
-            lineWidth: 1,
-            axisLabelVisible: true,
-          });
-        }
-
-        if (basalAirFlowSeries) {
-          basalAirFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-          basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
-        }
-
-        // Cánula: autoscale ± ya aplicado en generateLineSeries
-        if (cannulaSeries) {
-          cannulaSeries.priceScale().applyOptions({ autoScale: true });
-        }
-
-        // Escalas ocultas como CannulaChart
-        chart?.applyOptions({
-          leftPriceScale:  { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
-          rightPriceScale: { visible: false, borderVisible: false, scaleMargins: { top: 0, bottom: 0 } },
-        });
-
-        chartsStore.respiratoryChartRendered = true;
-      });
-    } else {
-      // RESPIRATORIO CLÁSICO: AirFlow + Basal + Movement (igual que siempre)
-      const average = await getAverage(props.files, SIGNALS.AIR_FLOW);
-
-      promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
-      promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
-      promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
-
-      Promise.all(promises).then(() => {
-        chart?.timeScale().setVisibleRange({
-          from: chartsStore.timeAxis[0] as UTCTimestamp,
-          to: (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
-        });
-
-        const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
-        const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
-        const movement           = series.find((s) => s.id === SIGNALS.MOVEMENT)?.serie;
-
-        maxScaleValue.value = Math.floor(average * 3);
-
-        const autoScaleInfoProvider = {
-          priceRange: {
-            minValue: 0,
-            maxValue: maxScaleValue.value,
-          },
-        };
-
-        if (airFlowSeries) {
-          airFlowSeries.applyOptions({
-            autoscaleInfoProvider: () => autoScaleInfoProvider,
-          });
-          airFlowSeries.priceScale().applyOptions({
-            autoScale: true,
-            scaleMargins: {
-              top: 0,
-              bottom: 0.1,
-            },
-          });
-          airFlowSeries.createPriceLine({
-            color: "#ffb703",
-            price: average,
-            title: "Average: " + average.toFixed(0) + "",
-            lineStyle: 1,
-            lineWidth: 1,
-            axisLabelVisible: true,
-          });
-        }
-        if (basalAirFlowSeries) {
-          basalAirFlowSeries.applyOptions({
-            autoscaleInfoProvider: () => autoScaleInfoProvider,
-          });
-          basalAirFlowSeries.priceScale().applyOptions({
-            autoScale: true,
-          });
-        }
-        if (movement) {
-          movement.applyOptions({
-            autoscaleInfoProvider: () => autoScaleInfoProvider,
-            lineWidth: 1,
-          });
-          movement.priceScale().applyOptions({
-            autoScale: true,
-          });
-        }
-
-        chartsStore.respiratoryChartRendered = true;
-      });
-    }
-  },
+watch(
+  () => mode.value,
+  async () => { await buildAccordingToMode(); }
 );
 </script>
 
