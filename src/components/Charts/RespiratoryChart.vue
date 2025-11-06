@@ -445,19 +445,19 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       isCannula ? { signed: true, removeMean: true } : undefined
     )
       .then((data) => {
-        const serie = chart?.addLineSeries({ ...LINE_OPTIONS, color, priceScaleId: "left" });
+        const serie = chart?.addLineSeries({
+          ...LINE_OPTIONS,
+          color,
+          priceScaleId: "left",
+          lineWidth: isCannula ? 1 : (LINE_OPTIONS as any).lineWidth, // 👈 más fino para cánula
+        });
         if (!serie) return resolve();
 
         serie.setData(data as any);
         series.push({ name, serie, id: signal });
 
         if (props.respiratoryEvents && (signal === SIGNALS.CANNULA || (!useCannula.value && signal === SIGNALS.AIR_FLOW))) {
-          addedEvents = showRespiratoryEvents(
-            chart,
-            serie,
-            data as LineData<Time>[],
-            props.respiratoryEvents
-          ) || [];
+          addedEvents = showRespiratoryEvents(chart, serie, data as LineData<Time>[], props.respiratoryEvents) || [];
         }
 
         if (props.movementEvents && (signal === SIGNALS.CANNULA || signal === SIGNALS.MOVEMENT)) {
@@ -473,6 +473,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       .catch(() => resolve());
   });
 }
+
 
 const showContextualMenu = (event: any) => {
   menu.value.show(event);
