@@ -273,7 +273,7 @@ function applyCannulaAutoscaleLikeCannulaChart(serie: ISeriesApi<"Line">, data: 
 
   // 🔧 Inicializa aquí el zoom inicial de cánula (una sola vez)
   if (!cannulaZoomInitialized.value) {
-    cannulaZoomFactor.value = 0.1; // ← cámbialo si quieres otro zoom inicial
+    cannulaZoomFactor.value = 0.2; // ← cámbialo si quieres otro zoom inicial
     cannulaZoomInitialized.value = true;
   }
 
@@ -435,6 +435,7 @@ async function buildAccordingToMode() {
 function generateLineSeries(signal: string, name: string, color: string): Promise<void> {
   return new Promise((resolve) => {
     const isCannula = signal === SIGNALS.CANNULA;
+    const isMovement = signal === SIGNALS.MOVEMENT;
 
     getData(
       props.files,
@@ -448,7 +449,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
           ...LINE_OPTIONS,
           color,
           priceScaleId: "left",
-          lineWidth: isCannula ? 1 : (LINE_OPTIONS as any).lineWidth, // más fino para cánula
+          lineWidth: (isCannula || isMovement) ? 1 : (LINE_OPTIONS as any).lineWidth,
         });
         if (!serie) return resolve();
 
