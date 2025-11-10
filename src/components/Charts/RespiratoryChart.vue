@@ -94,9 +94,13 @@ let timeFrom = 0;
 let timeTo = 0;
 let maxScaleValue = ref(10000);
 
+// === flags para recordar el zoom por modo ===
+const respZoomInitialized = ref(false);     // Respiratory/Movement: ya fijamos rango base
+const cannulaZoomInitialized = ref(false);  // Cannula: ya fijamos factor inicial
+
 // ---- modo cánula como CannulaChart
 const cannulaBaseBound = ref(1);
-const cannulaZoomFactor = ref(0.4);
+const cannulaZoomFactor = ref(0.4); // valor actual de zoom de cánula (se conserva entre modos)
 let zeroPriceLine: ReturnType<ISeriesApi<"Line">["createPriceLine"]> | null = null;
 
 // ---- props
@@ -121,8 +125,8 @@ const hasCannula = computed(() => hasSignal(SIGNALS.CANNULA));
 
 type ViewMode = "respiratory" | "cannula";
 const viewModes = ref([
-  { label: t("Movemet view"), value: "respiratory" as ViewMode },
-  { label: t("Cannula like to view"),     value: "cannula"     as ViewMode },
+  { label: t("Movement view"),        value: "respiratory" as ViewMode },
+  { label: t("Cannula-like view"),    value: "cannula"     as ViewMode },
 ]);
 
 // Arranque por defecto
@@ -266,7 +270,12 @@ function applyCannulaAutoscaleLikeCannulaChart(serie: ISeriesApi<"Line">, data: 
     if (v > max) max = v;
   }
   cannulaBaseBound.value = Math.max(Math.abs(min), Math.abs(max)) || 1;
-  cannulaZoomFactor.value = 0.4;
+
+  // 🔧 Inicializa aquí el zoom inicial de cánula (una sola vez)
+  if (!cannulaZoomInitialized.value) {
+    cannulaZoomFactor.value = 0.1; // ← cámbialo si quieres otro zoom inicial
+    cannulaZoomInitialized.value = true;
+  }
 
   serie.applyOptions({
     autoscaleInfoProvider: () => ({
@@ -282,41 +291,50 @@ function applyCannulaAutoscaleLikeCannulaChart(serie: ISeriesApi<"Line">, data: 
 // ================================================
 
 function zoom(quantity: number) {
-  if (maxScaleValue.value < 20000) quantity = quantity / 6;
-  else if (maxScaleValue.value < 35000) quantity = quantity / 2;
-  maxScaleValue.value = Math.max(1, Math.floor(maxScaleValue.value + quantity));
+  // Nota: cada modo aplica su propio zoom SIN tocar el estado del otro
 
-  const averageSeriesAuto = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
-  const airFlowSeries = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
-  const basalSeries   = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
-  for (const s of [airFlowSeries, basalSeries]) {
-    if (!s) continue;
-    s.applyOptions({ autoscaleInfoProvider: () => averageSeriesAuto });
-    s.priceScale().applyOptions({ autoScale: true });
-  }
+  if (!useCannula.value) {
+    // ——— modo respiratory/movement ———
+    if (maxScaleValue.value < 20000) quantity = quantity / 6;
+    else if (maxScaleValue.value < 35000) quantity = quantity / 2;
 
-  const cannula = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
-  if (cannula && useCannula.value) {
-    const STEP = 0.20;
-    const delta = quantity >= 0 ? (1 + STEP) : (1 / (1 + STEP));
-    cannulaZoomFactor.value = Math.max(0.05, Math.min(100, cannulaZoomFactor.value * delta));
-    const base = Math.max(1e-6, cannulaBaseBound.value);
-    const range = {
-      priceRange: {
-        minValue: -base * cannulaZoomFactor.value,
-        maxValue:  base * cannulaZoomFactor.value,
-      },
+    maxScaleValue.value = Math.max(1, Math.floor(maxScaleValue.value + quantity));
+
+    const range = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
+    const apply = (s?: ISeriesApi<"Line">) => {
+      if (!s) return;
+      s.applyOptions({ autoscaleInfoProvider: () => range });
+      s.priceScale().applyOptions({ autoScale: true });
     };
-    cannula.applyOptions({ autoscaleInfoProvider: () => range });
-    cannula.priceScale().applyOptions({ autoScale: true });
 
-    for (const s of series) {
-      if (s.serie && s.id !== SIGNALS.CANNULA) {
-        (s.serie as any).applyOptions({ autoscaleInfoProvider: undefined });
-        s.serie.priceScale().applyOptions({ autoScale: true });
-      }
-    }
+    apply(series.find(s => s.id === SIGNALS.AIR_FLOW)?.serie as any);
+    apply(series.find(s => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie as any);
+    apply(series.find(s => s.id === SIGNALS.MOVEMENT)?.serie as any);
+    return;
   }
+
+  // ——— modo cánula ———
+  const STEP = 0.20;
+  const delta = quantity >= 0 ? (1 + STEP) : (1 / (1 + STEP));
+  cannulaZoomFactor.value = Math.max(0.05, Math.min(100, cannulaZoomFactor.value * delta));
+
+  const base = Math.max(1e-6, cannulaBaseBound.value);
+  const range = {
+    priceRange: {
+      minValue: -base * cannulaZoomFactor.value,
+      maxValue:  base * cannulaZoomFactor.value,
+    },
+  };
+
+  const apply = (s?: ISeriesApi<"Line">) => {
+    if (!s) return;
+    s.applyOptions({ autoscaleInfoProvider: () => range });
+    s.priceScale().applyOptions({ autoScale: true });
+  };
+
+  apply(series.find(s => s.id === SIGNALS.CANNULA)?.serie as any);
+  apply(series.find(s => s.id === SIGNALS.AIR_FLOW)?.serie as any);
+  apply(series.find(s => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie as any);
 }
 
 function clearSeries() {
@@ -337,8 +355,9 @@ function clearSeries() {
 async function buildAccordingToMode() {
   if (!chart) return;
 
-  // 👇 GUARDAR RANGO VISIBLE ANTES DE RECONSTRUIR
-  const prevRange = chart.timeScale().getVisibleRange();
+  // 👇 snapshot del rango visible antes de reconstruir
+  const ts = chart.timeScale();
+  const prevRange = ts.getVisibleRange();
 
   clearSeries();
 
@@ -350,76 +369,56 @@ async function buildAccordingToMode() {
     promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
     promises.push(generateLineSeries(SIGNALS.CANNULA, "Cannula", "#80b918"));
-
-    await Promise.all(promises);
-
-    const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
-    const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
-    const cannulaSeries      = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
-
-    const autoScaleInfoProvider = { priceRange: { minValue: 0, maxValue: Math.floor(average * 3) } };
-
-    if (airFlowSeries) {
-      airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-      airFlowSeries.priceScale().applyOptions({ autoScale: true, scaleMargins: { top: 0, bottom: 0.1 } });
-      airFlowSeries.createPriceLine({
-        color: "#ffb703",
-        price: average,
-        title: "Average: " + average.toFixed(0),
-        lineStyle: 1,
-        lineWidth: 1,
-        axisLabelVisible: true,
-      });
-    }
-    if (basalAirFlowSeries) {
-      basalAirFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-      basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
-    }
-    if (cannulaSeries) {
-      cannulaSeries.priceScale().applyOptions({ autoScale: true });
-    }
   } else {
     // RESPIRATORY MODE: AirFlow + Basal + Movement
     promises.push(generateLineSeries(SIGNALS.AIR_FLOW, "Air Flow", "#ffb703"));
     promises.push(generateLineSeries(SIGNALS.BASAL_AIR_FLOW, "Basal Air Flow", "#0077b6"));
     promises.push(generateLineSeries(SIGNALS.MOVEMENT, "Movement", "#80b918"));
+  }
 
-    await Promise.all(promises);
+  await Promise.all(promises);
 
+  if (useCannula.value) {
+    // Aplicar el rango simétrico actual basado en cannulaZoomFactor (no resetear)
+    const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
+    const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
+    const cannulaSeries      = series.find((s) => s.id === SIGNALS.CANNULA)?.serie;
+
+    const base = Math.max(1e-6, cannulaBaseBound.value || 1);
+    const range = {
+      priceRange: {
+        minValue: -base * cannulaZoomFactor.value,
+        maxValue:  base * cannulaZoomFactor.value,
+      },
+    };
+    for (const s of [airFlowSeries, basalAirFlowSeries, cannulaSeries]) {
+      if (!s) continue;
+      s.applyOptions({ autoscaleInfoProvider: () => range });
+      s.priceScale().applyOptions({ autoScale: true });
+    }
+  } else {
+    // Respiratory/Movement: inicializar SOLO la primera vez desde average
+    if (!respZoomInitialized.value) {
+      maxScaleValue.value = Math.floor(average * 3);
+      respZoomInitialized.value = true;
+    }
     const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
     const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
     const movementSeries     = series.find((s) => s.id === SIGNALS.MOVEMENT)?.serie;
 
-    maxScaleValue.value = Math.floor(average * 3);
-    const autoScaleInfoProvider = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
-
-    if (airFlowSeries) {
-      airFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-      airFlowSeries.priceScale().applyOptions({ autoScale: true, scaleMargins: { top: 0, bottom: 0.1 } });
-      airFlowSeries.createPriceLine({
-        color: "#ffb703",
-        price: average,
-        title: "Average: " + average.toFixed(0),
-        lineStyle: 1,
-        lineWidth: 1,
-        axisLabelVisible: true,
-      });
-    }
-    if (basalAirFlowSeries) {
-      basalAirFlowSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider });
-      basalAirFlowSeries.priceScale().applyOptions({ autoScale: true });
-    }
-    if (movementSeries) {
-      movementSeries.applyOptions({ autoscaleInfoProvider: () => autoScaleInfoProvider, lineWidth: 1 });
-      movementSeries.priceScale().applyOptions({ autoScale: true });
+    const range = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
+    for (const s of [airFlowSeries, basalAirFlowSeries, movementSeries]) {
+      if (!s) continue;
+      s.applyOptions({ autoscaleInfoProvider: () => range });
+      s.priceScale().applyOptions({ autoScale: true });
     }
   }
 
-  // 👇 RESTAURAR RANGO VISIBLE SI LO HABÍA; si no, aplicar el inicial
+  // 👇 restaurar rango visible si existía
   if (prevRange && prevRange.from != null && prevRange.to != null) {
-    chart.timeScale().setVisibleRange(prevRange);
+    ts.setVisibleRange(prevRange);
   } else {
-    chart.timeScale().setVisibleRange({
+    ts.setVisibleRange({
       from: chartsStore.timeAxis[0] as UTCTimestamp,
       to:   (chartsStore.timeAxis[0] + VISIBLE_MINUTES * 60 * 1000) as UTCTimestamp,
     });
@@ -449,7 +448,7 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
           ...LINE_OPTIONS,
           color,
           priceScaleId: "left",
-          lineWidth: isCannula ? 1 : (LINE_OPTIONS as any).lineWidth, // 👈 más fino para cánula
+          lineWidth: isCannula ? 1 : (LINE_OPTIONS as any).lineWidth, // más fino para cánula
         });
         if (!serie) return resolve();
 
@@ -473,7 +472,6 @@ function generateLineSeries(signal: string, name: string, color: string): Promis
       .catch(() => resolve());
   });
 }
-
 
 const showContextualMenu = (event: any) => {
   menu.value.show(event);
@@ -541,7 +539,7 @@ function drawEvent(event: Event) {
 const items = ref<MenuItem[]>([
   { label: t("Central Apnea"), command: setEventAsCentralApnea },
   { separator: true },
-  { label: t("Suspicius"), command: setEventAsSuspicious },
+  { label: t("Suspicious"), command: setEventAsSuspicious },
   { label: t("Discard"), command: setEventAsDiscarded },
 ]);
 
