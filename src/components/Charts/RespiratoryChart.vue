@@ -352,6 +352,24 @@ function clearSeries() {
   timeTo = 0;
 }
 
+function addAveragePriceLine(
+  airFlowSeries: ISeriesApi<"Line"> | undefined,
+  average: number
+) {
+  if (!airFlowSeries) return;
+
+  airFlowSeries.createPriceLine({
+    color: "#ffb703",
+    price: average,
+    title: "Average: " + average.toFixed(0),
+    lineStyle: 1,
+    lineWidth: 1,
+    axisLabelVisible: true,
+  });
+}
+
+
+
 async function buildAccordingToMode() {
   if (!chart) return;
 
@@ -405,6 +423,8 @@ async function buildAccordingToMode() {
     const airFlowSeries      = series.find((s) => s.id === SIGNALS.AIR_FLOW)?.serie;
     const basalAirFlowSeries = series.find((s) => s.id === SIGNALS.BASAL_AIR_FLOW)?.serie;
     const movementSeries     = series.find((s) => s.id === SIGNALS.MOVEMENT)?.serie;
+
+    addAveragePriceLine(airFlowSeries, average);
 
     const range = { priceRange: { minValue: 0, maxValue: maxScaleValue.value } };
     for (const s of [airFlowSeries, basalAirFlowSeries, movementSeries]) {
