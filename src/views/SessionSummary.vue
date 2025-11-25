@@ -3,7 +3,7 @@ import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount 
 import { useSessionsStore } from "../store";
 import { useUsersStore } from "../store";
 import { getDatabase, ref as dbRef, get, child, update } from "firebase/database";
-import { getStorage, ref as storageRef, listAll, getDownloadURL } from "firebase/storage";
+import { getStorage, ref as storageRef, listAll, getDownloadURL, uploadBytes } from "firebase/storage";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
 import Textarea from "primevue/textarea";
@@ -38,7 +38,7 @@ const notes = ref<string>("");
 const savingNotes = ref(false);
 const notesLoaded = ref(false);
 
-// Ajusta este path a tu estructura real si difiere
+// Ajusta este path a tu estructura real si difiere (Realtime DB)
 const getSessionPath = (session: any, ownerUserId: string) =>
   `users/${ownerUserId}/Sessions/${session.DeviceId}\\${session.SessionId}\\`;
 // ----------------------------------------------------------
@@ -200,16 +200,13 @@ const loadNotes = async () => {
 };
 
 const saveNotes = async () => {
+  const auth = getAuth();
 
-const auth = getAuth();
- 
-  
   const session = sessionsStore.selectedSession;
   const ownerUserId = session?.userId ?? usersStore.userId;
   if (!session || !ownerUserId) return;
 
-
- console.log("👤 auth.uid:", auth.currentUser?.uid);
+  console.log("👤 auth.uid:", auth.currentUser?.uid);
   console.log("🧩 ownerUserId:", ownerUserId);
   console.log("📂 path:", getSessionPath(session, ownerUserId));
 
@@ -241,6 +238,7 @@ const auth = getAuth();
 };
 // -------------------------------------------------------------------
 
+// ----------------- DESCARGA DE PDF (INFORME) -----------------
 const downloadReport = async () => {
   const session = sessionsStore.selectedSession;
   const usersStore = useUsersStore();
@@ -333,6 +331,97 @@ const downloadReport = async () => {
     });
   }
 };
+// -------------------------------------------------------------------
+
+// ----------------- NUEVO: SUBIDA DE PDF A STORAGE -----------------
+const pdfInput = ref<HTMLInputElement | null>(null);
+const uploadingPdf = ref(false);
+
+const triggerPdfSelect = () => {
+  pdfInput.value?.click();
+};
+
+const onPdfSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) return;
+
+  if (file.type !== "application/pdf") {
+    toast.add({
+      severity: "warn",
+      summary: t("Upload report"),
+      detail: t("Solo se permiten ficheros PDF."),
+      group: "report",
+      life: 5000,
+    });
+    target.value = "";
+    return;
+  }
+
+  await uploadPdf(file);
+
+  // Permitir volver a seleccionar el mismo fichero si hace falta
+  target.value = "";
+};
+
+const uploadPdf = async (file: File) => {
+  const session = sessionsStore.selectedSession;
+  const ownerUserId = session?.userId ?? usersStore.userId;
+
+  if (!session || !ownerUserId) {
+    toast.add({
+      severity: "warn",
+      summary: t("Upload report"),
+      detail: t("No se encontró la sesión o el usuario."),
+      group: "report",
+      life: 5000,
+    });
+    return;
+  }
+
+  try {
+    uploadingPdf.value = true;
+
+    const storage = getStorage();
+
+    // 📂 Path en Storage: Sessions/$UserID/$DeviceID/
+    const storagePath = `Sessions/${ownerUserId}/${session.DeviceId}/${session.SessionId}_${file.name}`;
+    //const storagePath = `Sessions/${ownerUserId}/PSGReports/${session.DeviceId}_${session.SessionId}_${file.name}`;
+
+    console.log("📁 Subiendo PDF a Storage path:", storagePath);
+
+    const fileRef = storageRef(storage, storagePath);
+
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+    console.log("✅ PDF subido. URL de descarga:", url);
+
+    toast.add({
+      severity: "success",
+      summary: t("Upload report"),
+      detail: t("El PDF Uploaded!!"),
+      group: "report",
+      life: 5000,
+    });
+
+    // Si quisieras guardar la URL en Realtime DB:
+    // const db = getDatabase();
+    // await update(dbRef(db, getSessionPath(session, ownerUserId)), { UploadedReportUrl: url });
+  } catch (e: any) {
+    console.error("Error subiendo PDF:", e);
+    toast.add({
+      severity: "error",
+      summary: t("Upload report"),
+      detail: e?.message ?? t("No se pudo subir el PDF."),
+      group: "report",
+      life: 7000,
+    });
+  } finally {
+    uploadingPdf.value = false;
+  }
+};
+// -------------------------------------------------------------------
 </script>
 
 <template>
@@ -359,14 +448,39 @@ const downloadReport = async () => {
       <section class="flex justify-content-between">
         <span>
           <h2 class="w-full text-primary m-0 text-3xl">{{ t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
-        <h3 class="w-full text-primary m-0">{{ t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
-        <h3 class="w-full text-primary m-0">{{ t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
-        <h3 class="w-full text-primary m-0">{{ t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
-        <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
+          <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
         </span>
         <span v-if="showOptionalElements" class="flex align-items-center gap-2">
           <!--<Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />-->
-          <Button :label="t('Download report')" class="border-round-3xl flex" icon="pi pi-download" icon-pos="left" @click="downloadReport()" />
+          <Button
+            :label="t('Download report')"
+            class="border-round-3xl flex"
+            icon="pi pi-download"
+            icon-pos="left"
+            @click="downloadReport()"
+          />
+
+          <!-- 🆕 Botón para subir PDF -->
+          <Button
+            :label="uploadingPdf ? t('Subiendo...') : t('PSG PDF')"
+            class="border-round-3xl flex"
+            icon="pi pi-upload"
+            icon-pos="left"
+            :disabled="uploadingPdf"
+            @click="triggerPdfSelect"
+          />
+
+          <!-- 🆕 Input oculto para seleccionar el PDF -->
+          <input
+            ref="pdfInput"
+            type="file"
+            accept="application/pdf"
+            style="display: none"
+            @change="onPdfSelected"
+          />
         </span>
       </section>
 
@@ -416,9 +530,6 @@ const downloadReport = async () => {
 </template>
 
 <style>
-
-
-
 .invalid-session-banner {
   background-color: #ffcccc;
   color: #cc0000;
@@ -486,6 +597,7 @@ const downloadReport = async () => {
 .btn-go:active {
   bottom: 2px;
 }
+
 /* En pantallas grandes (desktop) la sección de notas se expande */
 @media (min-width: 1024px) {
   .notes-card {
@@ -498,5 +610,4 @@ const downloadReport = async () => {
     width: 100%;            /* El área de texto ocupa todo el ancho */
   }
 }
-
 </style>
