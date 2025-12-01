@@ -46,6 +46,15 @@ const routes = [
         name: "sessionSummary",
         component: () => import("../views/SessionSummary.vue"),
       },
+      {
+      path: "/clinical-form/:sessionId",
+      name: "clinicalForm",
+      meta: {
+        requiresAuth: true,
+      },
+      component: () => import("../views/ClinicalForm.vue"),
+      props: true,
+    },
     ],
   },
   {

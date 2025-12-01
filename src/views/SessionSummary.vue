@@ -3,7 +3,7 @@ import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount 
 import { useSessionsStore } from "../store";
 import { useUsersStore } from "../store";
 import { getDatabase, ref as dbRef, get, child, update } from "firebase/database";
-import { getStorage, ref as storageRef, listAll, getDownloadURL, uploadBytes } from "firebase/storage";
+import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
 import Textarea from "primevue/textarea";
@@ -38,7 +38,7 @@ const notes = ref<string>("");
 const savingNotes = ref(false);
 const notesLoaded = ref(false);
 
-// Ajusta este path a tu estructura real si difiere (Realtime DB)
+// MISMO PATH QUE TENÍAS
 const getSessionPath = (session: any, ownerUserId: string) =>
   `users/${ownerUserId}/Sessions/${session.DeviceId}\\${session.SessionId}\\`;
 // ----------------------------------------------------------
@@ -97,6 +97,13 @@ watch(
 
 const goToSession = () => {
   router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
+};
+
+// 🆕 NUEVO: abrir formulario clínico SIN TOCAR NADA MÁS
+const openClinicalForm = () => {
+  const id = sessionsStore.selectedSession?.SessionId;
+  if (!id) return;
+  router.push(`/clinical-form/${id}`);
 };
 
 const formatDate = (date: number) => {
@@ -333,7 +340,7 @@ const downloadReport = async () => {
 };
 // -------------------------------------------------------------------
 
-// ----------------- NUEVO: SUBIDA DE PDF A STORAGE -----------------
+// ----------------- SUBIDA DE PDF A STORAGE -----------------
 const pdfInput = ref<HTMLInputElement | null>(null);
 const uploadingPdf = ref(false);
 
@@ -385,9 +392,8 @@ const uploadPdf = async (file: File) => {
 
     const storage = getStorage();
 
-    // 📂 Path en Storage: Sessions/$UserID/$DeviceID/
+    // Path original que usabas (lo dejo igual salvo el sufijo de nombre)
     const storagePath = `Sessions/${ownerUserId}/${session.DeviceId}/${session.SessionId}_${file.name}`;
-    //const storagePath = `Sessions/${ownerUserId}/PSGReports/${session.DeviceId}_${session.SessionId}_${file.name}`;
 
     console.log("📁 Subiendo PDF a Storage path:", storagePath);
 
@@ -405,9 +411,7 @@ const uploadPdf = async (file: File) => {
       life: 5000,
     });
 
-    // Si quisieras guardar la URL en Realtime DB:
-    // const db = getDatabase();
-    // await update(dbRef(db, getSessionPath(session, ownerUserId)), { UploadedReportUrl: url });
+    // (Opcional) guardar URL en DB si algún día lo quieres
   } catch (e: any) {
     console.error("Error subiendo PDF:", e);
     toast.add({
@@ -463,7 +467,7 @@ const uploadPdf = async (file: File) => {
             @click="downloadReport()"
           />
 
-          <!-- 🆕 Botón para subir PDF -->
+          <!-- Botón PSG PDF -->
           <Button
             :label="uploadingPdf ? t('Subiendo...') : t('PSG PDF')"
             class="border-round-3xl flex"
@@ -473,13 +477,22 @@ const uploadPdf = async (file: File) => {
             @click="triggerPdfSelect"
           />
 
-          <!-- 🆕 Input oculto para seleccionar el PDF -->
+          <!-- Input oculto para seleccionar el PDF -->
           <input
             ref="pdfInput"
             type="file"
             accept="application/pdf"
             style="display: none"
             @change="onPdfSelected"
+          />
+
+          <!-- 🆕 Botón para formulario clínico (sin tocar los demás) -->
+          <Button
+            :label="t('Clinical form')"
+            class="border-round-3xl flex"
+            icon="pi pi-user-edit"
+            icon-pos="left"
+            @click="openClinicalForm"
           />
         </span>
       </section>
@@ -493,7 +506,7 @@ const uploadPdf = async (file: File) => {
         <MovementSummary v-if="hasMovementData && showOptionalElements" />
       </section>
 
-      <!-- NUEVO: Notas del profesional -->
+      <!-- NUEVO: Notas del profesional (ya lo tenías así) -->
       <section v-if="showOptionalElements" class="notes-card w-full grid justify-content-center sm:justify-content-start">
         <h3 class="m-0 mb-2 text-primary">{{ t('Notas del profesional') }}</h3>
 
@@ -517,6 +530,7 @@ const uploadPdf = async (file: File) => {
         </div>
       </section>
 
+      <!-- Botón view-analysis en su sitio original, abajo a la derecha -->
       <Button
         v-if="showOptionalElements"
         :label="t('view-analysis')"
