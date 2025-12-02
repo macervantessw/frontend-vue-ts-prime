@@ -157,7 +157,7 @@ const hasMovementData = computed(() => !!sessionsStore.selectedSession?.SessionP
 const showOptionalElements = computed(() => !!isProfessional.value || usersStore.isAdmin);
 
 // Criterio para determinar si la sesión es inválida
-const sessionError = computed(() => {
+/*const sessionError = computed(() => {
   const session = sessionsStore.selectedSession;
   if (!session) return null;
 
@@ -181,6 +181,30 @@ const sessionError = computed(() => {
 
   return null;
 });
+
+*/
+const sessionError = computed(() => {
+  const session = sessionsStore.selectedSession;
+  if (!session) return null;
+
+  const raw = session.SessionIsValid;
+
+  // Si no viene definido → no mostrar error
+  if (raw === undefined || raw === null) {
+    return null;
+  }
+
+  // 0 = inválida, 1 = válida
+  if (raw === 0) {
+    return t("Invalid Session");
+  }
+
+  // 1 u otro valor → la consideramos válida
+  return null;
+});
+
+
+
 
 // ----------------- NUEVO: carga y guardado de notas -----------------
 const loadNotes = async () => {

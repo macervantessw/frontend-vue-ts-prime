@@ -9,6 +9,36 @@ import { useMessagesStore } from "./messages.store";
 import axios from "axios";
 import i18n from "../i18n";
 
+
+// ⭐ Añade esta función ARRIBA DEL STORE (fuera de actions)
+function normalizeSession(s: any) {
+  const raw = s.SessionIsValid;
+
+  let normalized: number | null;
+
+  if (raw === 0 || raw === 1) {
+    // Ya es un número correcto
+    normalized = raw;
+  } else if (raw === "0") {
+    normalized = 0;
+  } else if (raw === "1") {
+    normalized = 1;
+  } else if (raw === true) {
+    normalized = 1;
+  } else if (raw === false) {
+    normalized = 0;
+  } else {
+    normalized = null; // no definido / desconocido
+  }
+
+  return {
+    ...s,
+    SessionIsValid: normalized,
+  };
+}
+
+
+
 const { t } = i18n.global;
 export const useSessionsStore = defineStore("Session", {
   state: () => ({
@@ -66,7 +96,7 @@ export const useSessionsStore = defineStore("Session", {
       }
       return undefined;
     },
-    async fetchAllSessions(): Promise<void> {
+    /*async fetchAllSessions(): Promise<void> {
       const messagesStore = useMessagesStore();
       const usersStrore = useUsersStore();
       const ref: DatabaseReference = dbRef(db);
@@ -134,7 +164,135 @@ export const useSessionsStore = defineStore("Session", {
             .catch((error) => console.error(error));
         }
       }
-    },
+    },*/
+async fetchAllSessions(): Promise<void> {
+  const messagesStore = useMessagesStore();
+  const usersStrore = useUsersStore();
+  const ref: DatabaseReference = dbRef(db);
+
+  // ============================================================
+  // ADMIN (isAdmin = true)
+  // ============================================================
+  if (usersStrore.isAdmin) {
+
+    // ---------------- ADMIN con authToken (axios) ----------------
+    if (usersStrore.authToken) {
+      axios
+        .get(`${app.options.databaseURL}/users.json?auth=${usersStrore.authToken}`)
+        .then((response: any) => {
+          response = response.data;
+
+          for (const user in response) {
+            if (response[user].Sessions) {
+              const res = response[user].Sessions;
+
+              const sessions = Object.keys(res).map((key) => {
+                const raw = {
+                  ...res[key],
+                  DeviceId: key.split("\\")[0],
+                  SessionId: key.split("\\")[1],
+                  userId: user,
+                };
+
+                return normalizeSession(raw); // ⭐ NORMALIZAMOS
+              });
+
+              this.sessions.push(...sessions);
+            }
+          }
+        })
+        .catch((error) =>
+          messagesStore.setErrorMessage(t(error.response.data.error ?? error.code))
+        );
+
+      return;
+    }
+
+    // ---------------- ADMIN sin authToken (Realtime Database) ----------------
+    get(child(ref, `users/`))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const response: any = snapshot.val();
+
+          for (const user in response) {
+            if (response[user].Sessions) {
+              const res = response[user].Sessions;
+
+              const sessions = Object.keys(res).map((key) => {
+                const raw = {
+                  ...res[key],
+                  DeviceId: key.split("\\")[0],
+                  SessionId: key.split("\\")[1],
+                  userId: user,
+                };
+
+                return normalizeSession(raw); // ⭐ NORMALIZAMOS
+              });
+
+              this.sessions.push(...sessions);
+            }
+          }
+
+        } else {
+          console.log("No data available");
+        }
+      })
+      .catch((error) => console.error(error));
+
+    return;
+  }
+
+  // ============================================================
+  // USUARIO NORMAL (isAdmin = false)
+  // ============================================================
+
+  // ---------------- USER con authToken (axios) ----------------
+  if (usersStrore.authToken && usersStrore.userId) {
+    axios
+      .get(`${app.options.databaseURL}/users/${usersStrore.userId}/Sessions.json?auth=${usersStrore.authToken}`)
+      .then((response: any) => {
+        response = response.data;
+
+        this.sessions = Object.keys(response).map((key) => {
+          const raw = {
+            ...response[key],
+            DeviceId: key.split("\\")[0],
+            SessionId: key.split("\\")[1],
+            userId: usersStrore.userId,
+          };
+
+          return normalizeSession(raw); // ⭐ NORMALIZAMOS
+        });
+      })
+      .catch((error) =>
+        messagesStore.setErrorMessage(t(error.response.data.error ?? error.code))
+      );
+
+    return;
+  }
+
+  // ---------------- USER sin authToken (Realtime Database) ----------------
+  get(child(ref, `users/${usersStrore.userId}/Sessions/`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        const response: SessionResponse = snapshot.val();
+
+        this.sessions = Object.keys(response).map((key) => {
+          const raw = {
+            ...response[key],
+            DeviceId: key.split("\\")[0],
+            SessionId: key.split("\\")[1],
+            userId: usersStrore.userId,
+          };
+
+          return normalizeSession(raw); // ⭐ NORMALIZAMOS
+        });
+      } else {
+        console.log("No data available");
+      }
+    })
+    .catch((error) => console.error(error));
+},
 
     async fetchSessionInfo(userId: string, patientId: string, sessionId: string): Promise<Session> {
       const ref: DatabaseReference = dbRef(db);

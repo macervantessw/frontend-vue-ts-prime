@@ -80,6 +80,7 @@ export interface Session {
   Type: string;
   Weight: number;
   userId: string;
+  SessionIsValid?: number | null;
 }
 
 export interface SessionResponse {
