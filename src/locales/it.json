@@ -1,117 +1,113 @@
 {
-  "Please fill in all fields": "Si prega di compilare tutti i campi",
-  "Remember me": "Ricordati di me",
-  "Log In": "Login",
+  "Please fill in all fields": "Compila tutti i campi",
+  "Remember me": "Ricordami",
+  "Log In": "Accedi",
   "Welcome Back": "Bentornato",
-  "Email": "E-mail",
+  "Email": "Email",
   "Name": "Nome",
   "Surname": "Cognome",
   "Password": "Password",
   "Repeat password": "Ripeti la password",
-  "Passwords must match": "Le password devono essere identiche",
-  "Weak": "Debole",
-  "medium": "medio",
-  "password": {
-    "suggestions": {
-      "capital": "Almeno una maiuscola",
-      "lowercase": "Almeno una minuscola",
-      "min-chars": "Minimo 8 caratteri",
-      "number": "Almeno un numero"
-    }
-  },
-  "pick-a-password": "scegli una password",
-  "strong": "Forte",
+  "Passwords must match": "Le password devono coincidere",
   "suggestions": "Suggerimenti",
+  "pick-a-password": "Scegli una password",
+  "password.suggestions.lowercase": "Almeno una lettera minuscola",
+  "password.suggestions.capital": "Almeno una lettera maiuscola",
+  "password.suggestions.number": "Almeno un numero",
+  "password.suggestions.min-chars": "Minimo 8 caratteri",
+  "Weak": "Debole",
+  "medium": "Media",
+  "strong": "Forte",
   "Do not have an account": "Non hai un account?",
-  "Create today": "Crea oggi!",
-  "Forgot password": "Ha dimenticato la password?",
-  "Reset your password": "Reimpostare la password",
-  "forgot_password_description": "Inserisci il tuo indirizzo e-mail qui sotto, se è un indirizzo valido ti invieremo un'e-mail con le istruzioni per reimpostare la tua password.",
-  "Send": "Inviare",
+  "Create today": "Crealo ora!",
+  "Forgot password": "Password dimenticata?",
+  "Reset your password": "Reimposta la password",
+  "forgot_password_description": "Inserisci la tua email. Se è valida, riceverai le istruzioni per reimpostare la password.",
+  "Send": "Invia",
   "email-sent": "Email inviata",
-  "Respiratory view": "Vista della respirazione",
-  "wrong-email": "Email o password errata",
-  "too-many-requests": "Troppe richieste, riprovare tra qualche minuto o reimpostare la password.",
-  "Logout": "Disconnessione",
+  "Respiratory view": "Vista respiratoria",
+  "wrong-email": "Email o password errati",
+  "too-many-requests": "Troppi tentativi. Riprova più tardi.",
+  "Logout": "Esci",
   "Session": "Sessione",
   "Patient": "Paziente",
   "Age": "Età",
   "Weight": "Peso",
   "Height": "Altezza",
-  "view-analysis": "ANALISI DETTAGLIATA",
+  "view-analysis": "VEDI ANALISI",
   "Sleep eficiency": "Efficienza del sonno",
   "Central": "Centrale",
   "Total": "Totale",
   "Others": "Altri",
-  "Awake time": "Tempo di veglia",
+  "Awake time": "Tempo sveglio",
   "Sleep Time": "Tempo di sonno",
-  "Permission denied": "Autorizzazione negata",
-  "Total asleep": "Efficienza del sonno",
-  "Num": {
-    " Awakes": "Num. Risvegli"
-  },
+  "ERR_BAD_REQUEST": "Errore nella richiesta",
+  "Permission denied": "Permesso negato",
+  "Total asleep": "Tempo totale addormentato",
+  "sleep-latency": "Latenza",
+  "minutes": "minuti",
   "min": "min",
   "snoring-analysis": "Analisi del russamento",
-  "Total snores": "Russamento totale",
-  "Snores per hour": "Russare per ora",
+  "Total snores": "Russamenti totali",
+  "Snores per hour": "Russamenti per ora",
   "Awakes per hour": "Risvegli per ora",
-  "others-time": "Altri tempi",
-  "Oxymertry analysis": "Analisi ossimetrica",
+  "others-time": "Tempo altri eventi",
+  "Oxymertry analysis": "Analisi dell'ossimetria",
   "Sleep analysis": "Analisi del sonno",
   "respiratory-analysis": "Analisi respiratoria",
-  "Patient info": "Informazioni sul paziente",
+  "Patient info": "Informazioni paziente",
   "Start": "Inizio",
   "End": "Fine",
   "Duration": "Durata",
-  "odi-description": "Numero medio di volte per ora in cui il livello di ossigeno nel sangue si abbassa del 2% rispetto al valore di riferimento.",
-  "visible-range": "Finestra temporale",
+  "odi-description": "Media delle volte all'ora in cui l'ossigeno cala del {num}% dal basale",
+  "visible-range": "Intervallo visibile",
   "selected-time": "Tempo selezionato",
-  "Generate AI report": "Generare il rapporto AI",
+  "Generate AI report": "Genera report AI",
   "Percentage": "Percentuale",
   "Suspicius": "Sospetto",
-  "Discard": "Scartare",
-  "Oximertry analysis": "Analisi dell'ossimetria",
+  "Discard": "Scarta",
+  "Oximertry analysis": "Analisi ossimetrica",
   "Central Apnea": "Apnea centrale",
-  "no-session-selected-please-select-one-session": "Nessuna sessione selezionata, selezionare una sessione.",
-  "Events/h": "Eventi/h",
-  "ai-generated-repport": "Rapporti generati dall'intelligenza artificiale",
-  "Search": "Ricerca",
+  "no-session-selected-please-select-one-session": "Nessuna sessione selezionata",
+  "Events/h": "Eventi/ora",
+  "ai-generated-repport": "Report generato con IA",
+  "Search": "Cerca",
   "movement-analysis": "Analisi del movimento",
   "plm-index": "Indice PLM",
-  "Awake": "Svegliato",
-  "Sleeping": "Dormito",
+  "Awake": "Sveglio",
+  "Sleeping": "Dormendo",
   "Unknown": "Sconosciuto",
-  "Micro-awake": "Micro-sveglia",
+  "Micro-awake": "Micro-risveglio",
   "BMI": "BMI",
-  "sleep-latency": "Latenza",
-  "Micro awakes per hour": "Micro risvegli per ora",
-  "InvalidSession-Badsignal": "Invalid Session: Poor Signal.",
-  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned.",
+  "Num": { " Awakes": "Num. risvegli" },
+  "Micro awakes per hour": "Micro-risvegli per ora",
+  "InvalidSession-Badsignal": "Sessione non valida: segnale scarso",
+  "InvalidSession-Badpossition": "Sessione non valida: posizione della telecamera scorretta",
   "Notas guardadas": "Note salvate",
   "Las notas se han guardado correctamente.": "Le note sono state salvate correttamente.",
   "No se pudieron guardar las notas.": "Impossibile salvare le note.",
   "Error": "Errore",
-  "No se encontró el usuario de la sesión": "Impossibile trovare l'utente della sessione.",
-  "El PDF se está generando, por favor espere...": "Il PDF è in fase di generazione, attendere prego...",
-  "El servidor no devolvió la URL del PDF.": "Il server non ha restituito l'URL del PDF.",
+  "No se encontró el usuario de la sesión": "Impossibile trovare il proprietario della sessione.",
+  "El PDF se está generando, por favor espere...": "Generazione del PDF in corso...",
+  "El servidor no devolvió la URL del PDF.": "Il server non ha fornito l'URL del PDF.",
   "No se pudo descargar el PDF desde Firebase Storage": "Impossibile scaricare il PDF da Firebase Storage.",
-  "El informe PDF se descargó correctamente": "Il rapporto PDF è stato scaricato correttamente.",
-  "Error al generar o descargar el informe": "Errore durante la generazione o il download del rapporto.",
+  "El informe PDF se descargó correctamente": "PDF scaricato correttamente.",
+  "Error al generar o descargar el informe": "Errore nella generazione o nel download del PDF.",
   "Añade observaciones clínicas de esta sesión...": "Aggiungi osservazioni cliniche per questa sessione...",
   "Notas del profesional": "Note del professionista",
   "Guardar notas": "Salva note",
-  "Guardando...": "Salvataggio...",
-  "Loading sessions...": "Caricamento delle sessioni...",
+  "Guardando...": "Salvataggio in corso...",
+  "Loading sessions...": "Caricamento sessioni...",
   "Atención": "Attenzione",
-  "Error al contactar con el servidor": "Errore nel contattare il server",
-  "Crédito: {credit}": "Credito: {credit}",
+  "Error al contactar con el servidor": "Errore di connessione con il server",
+  "Crédito: {credit}": "Crediti: {credit}",
   "ID: {id}": "ID: {id}",
   "Profesional": "Professionista",
   "Importar sesión": "Importa sessione",
   "Transferir crédito": "Trasferisci credito",
   "ID de la sesión": "ID sessione",
   "ID del usuario destino": "ID utente di destinazione",
-  "Cantidad de créditos": "Quantità di crediti",
+  "Cantidad de créditos": "Numero di crediti",
   "Cancelar": "Annulla",
   "Importar": "Importa",
   "Transferir": "Trasferisci",
@@ -120,17 +116,174 @@
   "La sesión {id} ha sido importada.": "La sessione {id} è stata importata.",
   "No se pudo importar la sesión.": "Impossibile importare la sessione.",
   "Debes introducir un ID de usuario y un importe válido.": "Devi inserire un ID utente e un importo valido.",
-  "Saldo insuficiente": "Saldo insufficiente",
-  "No tienes suficientes créditos. Disponibles: {available}.": "Non hai crediti sufficienti. Disponibili: {available}.",
+  "Saldo insuficiente": "Crediti insufficienti",
+  "No tienes suficientes créditos. Disponibles: {available}.": "Non hai abbastanza crediti. Disponibili: {available}.",
   "Transferencia completada": "Trasferimento completato",
-  "Se han transferido {amount} créditos.": "Sono stati trasferiti {amount} crediti.",
+  "Se han transferido {amount} créditos.": "{amount} crediti trasferiti.",
   "No se pudo completar la transferencia: {message}": "Impossibile completare il trasferimento: {message}",
+
   "lowCredits": {
     "title": "Attenzione",
-    "warningCount": "⚠️ Attenzione: i tuoi crediti ({n}) stanno per esaurirsi.",
+    "warningCount": "⚠️ I tuoi crediti ({n}) stanno per finire.",
     "manage": "Gestisci crediti"
   },
-  "common": {
-    "close": "Chiudi"
+
+  "common": { "close": "Chiudi" },
+
+  "clinicalForm": {
+    "title": "Modulo clinico del paziente",
+    "subtitle": "Questo modulo si adatta automaticamente all'età del paziente.",
+    "mode": "Modalità",
+    "modeAdult": "ADULTO",
+    "modePediatric": "PEDIATRICO",
+
+    "saveButton": "Salva",
+
+    "tabs": {
+      "personalData": "Dati personali",
+      "epworth": "Epworth",
+      "stopbang": "STOP-BANG",
+      "lifestyle": "Stile di vita",
+      "medicalHistory": "Anamnesi clinica",
+      "medication": "Farmaci attuali",
+      "bears": "BEARS",
+      "pdss": "PDSS",
+      "pediatricOrl": "ORL pediatrico",
+      "pediatricHistory": "Anamnesi pediatrica",
+      "comments": "Commenti"
+    },
+
+    "placeholders": {
+      "select": "Seleziona",
+      "medication": "Lista dei farmaci attuali",
+      "comments": "Osservazioni aggiuntive"
+    },
+
+    "personal": {
+      "description": "Dati antropometrici e informazioni di base.",
+      "age": "Età (anni)",
+      "sex": "Sesso",
+      "sexMale": "Maschio",
+      "sexFemale": "Femmina",
+      "weight": "Peso (kg)",
+      "height": "Altezza (cm)",
+      "bmi": "BMI",
+      "neck": "Circonferenza del collo (cm)"
+    },
+
+    "epworth": {
+      "description": "Scala di sonnolenza diurna (0–3 per voce).",
+      "totalScore": "Punteggio totale: {score}",
+      "labels": {
+        "sittingReading": "Seduto a leggere",
+        "watchingTV": "Guardando la TV",
+        "sittingInactive": "Seduto inattivo in pubblico",
+        "passengerCar": "Passeggero in auto per 1 ora",
+        "lyingDown": "Sdraiato nel pomeriggio",
+        "talking": "Parlando con qualcuno",
+        "afterLunch": "Dopo pranzo (senza alcol)",
+        "carStopped": "Fermo nel traffico"
+      },
+      "options": {
+        "0": "0 – Mai",
+        "1": "1 – Bassa probabilità",
+        "2": "2 – Probabilità moderata",
+        "3": "3 – Alta probabilità"
+      }
+    },
+
+    "stopbang": {
+      "description": "Questionario di rischio per OSA.",
+      "labels": {
+        "snoring": "Russamento",
+        "tired": "Sonnolenza diurna",
+        "observed": "Apnee osservate",
+        "pressure": "Ipertensione",
+        "bmiOver35": "BMI > 35",
+        "ageOver50": "Età > 50",
+        "neckOver40": "Collo > 40 cm",
+        "male": "Sesso maschile"
+      }
+    },
+
+    "lifestyle": {
+      "alcohol": "Alcol (unità/settimana)",
+      "caffeine": "Bevande con caffeina/giorno",
+
+      "smoking": {
+        "title": "Fumo",
+        "activeSmoker": "Fumatore attivo",
+        "cigarettesPerDay": "Sigarette al giorno",
+        "yearsSmoking": "Anni di fumo",
+        "packYears": "Pack-years"
+      }
+    },
+
+    "medicalHistory": {
+      "labels": {
+        "hypertension": "Ipertensione",
+        "diabetes": "Diabete",
+        "dyslipidemia": "Dislipidemia",
+        "cardiacDiseases": "Patologie cardiache",
+        "respiratoryDiseases": "Patologie respiratorie",
+        "neurologic": "Disturbi neurologici",
+        "psychiatric": "Disturbi psichiatrici",
+        "hypothyroidism": "Ipotiroidismo",
+        "acromegaly": "Acromegalia"
+      }
+    },
+
+    "bears": {
+      "labels": {
+        "bedtimeProblems": "Problemi nell'andare a letto",
+        "excessiveSleepiness": "Sonnolenza diurna eccessiva",
+        "awakenings": "Risvegli notturni",
+        "regularity": "Routine irregolare o insufficiente",
+        "snoring": "Russamento abituale"
+      }
+    },
+
+    "pdss": {
+      "description": "Scala di sonnolenza pediatrica (0–4 per voce).",
+      "totalScore": "Punteggio totale PDSS: {score}",
+
+      "labels": {
+        "sleepyMorning": "Sonnolenza al mattino",
+        "difficultyWaking": "Difficoltà a svegliarsi",
+        "fallAsleepAfternoon": "Si addormenta nel pomeriggio",
+        "longSleepLatency": "Ci mette molto ad addormentarsi",
+        "struggleStayAwake": "Difficoltà a restare sveglio",
+        "napping": "Sonellini frequenti",
+        "inattentiveSchool": "Disattenzione a scuola",
+        "fatigue": "Affaticamento generale"
+      },
+
+      "options": {
+        "0": "0 – Mai",
+        "1": "1 – Quasi mai",
+        "2": "2 – A volte",
+        "3": "3 – Spesso",
+        "4": "4 – Sempre"
+      }
+    },
+
+    "pediatricOrl": {
+      "tonsils": "Tonsille (grado)",
+      "adenoids": "Adenoidi (grado)",
+      "nasalObstruction": "Ostruzione nasale abituale",
+      "mouthBreathing": "Respirazione orale"
+    },
+
+    "pediatricHistory": {
+      "labels": {
+        "prematurity": "Prematurità",
+        "asthma": "Asma",
+        "allergies": "Allergie",
+        "developmentalDisorders": "Disturbi dello sviluppo",
+        "hyperactivity": "Iperattività",
+        "poorSchoolPerformance": "Scarso rendimento scolastico",
+        "schoolHistory": "Anamnesi scolastica"
+      }
+    }
   }
 }

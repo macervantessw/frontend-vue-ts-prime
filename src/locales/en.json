@@ -11,9 +11,9 @@
   "Passwords must match": "Passwords must match",
   "suggestions": "Suggestions",
   "pick-a-password": "Pick a password",
-  "password.suggestions.lowercase": "At least one lowercase",
-  "password.suggestions.capital": "At least one uppercase",
-  "password.suggestions.number": "At least one numeric",
+  "password.suggestions.lowercase": "At least one lowercase letter",
+  "password.suggestions.capital": "At least one uppercase letter",
+  "password.suggestions.number": "At least one number",
   "password.suggestions.min-chars": "Minimum 8 characters",
   "Weak": "Weak",
   "medium": "Medium",
@@ -22,12 +22,12 @@
   "Create today": "Create today!",
   "Forgot password": "Forgot password?",
   "Reset your password": "Reset your password",
-  "forgot_password_description": "Please enter your email below, if it is a valid address we will send you en email with the instructions to reset your password",
+  "forgot_password_description": "Enter your email below; if it is valid, you will receive instructions to reset your password.",
   "Send": "Send",
   "email-sent": "Email sent",
   "Respiratory view": "Respiratory view",
   "wrong-email": "Wrong email or password",
-  "too-many-requests": "Too many requests, please try again in a few minutes or reset your password.",
+  "too-many-requests": "Too many requests, please try again later.",
   "Logout": "Logout",
   "Session": "Session",
   "Patient": "Patient",
@@ -35,7 +35,7 @@
   "Weight": "Weight",
   "Height": "Height",
   "view-analysis": "VIEW ANALYSIS",
-  "Sleep eficiency": "Sleep eficiency",
+  "Sleep eficiency": "Sleep efficiency",
   "Central": "Central",
   "Total": "Total",
   "Others": "Others",
@@ -59,18 +59,18 @@
   "Start": "Start",
   "End": "End",
   "Duration": "Duration",
-  "odi-description": "Average number of times per hour that the blood oxygen level drops by a {num}% from baseline",
+  "odi-description": "Average number of times per hour that blood oxygen drops by {num}% from baseline",
   "visible-range": "Visible range",
   "selected-time": "Selected time",
   "Generate AI report": "Generate AI Report",
   "Percentage": "Percentage",
   "Suspicius": "Suspicious",
   "Discard": "Discard",
-  "Oximertry analysis": "Oximertry analysis",
+  "Oximertry analysis": "Oximetry analysis",
   "Central Apnea": "Central Apnea",
-  "no-session-selected-please-select-one-session": "No session selected, please select one session.",
+  "no-session-selected-please-select-one-session": "No session selected. Please select one.",
   "Events/h": "Events/h",
-  "ai-generated-repport": "AI Generated repport",
+  "ai-generated-repport": "AI-generated report",
   "Search": "Search",
   "movement-analysis": "Movement analysis",
   "plm-index": "PLM Index",
@@ -79,21 +79,19 @@
   "Unknown": "Unknown",
   "Micro-awake": "Micro-awake",
   "BMI": "BMI",
-  "Num": {
-    " Awakes": "Num. Awakes"
-  },
-  "Micro awakes per hour": "Micro awakes per hour",
-  "InvalidSession-Badsignal": "Invalid Session: Poor Signal.",
-  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned.",
+  "Num": { " Awakes": "Num. Awakes" },
+  "Micro awakes per hour": "Micro-awakes per hour",
+  "InvalidSession-Badsignal": "Invalid Session: Poor Signal",
+  "InvalidSession-Badpossition": "Invalid Session: Camera improperly positioned",
   "Notas guardadas": "Notes saved",
-  "Las notas se han guardado correctamente.": "The notes have been saved successfully.",
-  "No se pudieron guardar las notas.": "The notes could not be saved.",
+  "Las notas se han guardado correctamente.": "Notes saved successfully.",
+  "No se pudieron guardar las notas.": "Notes could not be saved.",
   "Error": "Error",
   "No se encontró el usuario de la sesión": "The session owner could not be found.",
-  "El PDF se está generando, por favor espere...": "The PDF report is being generated, please wait...",
-  "El servidor no devolvió la URL del PDF.": "The server did not return the PDF URL.",
-  "No se pudo descargar el PDF desde Firebase Storage": "The PDF could not be downloaded from Firebase Storage.",
-  "El informe PDF se descargó correctamente": "The PDF report was downloaded successfully.",
+  "El PDF se está generando, por favor espere...": "Generating PDF report, please wait...",
+  "El servidor no devolvió la URL del PDF.": "The server did not return a PDF URL.",
+  "No se pudo descargar el PDF desde Firebase Storage": "PDF could not be downloaded from Firebase Storage.",
+  "El informe PDF se descargó correctamente": "PDF report downloaded successfully.",
   "Error al generar o descargar el informe": "Error generating or downloading the report.",
   "Añade observaciones clínicas de esta sesión...": "Add clinical observations for this session...",
   "Notas del profesional": "Professional notes",
@@ -118,17 +116,174 @@
   "La sesión {id} ha sido importada.": "Session {id} has been imported.",
   "No se pudo importar la sesión.": "The session could not be imported.",
   "Debes introducir un ID de usuario y un importe válido.": "You must enter a user ID and a valid amount.",
-  "Saldo insuficiente": "Insufficient balance",
+  "Saldo insuficiente": "Insufficient credits",
   "No tienes suficientes créditos. Disponibles: {available}.": "You do not have enough credits. Available: {available}.",
   "Transferencia completada": "Transfer completed",
-  "Se han transferido {amount} créditos.": "{amount} credits have been transferred.",
-  "No se pudo completar la transferencia: {message}": "The transfer could not be completed: {message}",
+  "Se han transferido {amount} créditos.": "{amount} credits transferred.",
+  "No se pudo completar la transferencia: {message}": "Transfer could not be completed: {message}",
+
   "lowCredits": {
     "title": "Attention",
-    "warningCount": "⚠️ Attention: your credits ({n}) are about to run out.",
+    "warningCount": "⚠️ Attention: your credits ({n}) are running low.",
     "manage": "Manage credits"
   },
-  "common": {
-    "close": "Close"
+
+  "common": { "close": "Close" },
+
+  "clinicalForm": {
+    "title": "Clinical Patient Form",
+    "subtitle": "This form adapts automatically to the patient's age.",
+    "mode": "Mode",
+    "modeAdult": "ADULT",
+    "modePediatric": "PEDIATRIC",
+
+    "saveButton": "Save",
+
+    "tabs": {
+      "personalData": "Personal data",
+      "epworth": "Epworth",
+      "stopbang": "STOP-BANG",
+      "lifestyle": "Lifestyle",
+      "medicalHistory": "Medical history",
+      "medication": "Current medication",
+      "bears": "BEARS",
+      "pdss": "PDSS",
+      "pediatricOrl": "Pediatric ENT",
+      "pediatricHistory": "Pediatric history",
+      "comments": "Comments"
+    },
+
+    "placeholders": {
+      "select": "Select",
+      "medication": "List current medication",
+      "comments": "Additional observations"
+    },
+
+    "personal": {
+      "description": "Anthropometric and basic patient information.",
+      "age": "Age (years)",
+      "sex": "Sex",
+      "sexMale": "Male",
+      "sexFemale": "Female",
+      "weight": "Weight (kg)",
+      "height": "Height (cm)",
+      "bmi": "BMI",
+      "neck": "Neck circumference (cm)"
+    },
+
+    "epworth": {
+      "description": "Daytime sleepiness scale (0–3 per item).",
+      "totalScore": "Total score: {score}",
+      "labels": {
+        "sittingReading": "Sitting and reading",
+        "watchingTV": "Watching TV",
+        "sittingInactive": "Sitting inactive in public",
+        "passengerCar": "Passenger in a car for 1 hour",
+        "lyingDown": "Lying down in the afternoon",
+        "talking": "Talking to someone",
+        "afterLunch": "After lunch (no alcohol)",
+        "carStopped": "Stopped in traffic"
+      },
+      "options": {
+        "0": "0 – Would never doze",
+        "1": "1 – Slight chance",
+        "2": "2 – Moderate chance",
+        "3": "3 – High chance"
+      }
+    },
+
+    "stopbang": {
+      "description": "Obstructive sleep apnea risk questionnaire.",
+      "labels": {
+        "snoring": "Snoring",
+        "tired": "Daytime tiredness",
+        "observed": "Observed apneas",
+        "pressure": "Hypertension",
+        "bmiOver35": "BMI > 35",
+        "ageOver50": "Age > 50",
+        "neckOver40": "Neck > 40 cm",
+        "male": "Male sex"
+      }
+    },
+
+    "lifestyle": {
+      "alcohol": "Alcohol (units/week)",
+      "caffeine": "Caffeinated drinks/day",
+
+      "smoking": {
+        "title": "Smoking",
+        "activeSmoker": "Active smoker",
+        "cigarettesPerDay": "Cigarettes per day",
+        "yearsSmoking": "Years smoking",
+        "packYears": "Pack-years"
+      }
+    },
+
+    "medicalHistory": {
+      "labels": {
+        "hypertension": "Hypertension",
+        "diabetes": "Diabetes",
+        "dyslipidemia": "Dyslipidemia",
+        "cardiacDiseases": "Cardiac disease",
+        "respiratoryDiseases": "Respiratory disease",
+        "neurologic": "Neurologic disorders",
+        "psychiatric": "Psychiatric disorders",
+        "hypothyroidism": "Hypothyroidism",
+        "acromegaly": "Acromegaly"
+      }
+    },
+
+    "bears": {
+      "labels": {
+        "bedtimeProblems": "Bedtime problems",
+        "excessiveSleepiness": "Excessive daytime sleepiness",
+        "awakenings": "Night awakenings",
+        "regularity": "Irregular or insufficient routine",
+        "snoring": "Habitual snoring"
+      }
+    },
+
+    "pdss": {
+      "description": "Pediatric Daytime Sleepiness Scale (0–4 per item).",
+      "totalScore": "Total PDSS score: {score}",
+
+      "labels": {
+        "sleepyMorning": "Morning sleepiness",
+        "difficultyWaking": "Difficulty waking up",
+        "fallAsleepAfternoon": "Falls asleep in the afternoon",
+        "longSleepLatency": "Takes long to fall asleep",
+        "struggleStayAwake": "Struggles to stay awake",
+        "napping": "Frequent naps",
+        "inattentiveSchool": "Inattentive at school",
+        "fatigue": "General fatigue"
+      },
+
+      "options": {
+        "0": "0 – Never",
+        "1": "1 – Almost never",
+        "2": "2 – Sometimes",
+        "3": "3 – Often",
+        "4": "4 – Always"
+      }
+    },
+
+    "pediatricOrl": {
+      "tonsils": "Tonsils (grade)",
+      "adenoids": "Adenoids (grade)",
+      "nasalObstruction": "Chronic nasal obstruction",
+      "mouthBreathing": "Mouth breathing"
+    },
+
+    "pediatricHistory": {
+      "labels": {
+        "prematurity": "Prematurity",
+        "asthma": "Asthma",
+        "allergies": "Allergies",
+        "developmentalDisorders": "Developmental disorders",
+        "hyperactivity": "Hyperactivity",
+        "poorSchoolPerformance": "Poor school performance",
+        "schoolHistory": "School-related history"
+      }
+    }
   }
 }
