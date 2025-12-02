@@ -332,36 +332,38 @@ import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import { useUsersStore } from "../store";
 
-
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
-
 
 /* ─────────────────────────────────────────────────────────── */
 /*         FORMULARIO BASE (ADULTO + PEDIÁTRICO)               */
 /* ─────────────────────────────────────────────────────────── */
 
+/* Default Epworth: evita que “desaparezcan” preguntas cuando faltan claves */
+const epworthDefault = {
+  sittingReading: null as number | null,
+  watchingTV: null as number | null,
+  sittingInactive: null as number | null,
+  passengerCar: null as number | null,
+  lyingDown: null as number | null,
+  talking: null as number | null,
+  afterLunch: null as number | null,
+  carStopped: null as number | null,
+};
+
 const form = ref({
   personalData: {
-  age: null as number | null,
-  sex: "" as string,
-  weight: null as number | null,
-  height: null as number | null,
-  bmi: null as number | null,
-  neck: null as number | null,
-},
-
+    age: null as number | null,
+    sex: "" as string,
+    weight: null as number | null,
+    height: null as number | null,
+    bmi: null as number | null,
+    neck: null as number | null,
+  },
 
   /* Adulto */
   epworth: {
-    sittingReading: null,
-    watchingTV: null,
-    sittingInactive: null,
-    passengerCar: null,
-    lyingDown: null,
-    talking: null,
-    afterLunch: null,
-    carStopped: null,
+    ...epworthDefault,
   },
 
   stopbang: {
@@ -376,12 +378,12 @@ const form = ref({
   },
 
   lifestyle: {
-    alcohol: null,
-    caffeine: null,
+    alcohol: null as number | null,
+    caffeine: null as number | null,
     smoking: {
       active: false,
-      cigarettesPerDay: null,
-      yearsSmoking: null,
+      cigarettesPerDay: null as number | null,
+      yearsSmoking: null as number | null,
     },
   },
 
@@ -409,19 +411,19 @@ const form = ref({
   },
 
   pdss: {
-    sleepyMorning: null,
-    difficultyWaking: null,
-    fallAsleepAfternoon: null,
-    longSleepLatency: null,
-    struggleStayAwake: null,
-    napping: null,
-    inattentiveSchool: null,
-    fatigue: null,
+    sleepyMorning: null as number | null,
+    difficultyWaking: null as number | null,
+    fallAsleepAfternoon: null as number | null,
+    longSleepLatency: null as number | null,
+    struggleStayAwake: null as number | null,
+    napping: null as number | null,
+    inattentiveSchool: null as number | null,
+    fatigue: null as number | null,
   },
 
   pediatricOrl: {
-    tonsils: null,
-    adenoids: null,
+    tonsils: null as number | null,
+    adenoids: null as number | null,
     nasalObstruction: false,
     mouthBreathing: false,
   },
@@ -454,28 +456,26 @@ const isPediatric = computed(() => {
 const autoImportSessionFields = () => {
   const session = sessionsStore.selectedSession;
 
-    console.log("Selected session:", session);
-  
+  console.log("Selected session:", session);
+
   if (!session) return;
 
   // Solo rellenar si está vacío
   if (!form.value.personalData.age && session.Age)
     form.value.personalData.age = session.Age;
 
-
   if (!form.value.personalData.weight && session.Weight)
     form.value.personalData.weight = session.Weight;
 
   if (!form.value.personalData.height && session.Height)
     form.value.personalData.height = session.Height;
-
 };
 
 /* ────────────────────────────────────────────── */
 /*                    CÁLCULOS                    */
 /* ────────────────────────────────────────────── */
 
-const epworthLabels = {
+const epworthLabels: Record<string, string> = {
   sittingReading: "Sentado leyendo",
   watchingTV: "Viendo televisión",
   sittingInactive: "Sentado inactivo en público",
@@ -500,7 +500,7 @@ const epworthScore = computed(() => {
   );
 });
 
-const stopbangLabels = {
+const stopbangLabels: Record<string, string> = {
   snoring: "Ronquidos",
   tired: "Somnolencia diurna",
   observed: "Apneas observadas",
@@ -511,7 +511,7 @@ const stopbangLabels = {
   male: "Sexo masculino",
 };
 
-const bearsLabels = {
+const bearsLabels: Record<string, string> = {
   bedtimeProblems: "Problemas al irse a la cama",
   excessiveSleepiness: "Somnolencia diurna excesiva",
   awakenings: "Despertares nocturnos",
@@ -519,7 +519,7 @@ const bearsLabels = {
   snoring: "Ronquido habitual",
 };
 
-const pdssLabels = {
+const pdssLabels: Record<string, string> = {
   sleepyMorning: "Somnolencia por la mañana",
   difficultyWaking: "Dificultad para despertarse",
   fallAsleepAfternoon: "Se queda dormido por la tarde",
@@ -542,7 +542,7 @@ const pdssScore = computed(() =>
   Object.values(form.value.pdss).reduce((s, v) => s + (v || 0), 0)
 );
 
-const pediatricHistoryLabels = {
+const pediatricHistoryLabels: Record<string, string> = {
   prematurity: "Prematuridad",
   asthma: "Asma",
   allergies: "Alergias",
@@ -551,7 +551,7 @@ const pediatricHistoryLabels = {
   poorSchoolPerformance: "Bajo rendimiento escolar",
 };
 
-const medicalHistoryLabels = {
+const medicalHistoryLabels: Record<string, string> = {
   hypertension: "Hipertensión",
   diabetes: "Diabetes",
   dyslipidemia: "Dislipemia",
@@ -592,14 +592,23 @@ const saving = ref(false);
 const sessionId = sessionsStore.selectedSession?.SessionId;
 const userId = usersStore.userId;
 
+const path = `users/${userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionId}\\/ClinicalForm`;
 
-const path = `users/${userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionId}\\ClinicalForm`;
+/* Asegura que Epworth siempre tenga todas las claves */
+const ensureEpworthKeys = () => {
+  form.value.epworth = {
+    ...epworthDefault,
+    ...(form.value.epworth || {}),
+  };
+};
 
 const loadClinicalForm = async () => {
   const snap = await get(dbRef(db, path));
   if (snap.exists()) {
     Object.assign(form.value, snap.val());
   }
+  // Rellenamos las preguntas que falten de Epworth
+  ensureEpworthKeys();
 };
 
 const saveClinicalForm = async () => {
@@ -626,7 +635,6 @@ watch(
   },
   { immediate: true }
 );
-
 
 /* ────────────────────────────────────────────── */
 
