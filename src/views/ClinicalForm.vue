@@ -206,15 +206,16 @@
       <!-- ───────────────────────────────────── -->
 
       <TabPanel header="BEARS" v-if="isPediatric">
-        <div
-          v-for="(value, key) in form.bears"
-          :key="key"
-          class="checkbox-line"
-        >
-          <Checkbox v-model="form.bears[key]" :binary="true" />
-          <span>{{ bearsLabels[key] }}</span>
-        </div>
-      </TabPanel>
+  <div
+    v-for="(label, key) in bearsLabels"
+    :key="key"
+    class="checkbox-line"
+  >
+    <Checkbox v-model="form.bears[key]" :binary="true" />
+    <span>{{ label }}</span>
+  </div>
+</TabPanel>
+
 
       <TabPanel header="PDSS" v-if="isPediatric">
         <p class="tab-description">
@@ -283,16 +284,17 @@
         </div>
       </TabPanel>
 
-      <TabPanel header="Antecedentes pediátricos" v-if="isPediatric">
-        <div
-          v-for="(value,key) in form.pediatricHistory"
-          :key="key"
-          class="checkbox-line"
-        >
-          <Checkbox v-model="form.pediatricHistory[key]" :binary="true" />
-          <span>{{ pediatricHistoryLabels[key] }}</span>
-        </div>
-      </TabPanel>
+    <TabPanel header="Antecedentes pediátricos" v-if="isPediatric">
+  <div
+    v-for="(label, key) in pediatricHistoryLabels"
+    :key="key"
+    class="checkbox-line"
+  >
+    <Checkbox v-model="form.pediatricHistory[key]" :binary="true" />
+    <span>{{ label }}</span>
+  </div>
+</TabPanel>
+
 
       <!-- ───────────────────────────────────── -->
       <!--              COMENTARIOS              -->
@@ -403,12 +405,13 @@ const form = ref({
 
   /* Pediátrico */
   bears: {
-    bedtimeProblems: false,
-    excessiveSleepiness: false,
-    awakenings: false,
-    regularity: false,
-    snoring: false,
-  },
+  bedtimeProblems: false,
+  excessiveSleepiness: false,
+  awakenings: false,
+  regularity: false,
+  snoring: false,
+},
+
 
   pdss: {
     sleepyMorning: null as number | null,
@@ -429,13 +432,15 @@ const form = ref({
   },
 
   pediatricHistory: {
-    prematurity: false,
-    asthma: false,
-    allergies: false,
-    developmentalDisorders: false,
-    hyperactivity: false,
-    poorSchoolPerformance: false,
-  },
+  prematurity: false,
+  asthma: false,
+  allergies: false,
+  developmentalDisorders: false,
+  hyperactivity: false,
+  poorSchoolPerformance: false,
+  schoolHistory: false, // 👈 nuevo campo
+},
+
 
   comments: "",
 });
@@ -519,6 +524,7 @@ const bearsLabels: Record<string, string> = {
   snoring: "Ronquido habitual",
 };
 
+
 const pdssLabels: Record<string, string> = {
   sleepyMorning: "Somnolencia por la mañana",
   difficultyWaking: "Dificultad para despertarse",
@@ -549,7 +555,9 @@ const pediatricHistoryLabels: Record<string, string> = {
   developmentalDisorders: "Trastornos del desarrollo",
   hyperactivity: "Hiperactividad",
   poorSchoolPerformance: "Bajo rendimiento escolar",
+  schoolHistory: "Antecedentes escolares", // 👈 nuevo label
 };
+
 
 const medicalHistoryLabels: Record<string, string> = {
   hypertension: "Hipertensión",
