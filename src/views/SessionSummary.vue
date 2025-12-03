@@ -512,6 +512,7 @@ const uploadPdf = async (file: File) => {
 
           <!-- 🆕 Botón para formulario clínico (sin tocar los demás) -->
           <Button
+            v-if = usersStore.isAdmin
             :label="t('Clinical form')"
             class="border-round-3xl flex"
             icon="pi pi-user-edit"
