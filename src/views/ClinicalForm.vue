@@ -620,3 +620,23 @@ watch(() => sessionsStore.selectedSession, (session) => {
 
 const handleAgeChange = () => {};
 </script>
+
+<style scoped>
+.checkbox-line {
+  display: flex;
+  align-items: center;   /* ✅ Centra verticalmente checkbox + texto */
+  gap: 0.5rem;           /* Separación entre checkbox y label */
+  line-height: 1.4;      /* Opcional, mejora alineación */
+}
+
+/* Arregla posibles offsets que añade PrimeVue */
+.checkbox-line .p-checkbox {
+  margin: 0 !important;
+  transform: translateY(0); /* Evita que quede más alto o bajo */
+}
+
+.checkbox-line span {
+  display: flex;
+  align-items: center;   /* Por si el texto contiene elementos inline */
+}
+</style>

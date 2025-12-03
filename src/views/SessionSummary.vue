@@ -1,376 +1,232 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, ref, watch, onMounted, onBeforeUnmount } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount
+} from "vue";
+
 import { useSessionsStore } from "../store";
 import { useUsersStore } from "../store";
-import { getDatabase, ref as dbRef, get, child, update } from "firebase/database";
-import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
+
+import {
+  getDatabase,
+  ref as dbRef,
+  get,
+  child,
+  update
+} from "firebase/database";
+
+import {
+  getStorage,
+  ref as storageRef,
+  getDownloadURL,
+  uploadBytes
+} from "firebase/storage";
+
 import Button from "primevue/button";
 import Toast from "primevue/toast";
-import Textarea from "primevue/textarea";
-import PatientSummary from "../components/Summary/PatientSummary.vue";
 import router from "../router";
-import SleepSummary from "../components/Summary/SleepSummary.vue";
-import AhiSummary from "../components/Summary/RespiratorySummary.vue";
 import { useRoute } from "vue-router";
-import AudioSummary from "../components/Summary/AudioSummary.vue";
-import ODISummary from "../components/Summary/OximetrySummary.vue";
-import MovementSummary from "../components/Summary/MovementSummary.vue";
+
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
+
 import { useDialog } from "primevue/usedialog";
 import { useToast } from "primevue/usetoast";
 import { useI18n } from "vue-i18n";
 import { getAuth } from "firebase/auth";
 
-const { t } = useI18n();
+// TABS
+import SummaryTab from "../components/Tabs/SummaryTab.vue";
+import ClinicalTab from "../components/Tabs/ClinicalTab.vue";
+import DocumentsTab from "../components/Tabs/DocumentsTab.vue";
+import AISection from "../components/Tabs/AISection.vue";
 
-const dialog = useDialog();
+const { t } = useI18n();
 const toast = useToast();
+const dialog = useDialog();
+const route = useRoute();
+
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
-const route = useRoute();
+
+/* ============================================================
+   PROFESSIONAL / ADMIN FLAG
+============================================================ */
 const isProfessional = ref<boolean | null>(null);
 
-dayjs.extend(duration);
-
-// ----------------- NUEVO: estado de notas -----------------
-const notes = ref<string>("");
-const savingNotes = ref(false);
-const notesLoaded = ref(false);
-
-// MISMO PATH QUE TENÍAS
-const getSessionPath = (session: any, ownerUserId: string) =>
-  `users/${ownerUserId}/Sessions/${session.DeviceId}\\${session.SessionId}\\`;
-// ----------------------------------------------------------
-
-// Función para obtener el estado de IsProfessional desde Firebase
 const fetchUserProfessionalStatus = async () => {
   if (!usersStore.userId) return;
+
   try {
     const db = getDatabase();
-    const snapshot = await get(child(dbRef(db), `users/${usersStore.userId}/IsProfessional`));
-    if (snapshot.exists()) {
-      isProfessional.value = Boolean(snapshot.val());
-    } else {
-      isProfessional.value = false;
-    }
-  } catch (error) {
-    console.error("Error al obtener datos de Firebase:", error);
+    const snap = await get(child(dbRef(db), `users/${usersStore.userId}/IsProfessional`));
+    isProfessional.value = snap.exists() ? Boolean(snap.val()) : false;
+  } catch {
     isProfessional.value = false;
   }
 };
 
-// Handler para resize
-const handleResize = () => {
-  console.log("Ventana redimensionada");
-};
+/* ============================================================
+   NOTES
+============================================================ */
+dayjs.extend(duration);
+
+const notes = ref<string>("");
+const savingNotes = ref(false);
+const notesLoaded = ref(false);
+
+const getSessionPath = (session: any, ownerId: string) =>
+  `users/${ownerId}/Sessions/${session.DeviceId}\\${session.SessionId}\\`;
+
+/* Load session from route */
+if (route.params.sessionId) {
+  const session = sessionsStore.sessions.find(
+    (s) => s.SessionId === route.params.sessionId
+  );
+  if (session) sessionsStore.selectedSession = session;
+}
+
+watch(
+  () => sessionsStore.sessions,
+  () => {
+    const session = sessionsStore.sessions.find(
+      (s) => s.SessionId === route.params.sessionId
+    );
+    if (session) sessionsStore.selectedSession = session;
+  },
+  { deep: true }
+);
 
 onMounted(() => {
   fetchUserProfessionalStatus();
   window.addEventListener("resize", handleResize);
-  loadNotes(); // cargar notas al montar (si ya hay selectedSession)
+  loadNotes();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
 });
 
-if (route.params.sessionId) {
-  const session = sessionsStore.sessions.find((session) => session.SessionId === route.params.sessionId);
-  if (session) sessionsStore.selectedSession = session;
-}
+const handleResize = () => {};
 
-watch(
-  () => sessionsStore.sessions,
-  (sessions) => {
-    const session = sessions.find((session) => session.SessionId === route.params.sessionId);
-    if (session) sessionsStore.selectedSession = session;
-  },
-  { deep: true },
-);
-
-// también recargar notas cuando cambia la sesión seleccionada
-watch(
-  () => sessionsStore.selectedSession?.SessionId,
-  () => loadNotes()
-);
-
-const goToSession = () => {
-  router.push(`/session/${sessionsStore.selectedSession?.SessionId}`);
-};
-
-// 🆕 NUEVO: abrir formulario clínico SIN TOCAR NADA MÁS
-const openClinicalForm = () => {
-  const id = sessionsStore.selectedSession?.SessionId;
-  if (!id) return;
-  router.push(`/clinical-form/${id}`);
-};
-
-const formatDate = (date: number) => {
-  return dayjs.unix(date).format("DD/MM/YYYY HH:mm:ss");
-};
-
-const getDuration = () => {
-  if (!sessionsStore.selectedSession) return;
-  const diff =
-    sessionsStore.selectedSession.SessionEndTime * 1000 -
-    sessionsStore.selectedSession.SessionStartTime * 1000;
-
-  const dur = dayjs.duration(diff);
-  const hours = String(Math.floor(dur.asHours())).padStart(2, "0");
-  const minutes = String(dur.minutes()).padStart(2, "0");
-  const seconds = String(dur.seconds()).padStart(2, "0");
-  return `${hours}:${minutes}:${seconds}`;
-};
-
-const AIReportDialog = defineAsyncComponent(() => import("../components/Summary/AIReportDialog.vue"));
-
-const openAIReportDialog = () => {
-  dialog.open(AIReportDialog, {
-    props: {
-      header: t("ai-generated-repport"),
-      style: {
-        width: "50vw",
-      },
-      breakpoints: {
-        "960px": "75vw",
-        "640px": "100vw",
-      },
-      modal: true,
-    },
-  });
-};
-
-const hasOxymetryData = computed(() => {
-  if (!sessionsStore.selectedSession?.SessionOxAverage || Number(sessionsStore.selectedSession?.SessionOxAverage) === 0)
-    return false;
-  else if (sessionsStore.selectedSession?.SessionOxCT90 === "100" && sessionsStore.selectedSession?.SessionOxCT80 === "100")
-    return false;
-  else if (sessionsStore.selectedSession?.SessionOxCT90 === "1" && sessionsStore.selectedSession?.SessionOxCT80 === "1")
-    return false;
-  else return true;
-});
-
-const hasMovementData = computed(() => !!sessionsStore.selectedSession?.SessionPLMIndex);
-
-// Computed basado en el valor actualizado desde Firebase
-const showOptionalElements = computed(() => !!isProfessional.value || usersStore.isAdmin);
-
-// Criterio para determinar si la sesión es inválida
-/*const sessionError = computed(() => {
-  const session = sessionsStore.selectedSession;
-  if (!session) return null;
-
-  const { SessionDuration, SessionSleepTime, SessionAwakeTime, SessionMovementSignalAverage } = session;
-
-  if (SessionDuration <= 0) return null;
-
-  const indeterminateTime = SessionDuration - (SessionSleepTime + SessionAwakeTime);
-  const isTimeInvalid = (indeterminateTime / SessionDuration) > 0.2;
-
-  const isMovementInvalid = typeof SessionMovementSignalAverage === "number"
-    ? SessionMovementSignalAverage < 10000
-    : false;
-
-  if (isMovementInvalid) {
-    return t('InvalidSession-Badsignal');
-  }
-  if (isTimeInvalid) {
-    return t('InvalidSession-Badpossition');
-  }
-
-  return null;
-});
-
-*/
-const sessionError = computed(() => {
-  const session = sessionsStore.selectedSession;
-  if (!session) return null;
-
-  const raw = session.SessionIsValid;
-
-  // Si no viene definido → no mostrar error
-  if (raw === undefined || raw === null) {
-    return null;
-  }
-
-  // 0 = inválida, 1 = válida
-  if (raw === 0) {
-    return t("Invalid Session");
-  }
-
-  // 1 u otro valor → la consideramos válida
-  return null;
-});
-
-
-
-
-// ----------------- NUEVO: carga y guardado de notas -----------------
+/* Load / save notes */
 const loadNotes = async () => {
-  const session = sessionsStore.selectedSession;
-  const ownerUserId = session?.userId ?? usersStore.userId;
+  const s = sessionsStore.selectedSession;
+  const owner = s?.userId ?? usersStore.userId;
+
   notesLoaded.value = false;
-  if (!session || !ownerUserId) {
+
+  if (!s || !owner) {
     notes.value = "";
     notesLoaded.value = true;
     return;
   }
 
   try {
-    const db = getDatabase();
-    const path = `${getSessionPath(session, ownerUserId)}/Notes`;
-    const snap = await get(dbRef(db, path));
+    const snap = await get(dbRef(getDatabase(), `${getSessionPath(s, owner)}/Notes`));
     notes.value = snap.exists() ? String(snap.val()) : "";
-  } catch (e) {
-    console.error("Error cargando notas:", e);
-    notes.value = "";
   } finally {
     notesLoaded.value = true;
   }
 };
 
 const saveNotes = async () => {
-  const auth = getAuth();
+  const s = sessionsStore.selectedSession;
+  const owner = s?.userId ?? usersStore.userId;
 
-  const session = sessionsStore.selectedSession;
-  const ownerUserId = session?.userId ?? usersStore.userId;
-  if (!session || !ownerUserId) return;
-
-  console.log("👤 auth.uid:", auth.currentUser?.uid);
-  console.log("🧩 ownerUserId:", ownerUserId);
-  console.log("📂 path:", getSessionPath(session, ownerUserId));
+  if (!s || !owner) return;
 
   try {
     savingNotes.value = true;
-    const db = getDatabase();
-    const path = getSessionPath(session, ownerUserId);
-    await update(dbRef(db, path), {
+
+    await update(dbRef(getDatabase(), getSessionPath(s, owner)), {
       Notes: notes.value,
-      NotesUpdatedAt: Date.now(),
+      NotesUpdatedAt: Date.now()
     });
 
     toast.add({
       severity: "success",
       summary: t("Notas guardadas"),
       detail: t("Las notas se han guardado correctamente."),
-      life: 4000,
-    });
-  } catch (e: any) {
-    toast.add({
-      severity: "error",
-      summary: t("Error"),
-      detail: e?.message ?? t("No se pudieron guardar las notas."),
-      life: 6000,
+      life: 3000
     });
   } finally {
     savingNotes.value = false;
   }
 };
-// -------------------------------------------------------------------
 
-// ----------------- DESCARGA DE PDF (INFORME) -----------------
+/* ============================================================
+   REPORT PDF DOWNLOAD
+============================================================ */
 const downloadReport = async () => {
-  const session = sessionsStore.selectedSession;
-  const usersStore = useUsersStore();
-  if (!session) return;
+  const s = sessionsStore.selectedSession;
+  const store = useUsersStore();
 
-  const ownerUserId = session.userId ?? usersStore.userId;
-  const deviceId = session.DeviceId;
-  const sessionId = session.SessionId;
+  if (!s) return;
 
-  if (!ownerUserId) {
-    toast.add({
-      severity: "warn",
-      summary: t("Download report"),
-      detail: t("No se encontró el usuario de la sesión"),
-      life: 5000,
-    });
-    return;
-  }
+  const owner = s.userId ?? store.userId;
+  if (!owner) return;
 
   try {
-    // 🕐 Mostrar mensaje de espera
     toast.add({
       severity: "info",
       summary: t("Generando informe"),
-      detail: t("El PDF se está generando, por favor espere..."),
+      detail: t("Por favor, espere..."),
       group: "report",
-      life: 10000,
+      life: 5000
     });
 
-    console.log("🧠 MODE:", import.meta.env.MODE);
-    console.log("🧠 API base URL:", import.meta.env.VITE_API_BASE_URL);
-    console.log("✅ sessionId:", sessionId);
-    console.log("✅ API base:", import.meta.env.VITE_API_BASE_URL);
+    const apiBase = import.meta.env.VITE_API_BASE_URL;
 
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
-    const response = await fetch(`${apiBaseUrl}/reporte`, {
+    const resp = await fetch(`${apiBase}/reporte`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: ownerUserId,
-        deviceId,
-        sessionId,
-      }),
+        userId: owner,
+        deviceId: s.DeviceId,
+        sessionId: s.SessionId
+      })
     });
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP ${response.status}: ${await response.text()}`);
-    }
-
-    const result = await response.json();
-    console.log("✅ Respuesta del servidor:", result);
-
-    if (!result.url) {
-      throw new Error(t("El servidor no devolvió la URL del PDF."));
-    }
+    const result = await resp.json();
+    if (!result.url) throw new Error("No URL returned");
 
     const pdfResp = await fetch(result.url);
-
-    if (!pdfResp.ok) {
-      throw new Error(t("No se pudo descargar el PDF desde Firebase Storage"));
-    }
-
     const blob = await pdfResp.blob();
 
-    // Descargar en el navegador
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${sessionId}_report.pdf`;
+    link.download = `${s.SessionId}_report.pdf`;
     link.click();
     URL.revokeObjectURL(link.href);
 
-    await new Promise((r) => setTimeout(r, 100));
     toast.add({
       severity: "success",
       summary: t("Download report"),
-      detail: t("El informe PDF se descargó correctamente"),
-      group: "report",
-      life: 5000,
+      detail: t("Informe descargado"),
+      group: "report"
     });
   } catch (err) {
-    console.error(t("Error al generar o descargar el PDF:"), err);
-    const msg = err instanceof Error ? err.message : "Error al generar o descargar el informe";
     toast.add({
       severity: "error",
-      summary: t("Download report"),
-      group: "report",
-      detail: msg,
-      life: 7000,
+      summary: t("Error"),
+      detail: t("No se pudo descargar el informe"),
+      group: "report"
     });
   }
 };
-// -------------------------------------------------------------------
 
-// ----------------- SUBIDA DE PDF A STORAGE -----------------
+/* ============================================================
+   PDF UPLOAD
+============================================================ */
 const pdfInput = ref<HTMLInputElement | null>(null);
 const uploadingPdf = ref(false);
 
-const triggerPdfSelect = () => {
-  pdfInput.value?.click();
-};
+const triggerPdfSelect = () => pdfInput.value?.click();
 
 const onPdfSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -378,275 +234,192 @@ const onPdfSelected = async (event: Event) => {
 
   if (!file) return;
 
-  if (file.type !== "application/pdf") {
-    toast.add({
-      severity: "warn",
-      summary: t("Upload report"),
-      detail: t("Solo se permiten ficheros PDF."),
-      group: "report",
-      life: 5000,
-    });
-    target.value = "";
-    return;
-  }
-
   await uploadPdf(file);
-
-  // Permitir volver a seleccionar el mismo fichero si hace falta
   target.value = "";
 };
 
 const uploadPdf = async (file: File) => {
-  const session = sessionsStore.selectedSession;
-  const ownerUserId = session?.userId ?? usersStore.userId;
+  const s = sessionsStore.selectedSession;
+  const owner = s?.userId ?? usersStore.userId;
 
-  if (!session || !ownerUserId) {
-    toast.add({
-      severity: "warn",
-      summary: t("Upload report"),
-      detail: t("No se encontró la sesión o el usuario."),
-      group: "report",
-      life: 5000,
-    });
-    return;
-  }
+  if (!s || !owner) return;
 
   try {
     uploadingPdf.value = true;
-
     const storage = getStorage();
 
-    // Path original que usabas (lo dejo igual salvo el sufijo de nombre)
-    const storagePath = `Sessions/${ownerUserId}/${session.DeviceId}/${session.SessionId}_${file.name}`;
-
-    console.log("📁 Subiendo PDF a Storage path:", storagePath);
-
-    const fileRef = storageRef(storage, storagePath);
+    const path = `Sessions/${owner}/${s.DeviceId}/${s.SessionId}_${file.name}`;
+    const fileRef = storageRef(storage, path);
 
     await uploadBytes(fileRef, file);
-    const url = await getDownloadURL(fileRef);
-    console.log("✅ PDF subido. URL de descarga:", url);
 
     toast.add({
       severity: "success",
       summary: t("Upload report"),
-      detail: t("El PDF Uploaded!!"),
-      group: "report",
-      life: 5000,
-    });
-
-    // (Opcional) guardar URL en DB si algún día lo quieres
-  } catch (e: any) {
-    console.error("Error subiendo PDF:", e);
-    toast.add({
-      severity: "error",
-      summary: t("Upload report"),
-      detail: e?.message ?? t("No se pudo subir el PDF."),
-      group: "report",
-      life: 7000,
+      detail: t("PDF subido correctamente"),
+      group: "report"
     });
   } finally {
     uploadingPdf.value = false;
   }
 };
-// -------------------------------------------------------------------
+
+/* ============================================================
+   SESSION UTILS
+============================================================ */
+const goToSession = () => {
+  const id = sessionsStore.selectedSession?.SessionId;
+  if (id) router.push(`/session/${id}`);
+};
+
+const formatDate = (ts: number) =>
+  ts ? dayjs.unix(ts).format("DD/MM/YYYY HH:mm:ss") : "";
+
+const getDuration = () => {
+  const s = sessionsStore.selectedSession;
+  if (!s) return "";
+  const diff = s.SessionEndTime * 1000 - s.SessionStartTime * 1000;
+  const dur = dayjs.duration(diff);
+  return `${String(Math.floor(dur.asHours())).padStart(2, "0")}:${String(
+    dur.minutes()
+  ).padStart(2, "0")}:${String(dur.seconds()).padStart(2, "0")}`;
+};
+
+const showOptionalElements = computed(
+  () => !!usersStore.isAdmin || !!isProfessional.value
+);
+
+const hasOxymetryData = computed(() => {
+  const s = sessionsStore.selectedSession;
+  if (!s?.SessionOxAverage || Number(s.SessionOxAverage) === 0) return false;
+  if (s.SessionOxCT90 === "100" && s.SessionOxCT80 === "100") return false;
+  if (s.SessionOxCT90 === "1" && s.SessionOxCT80 === "1") return false;
+  return true;
+});
+
+const hasMovementData = computed(
+  () => !!sessionsStore.selectedSession?.SessionPLMIndex
+);
+
+const sessionError = computed(() => {
+  const s = sessionsStore.selectedSession;
+  if (!s) return null;
+  if (s.SessionIsValid === 0) return t("Invalid Session");
+  return null;
+});
+
+/* ============================================================
+   AI REPORT MODAL
+============================================================ */
+const AIReportDialog = defineAsyncComponent(() =>
+  import("../components/Summary/AIReportDialog.vue")
+);
+
+const openAIReportDialog = () => {
+  dialog.open(AIReportDialog, {
+    props: { header: t("ai-generated-repport"), modal: true }
+  });
+};
 </script>
 
 <template>
   <div v-if="sessionsStore.selectedSession">
-    <!-- ✅ Toast para mensajes del reporte -->
     <Toast group="report" position="top-right" />
-    <!-- Banner de sesión inválida -->
-    <div v-if="sessionError" class="invalid-session-banner">
-      <p>{{ sessionError }}</p>
-    </div>
 
-    <!-- Contenido normal de la sesión -->
-    <div v-else id="session-summary">
-      <div class="info-banner">
-        <p>
-          {{
-            t(
-              'Disclaimer: The information provided in this application is for informational purposes only and is not intended to diagnose, treat, or provide professional medical advice. It should not be used as a substitute for consultation, evaluation, or treatment by a qualified healthcare provider. Always seek the guidance of a licensed medical professional for your specific health concerns.'
-            )
-          }}
-        </p>
-      </div>
+    <TabView>
 
-      <section class="flex justify-content-between">
-        <span>
-          <h2 class="w-full text-primary m-0 text-3xl">{{ t("Session") }} #{{ sessionsStore.selectedSession?.SessionId }}</h2>
-          <h3 class="w-full text-primary m-0">{{ t("Start") }}: {{ formatDate(sessionsStore.selectedSession?.SessionStartTime) }}</h3>
-          <h3 class="w-full text-primary m-0">{{ t("End") }}: {{ formatDate(sessionsStore.selectedSession?.SessionEndTime) }}</h3>
-          <h3 class="w-full text-primary m-0">{{ t("Strenght") }}: {{ sessionsStore.selectedSession?.SessionMovementSignalAverage }}</h3>
-          <h3 class="w-full text-primary m-0">{{ t("Duration") }}: {{ getDuration() }}</h3>
-        </span>
-        <span v-if="showOptionalElements" class="flex align-items-center gap-2">
-          <!--<Button :label="t('Generate AI report')" class="border-round-3xl flex" icon="pi pi-file-edit" icon-pos="left" @click="openAIReportDialog()" />-->
-          <Button
-            :label="t('Download report')"
-            class="border-round-3xl flex"
-            icon="pi pi-download"
-            icon-pos="left"
-            @click="downloadReport()"
-          />
+      <!-- TAB 1 -->
+      <TabPanel :header="t('SleepWise Summary')">
 
-          <!-- Botón PSG PDF -->
-          <Button
-            :label="uploadingPdf ? t('Subiendo...') : t('PSG PDF')"
-            class="border-round-3xl flex"
-            icon="pi pi-upload"
-            icon-pos="left"
-            :disabled="uploadingPdf"
-            @click="triggerPdfSelect"
-          />
+        <SummaryTab
+          :sessionError="sessionError ?? undefined"
+          :showOptionalElements="!!showOptionalElements"
+          :hasOxymetryData="hasOxymetryData"
+          :hasMovementData="hasMovementData"
+          :notesLoaded="notesLoaded"
+          :savingNotes="savingNotes"
+          v-model:notes="notes"
+          @saveNotes="saveNotes"
+          @goToSession="goToSession"
+        >
+          <template #sessionHeader>
+            <section class="flex justify-content-between">
 
-          <!-- Input oculto para seleccionar el PDF -->
-          <input
-            ref="pdfInput"
-            type="file"
-            accept="application/pdf"
-            style="display: none"
-            @change="onPdfSelected"
-          />
+              <span>
+                <h2 class="text-primary text-3xl m-0">
+                  {{ t("Session") }} #{{ sessionsStore.selectedSession.SessionId }}
+                </h2>
 
-          <!-- 🆕 Botón para formulario clínico (sin tocar los demás) -->
-          <Button
-            v-if = usersStore.isAdmin
-            :label="t('Clinical form')"
-            class="border-round-3xl flex"
-            icon="pi pi-user-edit"
-            icon-pos="left"
-            @click="openClinicalForm"
-          />
-        </span>
-      </section>
+                <h3 class="m-0">
+                  {{ t("Start") }}:
+                  {{ formatDate(sessionsStore.selectedSession.SessionStartTime) }}
+                </h3>
 
-      <section class="pt-4 w-full grid gap-3 justify-content-center sm:justify-content-start">
-        <PatientSummary />
-        <SleepSummary />
-        <AhiSummary v-if="showOptionalElements" />
-        <AudioSummary />
-        <ODISummary v-if="hasOxymetryData && showOptionalElements" />
-        <MovementSummary v-if="hasMovementData && showOptionalElements" />
-      </section>
+                <h3 class="m-0">
+                  {{ t("End") }}:
+                  {{ formatDate(sessionsStore.selectedSession.SessionEndTime) }}
+                </h3>
 
-      <!-- NUEVO: Notas del profesional (ya lo tenías así) -->
-      <section v-if="showOptionalElements" class="notes-card w-full grid justify-content-center sm:justify-content-start">
-        <h3 class="m-0 mb-2 text-primary">{{ t('Notas del profesional') }}</h3>
+                <h3 class="m-0">
+                  {{ t("Strenght") }}:
+                  {{ sessionsStore.selectedSession.SessionMovementSignalAverage }}
+                </h3>
 
-        <Textarea
-          v-model="notes"
-          :autoResize="true"
-          rows="5"
-          :disabled="!notesLoaded"
-          class="w-full"
-          :placeholder="t('Añade observaciones clínicas de esta sesión...')"
+                <h3 class="m-0">
+                  {{ t("Duration") }}:
+                  {{ getDuration() }}
+                </h3>
+              </span>
+
+              <span v-if="!!showOptionalElements">
+                <Button
+                  :label="t('Download report')"
+                  icon="pi pi-download"
+                  class="border-round-3xl"
+                  @click="downloadReport"
+                />
+              </span>
+
+            </section>
+          </template>
+        </SummaryTab>
+
+      </TabPanel>
+
+      <!-- TAB 2 -->
+      <TabPanel
+        v-if="!!showOptionalElements"
+        :header="t('Clinical info')"
+      >
+        <ClinicalTab :sessionId="sessionsStore.selectedSession.SessionId" />
+      </TabPanel>
+
+      <!-- TAB 3 -->
+      <TabPanel
+        v-if="!!showOptionalElements"
+        :header="t('Documentos & IA')"
+      >
+        <!-- input file oculto -->
+        <input
+          ref="pdfInput"
+          type="file"
+          accept="application/pdf"
+          style="display:none"
+          @change="onPdfSelected"
         />
 
-        <div class="mt-2 flex gap-2">
-          <Button
-            :label="savingNotes ? t('Guardando...') : t('Guardar notas')"
-            icon="pi pi-save"
-            class="border-round-3xl"
-            :disabled="savingNotes || !notesLoaded"
-            @click="saveNotes"
-          />
-        </div>
-      </section>
+        <DocumentsTab
+          :uploadingPdf="uploadingPdf"
+          @triggerPdfSelect="triggerPdfSelect"
+        />
 
-      <!-- Botón view-analysis en su sitio original, abajo a la derecha -->
-      <Button
-        v-if="showOptionalElements"
-        :label="t('view-analysis')"
-        class="btn-go border-round-3xl hidden sm:flex"
-        icon="pi pi-chevron-right"
-        icon-pos="right"
-        @click="goToSession"
-      />
-    </div>
+        <AISection @openAIReport="openAIReportDialog" />
+      </TabPanel>
+
+    </TabView>
   </div>
 </template>
 
 <style>
-.invalid-session-banner {
-  background-color: #ffcccc;
-  color: #cc0000;
-  padding: 1rem;
-  border: 1px solid #cc0000;
-  border-radius: 5px;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.summary-card {
-  background-color: #e2e2e241;
-  backdrop-filter: blur(4px);
-  border-radius: 10px;
-  max-width: 37rem;
-  min-width: 25rem;
-}
-
-.notes-card {
-  background: #f6f9f8;
-  border: 1px solid #d9e7e4;
-  border-radius: 8px;
-  padding: 1rem;
-  max-width: 37rem;
-  margin-top: 1rem;
-}
-
-.btn-go {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  margin: 1.5rem;
-  font-size: 1.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: 2px solid rgb(255, 255, 255);
-  z-index: 1;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.btn-go:after {
-  position: absolute;
-  content: "";
-  width: 0;
-  height: 100%;
-  bottom: 0;
-  right: 0;
-  direction: ltr;
-  z-index: -1;
-  background: #117064;
-  transition: all 0.3s ease;
-}
-
-.btn-go:hover {
-  color: rgb(0, 0, 0);
-}
-
-.btn-go:hover:after {
-  right: auto;
-  left: 0;
-  width: 100%;
-}
-
-.btn-go:active {
-  bottom: 2px;
-}
-
-/* En pantallas grandes (desktop) la sección de notas se expande */
-@media (min-width: 1024px) {
-  .notes-card {
-    max-width: none;        /* Quita el límite de 37rem */
-    width: 100%;            /* Ocupar todo el ancho del contenedor */
-    margin-top: 2rem;
-  }
-
-  .notes-card textarea {
-    width: 100%;            /* El área de texto ocupa todo el ancho */
-  }
-}
+/* Tus estilos originales tal cual */
 </style>

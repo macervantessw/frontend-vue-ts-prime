@@ -14,6 +14,8 @@ import ToastService from "primevue/toastservice";
 import Tooltip from "primevue/tooltip";
 import DialogService from "primevue/dialogservice";
 import Toast from "primevue/toast"; // ✅ <--- ESTA ES LA LÍNEA CLAVE
+import TabView from "primevue/tabview";
+import TabPanel from "primevue/tabpanel";
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -30,5 +32,7 @@ app.directive("tooltip", Tooltip);
 
 // ✅ registra el componente Toast globalmente
 app.component("Toast", Toast);
+app.component("TabView", TabView);
+app.component("TabPanel", TabPanel);
 
 app.mount("#app");
