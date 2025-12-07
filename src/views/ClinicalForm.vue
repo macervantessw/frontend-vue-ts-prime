@@ -28,9 +28,12 @@
             <Dropdown
               v-model="form.personalData.sex"
               :options="sexOptionsTranslated"
+              optionLabel="label"
+              optionValue="value"
               :placeholder="t('clinicalForm.placeholders.select')"
               class="w-full"
             />
+
           </div>
 
           <div class="col-12 md:col-4">
@@ -273,7 +276,7 @@ const sexOptionsTranslated = computed(() => [
 
 interface PersonalData {
   age: number | null;
-  sex: string;
+  sex: string | null;
   weight: number | null;
   height: number | null;
   bmi: number | null;
