@@ -413,7 +413,12 @@ const openAIReportDialog = () => {
           @triggerPdfSelect="triggerPdfSelect"
         />
 
-        <AISection @openAIReport="openAIReportDialog" />
+        <AISection
+          :userId="sessionsStore.selectedSession.userId ?? usersStore.userId"
+          :deviceId="sessionsStore.selectedSession.DeviceId"
+          :sessionId="sessionsStore.selectedSession.SessionId"
+        />
+
       </TabPanel>
 
     </TabView>
