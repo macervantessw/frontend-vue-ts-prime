@@ -1,88 +1,133 @@
 <template>
   <div class="mt-5">
-    <h2>{{ t('ai-assistant') }}</h2>
+    <h2>{{ t("ai-assistant") }}</h2>
 
-    <!-- Botón -->
+    <!-- GENERAR -->
     <button
       class="mt-3 ai-btn"
       :disabled="loading"
       @click="generarInformeIA"
     >
-      <span v-if="!loading">🧠 {{ t('generate-ai-analysis') }}</span>
-      <span v-else>⏳ {{ t('generating-report') }}</span>
+      <span v-if="!loading">🧠 {{ t("generate-ai-analysis") }}</span>
+      <span v-else>⏳ {{ t("generating-report") }}</span>
     </button>
 
-    <!-- Error -->
+    <!-- ERROR -->
     <div v-if="error" class="mt-3 ai-error">
       {{ error }}
     </div>
 
-    <!-- Informe renderizado bonito -->
-    <div v-if="report" class="mt-4 ai-report">
-      <h3 class="ai-main-title">
-        {{ t('ai-generated-report') }}
-      </h3>
+    <!-- EDITOR + PREVIEW -->
+    <div v-if="reportEditable" class="mt-4 ai-report">
+      <h3 class="ai-main-title">{{ t("ai-generated-report") }}</h3>
 
-      <div class="ai-markdown" v-html="htmlReport"></div>
+      <!-- EDITOR -->
+      <textarea
+        v-model="reportEditable"
+        class="ai-editor"
+        rows="10"
+      ></textarea>
+
+      <!-- PREVIEW BONITA -->
+      <div class="ai-preview" v-html="htmlReport"></div>
+
+      <!-- BOTONES -->
+      <div class="mt-3 flex gap-2">
+        <button
+          class="ai-btn-secondary"
+          :disabled="saving"
+          @click="guardar"
+        >
+          💾 {{ saving ? t("saving-report") : t("save-report") }}
+        </button>
+
+        <button class="ai-btn-secondary" @click="exportarPDF">
+          📄 {{ t("export-pdf") }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from "vue";
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from "vue";
 import axios from "axios";
 import { useI18n } from "vue-i18n";
+import { getDatabase, ref as dbRef, get, set } from "firebase/database";
+import { useSessionsStore } from "../../store";
+import { useUsersStore } from "../../store";
 
 const { t } = useI18n();
+const sessionsStore = useSessionsStore();
+const usersStore = useUsersStore();
 
-const props = defineProps({
-  userId: { type: String, required: true },
-  deviceId: { type: String, required: true },
-  sessionId: { type: String, required: true },
-  language: { type: String, required: true }
-});
+const props = defineProps<{
+  userId: string;
+  deviceId: string;
+  sessionId: string;
+  language: string;
+}>();
 
+/* =========================
+   STATE
+========================= */
 const loading = ref(false);
-const report = ref(null);
-const error = ref(null);
+const saving = ref(false);
+const reportEditable = ref("");
+const error = ref<string | null>(null);
 
-/* Parser markdown → HTML */
-const htmlReport = computed(() => {
-  if (!report.value) return "";
+const db = getDatabase();
 
-  let text = report.value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+/* =========================
+   PATH REAL — NO TOCAMOS TU LÓGICA
+========================= */
+const getReportPath = () => {
+  const userId = sessionsStore.selectedSession?.userId; // ✅ LO DEJAMOS TAL CUAL ESTABA FUNCIONANDO
+  const sessionId = sessionsStore.selectedSession?.SessionId;
+  const deviceId = sessionsStore.selectedSession?.DeviceId;
 
-  text = text.replace(/^#### (.*)$/gm, "<h4>$1</h4>");
-  text = text.replace(/^### (.*)$/gm, "<h3>$1</h3>");
-  text = text.replace(/^## (.*)$/gm, "<h2>$1</h2>");
-  text = text.replace(/^# (.*)$/gm, "<h1>$1</h1>");
+  if (!userId || !sessionId || !deviceId) return null;
 
-  text = text.replace(/^\s*[-_*]{3,}\s*$/gm, '<hr class="ai-separator"/>');
-  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  return `users/${userId}/Sessions/${deviceId}\\${sessionId}\\/AIReport`;
+};
 
-  return text
-    .split(/\n\s*\n/)
-    .map(block => {
-      const trimmed = block.trim();
-      if (!trimmed) return "";
-      if (/^<h[1-4]>/.test(trimmed)) return trimmed;
-      if (/^<hr\b/.test(trimmed)) return trimmed;
-      return `<p>${trimmed.replace(/\n/g, "<br/>")}</p>`;
-    })
-    .filter(Boolean)
-    .join("\n");
-});
+/* =========================
+   CARGAR DESDE FIREBASE
+========================= */
+const cargarDesdeFirebase = async () => {
+  const path = getReportPath();
+  if (!path) return;
 
-/* Llamada al backend */
+  try {
+    console.log("🔎 AI REPORT LOAD PATH:", path);
+    const snap = await get(dbRef(db, path));
+    if (snap.exists()) {
+      reportEditable.value = snap.val()?.report || "";
+    }
+  } catch (e) {
+    console.error("Error cargando AIReport:", e);
+  }
+};
+
+onMounted(cargarDesdeFirebase);
+
+watch(
+  () => sessionsStore.selectedSession,
+  () => {
+    reportEditable.value = "";
+    cargarDesdeFirebase();
+  }
+);
+
+/* =========================
+   GENERAR CON IA — IGUAL QUE ANTES
+========================= */
 const generarInformeIA = async () => {
   loading.value = true;
   error.value = null;
 
   try {
-    const response = await axios.post(
+    const { data } = await axios.post(
       "http://localhost:4000/ai-clinical-report",
       {
         userId: props.userId,
@@ -93,9 +138,11 @@ const generarInformeIA = async () => {
       { timeout: 90000 }
     );
 
-    report.value = response.data.report;
+    reportEditable.value = data.report || "";
 
-  } catch (err) {
+  } catch (err: any) {
+    console.error("Error IA:", err);
+
     if (err?.code === "ECONNABORTED") {
       error.value = t("error-timeout");
     } else if (err?.response?.data?.error) {
@@ -107,4 +154,180 @@ const generarInformeIA = async () => {
     loading.value = false;
   }
 };
+
+/* =========================
+   GUARDAR MANUAL — IGUAL QUE ANTES
+========================= */
+const guardar = async () => {
+  if (!reportEditable.value.trim()) return;
+
+  const path = getReportPath();
+  if (!path) return;
+
+  saving.value = true;
+  error.value = null;
+
+  try {
+    console.log("🔥 AI REPORT SAVE PATH:", path);
+    await set(dbRef(db, path), {
+      report: reportEditable.value,
+      updatedAt: Date.now()
+    });
+
+    alert(t("saved-success"));
+  } catch (e) {
+    console.error("Error guardando reporte:", e);
+    error.value = t("error-saving");
+  } finally {
+    saving.value = false;
+  }
+};
+
+/* =========================
+   PREVIEW BONITA (NUEVO)
+========================= */
+const htmlReport = computed(() => {
+  if (!reportEditable.value) return "";
+
+  let text = reportEditable.value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Títulos
+  text = text.replace(/^#### (.*)$/gm, "<h4>$1</h4>");
+  text = text.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+  text = text.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+  text = text.replace(/^# (.*)$/gm, "<h1>$1</h1>");
+
+  // Separadores
+  text = text.replace(/^\s*[-_*]{3,}\s*$/gm, "<hr/>");
+
+  // Negrita
+  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+  // Párrafos
+  const blocks = text
+    .split(/\n\s*\n/)
+    .map(b => {
+      const t = b.trim();
+      if (!t) return "";
+      if (/^<h[1-4]>/.test(t)) return t;
+      if (/^<hr/.test(t)) return t;
+      return `<p>${t.replace(/\n/g, "<br/>")}</p>`;
+    })
+    .filter(Boolean);
+
+  return blocks.join("\n");
+});
+
+/* =========================
+   EXPORTAR PDF — CON PAGINADO (ARREGLADO)
+========================= */
+const exportarPDF = async () => {
+  const { default: jsPDF } = await import("jspdf");
+
+  const doc = new jsPDF({
+    unit: "pt",
+    format: "a4"
+  });
+
+  const container = document.createElement("div");
+  container.innerHTML = htmlReport.value;
+
+  container.style.width = "515px";
+  container.style.padding = "40px";
+  container.style.fontFamily = "Helvetica, Arial, sans-serif";
+  container.style.fontSize = "12px";
+  container.style.lineHeight = "1.6";
+
+  document.body.appendChild(container);
+
+  await doc.html(container, {
+    x: 40,
+    y: 40,
+    width: 515,
+    windowWidth: 515,
+    autoPaging: "text",   // ✅ multipágina automático
+  });
+
+  document.body.removeChild(container);
+
+  doc.save(`reporte-${props.sessionId}.pdf`);
+};
+
 </script>
+
+<style scoped>
+.ai-editor {
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: monospace;
+  min-height: 220px;
+  border: 1px solid #d1d5db;
+}
+
+.ai-preview {
+  margin-top: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  line-height: 1.65;
+}
+
+.ai-preview h1,
+.ai-preview h2,
+.ai-preview h3,
+.ai-preview h4 {
+  margin-top: 1rem;
+  color: #1f2937;
+}
+
+.ai-preview p {
+  margin: 0.4rem 0;
+  color: #374151;
+}
+
+.ai-preview strong {
+  color: #111827;
+}
+
+.ai-btn {
+  cursor: pointer;
+  font-weight: 600;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+}
+
+.ai-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-btn-secondary {
+  cursor: pointer;
+  background: #10b981;
+  color: white;
+  padding: 0.5rem 1.3rem;
+  border-radius: 999px;
+  border: none;
+}
+
+.ai-error {
+  color: #b91c1c;
+  font-weight: 500;
+  margin-top: 0.75rem;
+}
+
+.ai-report {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  margin-top: 1rem;
+}
+</style>

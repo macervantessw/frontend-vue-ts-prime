@@ -590,7 +590,7 @@ const db = getDatabase();
 const saving = ref(false);
 
 const sessionId = sessionsStore.selectedSession?.SessionId;
-const userId = usersStore.userId;
+const userId = sessionsStore.selectedSession?.userId;
 
 const path = `users/${userId}/Sessions/${sessionsStore.selectedSession?.DeviceId}\\${sessionId}\\/ClinicalForm`;
 

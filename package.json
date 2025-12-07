@@ -22,6 +22,7 @@
     "downsample": "^1.4.0",
     "fancy-canvas": "^2.1.0",
     "firebase": "^10.4.0",
+    "jspdf": "^3.0.4",
     "jszip": "^3.10.1",
     "lightweight-charts": "4.1.0",
     "lodash": "^4.17.21",
