@@ -225,36 +225,41 @@ const htmlReport = computed(() => {
    EXPORTAR PDF — CON PAGINADO (ARREGLADO)
 ========================= */
 const exportarPDF = async () => {
-  const { default: jsPDF } = await import("jspdf");
+  // Carga dinámica para no inflar el bundle inicial
+  const html2pdfModule = await import("html2pdf.js");
+  const html2pdf = (html2pdfModule.default || html2pdfModule) as any;
 
-  const doc = new jsPDF({
-    unit: "pt",
-    format: "a4"
-  });
+  // Usamos directamente la preview bonita
+  const element = document.querySelector(".ai-preview") as HTMLElement | null;
+  if (!element) return;
 
-  const container = document.createElement("div");
-  container.innerHTML = htmlReport.value;
+  // Opciones de html2pdf
+  const opt = {
+    // A4 con márgenes en mm (arriba, derecha, abajo, izquierda)
+    margin: [15, 15, 15, 15] as [number, number, number, number],
+    filename: `reporte-${props.sessionId}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,       // Más resolución
+      useCORS: true
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
+    },
+    pagebreak: {
+      // Usa reglas CSS + modo legacy
+      mode: ["css", "legacy"],
+      // Intenta NO cortar dentro de estos elementos/bloques
+      avoid: [".no-break", "h1", "h2", "h3", "h4"]
+    }
+  };
 
-  container.style.width = "515px";
-  container.style.padding = "40px";
-  container.style.fontFamily = "Helvetica, Arial, sans-serif";
-  container.style.fontSize = "12px";
-  container.style.lineHeight = "1.6";
-
-  document.body.appendChild(container);
-
-  await doc.html(container, {
-    x: 40,
-    y: 40,
-    width: 515,
-    windowWidth: 515,
-    autoPaging: "text",   // ✅ multipágina automático
-  });
-
-  document.body.removeChild(container);
-
-  doc.save(`reporte-${props.sessionId}.pdf`);
+  html2pdf().set(opt).from(element).save();
 };
+
+
 
 </script>
 
