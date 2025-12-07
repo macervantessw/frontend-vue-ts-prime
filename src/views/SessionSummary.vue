@@ -329,7 +329,7 @@ const hasMovementData = computed(
 const sessionError = computed(() => {
   const s = sessionsStore.selectedSession;
   if (!s) return null;
-  if (s.SessionIsValid === 0) return t("Invalid Session");
+  if (s.SessionIsValid === 0) return t("InvalidSession-Badsignal");
   return null;
 });
 

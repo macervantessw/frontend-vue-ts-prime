@@ -1,4 +1,11 @@
 {
+  "ai-assistant": "Asistente IA",
+  "generate-ai-analysis": "Generar análisis con IA",
+  "generating-report": "Generando informe...",
+  "ai-generated-report": "Informe clínico generado por IA",
+  "error-timeout": "El análisis está tardando más de lo habitual. Puede que el informe se genere más tarde en el servidor.",
+  "error-generic": "No se pudo generar el informe.",
+  "upload-document": "Subir documento",
   "Please fill in all fields": "Por favor, completa todos los campos",
   "Remember me": "Recuérdame",
   "Log In": "Iniciar sesión",
@@ -81,7 +88,7 @@
   "BMI": "IMC",
   "Micro awakes per hour": "Microdespertares por hora",
 
-  "InvalidSession-Badsignal": "Sesión no válida: señal deficiente",
+  "InvalidSession-Badsignal": "Sesión no válida: señal deficiente o mala colocación del dispositivo",
   "InvalidSession-Badpossition": "Sesión no válida: mala colocación del dispositivo",
 
   "Notas guardadas": "Notas guardadas",

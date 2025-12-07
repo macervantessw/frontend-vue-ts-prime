@@ -12,7 +12,7 @@
 
     <!-- BOTÓN QUE ACTIVA EL INPUT -->
     <Button
-      label="Subir documento"
+      :label="t('upload-document')"
       icon="pi pi-upload"
       class="border-round-3xl"
       :loading="uploadingPdf"
@@ -23,6 +23,9 @@
 
 <script setup lang="ts">
 import Button from "primevue/button";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   uploadingPdf: Boolean,
