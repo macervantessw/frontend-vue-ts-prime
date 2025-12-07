@@ -37,7 +37,8 @@ import axios from "axios";
 const props = defineProps({
   userId: { type: String, required: true },
   deviceId: { type: String, required: true },
-  sessionId: { type: String, required: true }
+  sessionId: { type: String, required: true },
+  language: { type: String, required: true }
 });
 
 const loading = ref(false);
@@ -108,7 +109,8 @@ const generarInformeIA = async () => {
       {
         userId: props.userId,
         deviceId: props.deviceId,
-        sessionId: props.sessionId
+        sessionId: props.sessionId,
+        language: props.language
       },
       {
         timeout: 90000 // hasta 90s por si OpenAI se entretiene

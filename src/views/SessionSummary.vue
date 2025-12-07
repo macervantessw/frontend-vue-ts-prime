@@ -45,13 +45,29 @@ import ClinicalTab from "../components/Tabs/ClinicalTab.vue";
 import DocumentsTab from "../components/Tabs/DocumentsTab.vue";
 import AISection from "../components/Tabs/AISection.vue";
 
-const { t } = useI18n();
+const { t, locale } = useI18n(); // ✅ AQUÍ EL CAMBIO IMPORTANTE
 const toast = useToast();
 const dialog = useDialog();
 const route = useRoute();
 
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
+
+/* ============================================================
+   ✅ APLICAR IDIOMA DE LA SESIÓN
+============================================================ */
+const applySessionLanguage = (session: any) => {
+  if (!session?.Lang) return;
+
+  const supported = ["es", "en", "it"];
+
+  if (supported.includes(session.Lang)) {
+    locale.value = session.Lang;
+    console.log("🌍 Idioma de sesión aplicado:", session.Lang);
+  } else {
+    console.warn("⚠️ Idioma de sesión no soportado:", session.Lang);
+  }
+};
 
 /* ============================================================
    PROFESSIONAL / ADMIN FLAG
@@ -82,21 +98,28 @@ const notesLoaded = ref(false);
 const getSessionPath = (session: any, ownerId: string) =>
   `users/${ownerId}/Sessions/${session.DeviceId}\\${session.SessionId}\\`;
 
-/* Load session from route */
+/* ✅ Load session from route + aplicar idioma */
 if (route.params.sessionId) {
   const session = sessionsStore.sessions.find(
     (s) => s.SessionId === route.params.sessionId
   );
-  if (session) sessionsStore.selectedSession = session;
+  if (session) {
+    sessionsStore.selectedSession = session;
+    applySessionLanguage(session); // ✅ AQUÍ
+  }
 }
 
+/* ✅ Watch de sesiones + aplicar idioma */
 watch(
   () => sessionsStore.sessions,
   () => {
     const session = sessionsStore.sessions.find(
       (s) => s.SessionId === route.params.sessionId
     );
-    if (session) sessionsStore.selectedSession = session;
+    if (session) {
+      sessionsStore.selectedSession = session;
+      applySessionLanguage(session); // ✅ AQUÍ TAMBIÉN
+    }
   },
   { deep: true }
 );
@@ -113,7 +136,9 @@ onBeforeUnmount(() => {
 
 const handleResize = () => {};
 
-/* Load / save notes */
+/* ============================================================
+   Load / save notes
+============================================================ */
 const loadNotes = async () => {
   const s = sessionsStore.selectedSession;
   const owner = s?.userId ?? usersStore.userId;
@@ -417,6 +442,7 @@ const openAIReportDialog = () => {
           :userId="sessionsStore.selectedSession.userId ?? usersStore.userId"
           :deviceId="sessionsStore.selectedSession.DeviceId"
           :sessionId="sessionsStore.selectedSession.SessionId"
+          :language="locale"
         />
 
       </TabPanel>

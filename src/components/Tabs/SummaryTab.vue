@@ -30,7 +30,8 @@
 
         <!-- Columna derecha -->
         <div class="column">
-          <AhiSummary v-if="showOptionalElements" />
+          <AhiSummary v-if="showOptionalElements" 
+          :key="`ahi-${locale}`"/>
           <ODISummary v-if="hasOxymetryData && showOptionalElements" />
           <MovementSummary v-if="hasMovementData && showOptionalElements" />
         </div>
@@ -87,7 +88,7 @@ import AudioSummary from "../Summary/AudioSummary.vue";
 import ODISummary from "../Summary/OximetrySummary.vue";
 import MovementSummary from "../Summary/MovementSummary.vue";
 
-const { t } = useI18n();
+const { t, locale  } = useI18n();
 
 const props = defineProps({
   sessionError: String,
