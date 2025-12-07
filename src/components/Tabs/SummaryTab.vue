@@ -9,7 +9,7 @@
     <div v-else id="session-summary">
 
       <!-- DISCLAIMER -->
-      <div class="info-banner">
+      <div div v-if="!showOptionalElements" class="info-banner">
         <p>
           {{ t('Disclaimer: The information provided in this application is for informational purposes only...') }}
         </p>
