@@ -199,8 +199,8 @@ const downloadReport = async () => {
   try {
     toast.add({
       severity: "info",
-      summary: t("Generando informe"),
-      detail: t("Por favor, espere..."),
+      summary: t("report.generating"),
+      detail: t("report.pleaseWait"),
       group: "report",
       life: 5000
     });
@@ -231,8 +231,8 @@ const downloadReport = async () => {
 
     toast.add({
       severity: "success",
-      summary: t("Download report"),
-      detail: t("Informe descargado"),
+      summary: t("report.download"),
+      detail: t("report.downloaded"),
       group: "report"
     });
   } catch (err) {
@@ -354,7 +354,7 @@ const openAIReportDialog = () => {
     <TabView>
 
       <!-- TAB 1 -->
-      <TabPanel :header="t('SleepWise Summary')">
+      <TabPanel :header="t('clinicalForm.tabs.sleepwiseSummary')">
 
         <SummaryTab
           :sessionError="sessionError ?? undefined"
@@ -398,7 +398,7 @@ const openAIReportDialog = () => {
 
               <span v-if="!!showOptionalElements">
                 <Button
-                  :label="t('Download report')"
+                  :label="t('report.download')"
                   icon="pi pi-download"
                   class="border-round-3xl"
                   @click="downloadReport"
@@ -414,7 +414,7 @@ const openAIReportDialog = () => {
       <!-- TAB 2 -->
       <TabPanel
         v-if="!!showOptionalElements"
-        :header="t('Clinical info')"
+        :header="t('clinicalForm.tabs.clinicalInfo')"
       >
         <ClinicalTab :sessionId="sessionsStore.selectedSession.SessionId" />
       </TabPanel>
@@ -422,7 +422,7 @@ const openAIReportDialog = () => {
       <!-- TAB 3 -->
       <TabPanel
         v-if="!!showOptionalElements"
-        :header="t('Documentos & IA')"
+        :header="t('clinicalForm.tabs.documentsAi')"
       >
         <!-- input file oculto -->
         <input

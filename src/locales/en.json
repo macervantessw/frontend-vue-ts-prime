@@ -150,7 +150,10 @@
       "pdss": "PDSS",
       "pediatricOrl": "Pediatric ENT",
       "pediatricHistory": "Pediatric history",
-      "comments": "Comments"
+      "comments": "Comments",
+      "sleepwiseSummary": "SleepWise Summary",
+      "clinicalInfo": "Clinical Info",
+      "documentsAi": "Documents & AI"
     },
 
     "placeholders": {
@@ -285,5 +288,14 @@
         "schoolHistory": "School-related history"
       }
     }
-  }
+  },
+   "report": {
+        "generating": "Generating report",
+        "pleaseWait": "Please wait...",
+        "download": "Download report",
+        "downloaded": "Report downloaded successfully",
+        "downloadError": "The report could not be downloaded",
+        "upload": "Upload report",
+        "uploaded": "PDF uploaded successfully"
+      }
 }

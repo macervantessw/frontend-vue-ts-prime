@@ -150,7 +150,10 @@
       "pdss": "PDSS",
       "pediatricOrl": "ORL pediatrico",
       "pediatricHistory": "Anamnesi pediatrica",
-      "comments": "Commenti"
+      "comments": "Commenti",
+      "sleepwiseSummary": "Riepilogo SleepWise",
+      "clinicalInfo": "Informazioni cliniche",
+      "documentsAi": "Documenti & IA"
     },
 
     "placeholders": {
@@ -285,5 +288,14 @@
         "schoolHistory": "Anamnesi scolastica"
       }
     }
-  }
+  },
+  "report": {
+        "generating": "Generazione del referto",
+        "pleaseWait": "Attendere prego...",
+        "download": "Scarica referto",
+        "downloaded": "Referto scaricato correttamente",
+        "downloadError": "Impossibile scaricare il referto",
+        "upload": "Carica referto",
+        "uploaded": "PDF caricato correttamente"
+      }
 }

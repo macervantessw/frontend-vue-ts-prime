@@ -151,7 +151,10 @@
     "pdss": "PDSS",
     "pediatricOrl": "ORL pediátrico",
     "pediatricHistory": "Antecedentes pediátricos",
-    "comments": "Comentarios"
+    "comments": "Comentarios",
+    "sleepwiseSummary": "Resumen SleepWise",
+    "clinicalInfo": "Información clínica",
+    "documentsAi": "Documentos & IA"
   },
 
   "placeholders": {
@@ -286,6 +289,14 @@
       "schoolHistory": "Antecedentes escolares"
     }
   }
-}
-
+},
+"report": {
+        "generating": "Generando informe",
+        "pleaseWait": "Por favor, espere...",
+        "download": "Descargar informe",
+        "downloaded": "Informe descargado correctamente",
+        "downloadError": "No se pudo descargar el informe",
+        "upload": "Subir informe",
+        "uploaded": "PDF subido correctamente"
+      }
 }
