@@ -1,12 +1,13 @@
 {
   "name": "-sleepwise-frontend",
   "private": true,
-  "version": "1.0.12(S)",
+  "version": "1.0.13(S.AI)",
   "scripts": {
     "dev": "vite --mode development",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy"
+    "deploy": "npm run build && firebase deploy",
+    "deployQA": "npm run build && firebase hosting:channel:deploy qa --expires 7d"
   },
   "dependencies": {
     "@iconify/vue": "^4.1.1",
