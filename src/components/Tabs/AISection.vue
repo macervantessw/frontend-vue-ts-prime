@@ -127,20 +127,21 @@ const generarInformeIA = async () => {
   error.value = null;
 
   try {
-    const { data } = await axios.post(
-      "http://localhost:4000/ai-clinical-report",
-      {
-        userId: props.userId,
-        deviceId: props.deviceId,
-        sessionId: props.sessionId,
-        language: props.language
-      },
-      { timeout: 90000 }
-    );
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-    reportEditable.value = data.report || "";
+      const { data } = await axios.post(
+        `${apiBaseUrl}/ai-clinical-report`,
+        {
+          userId: props.userId,
+          deviceId: props.deviceId,
+          sessionId: props.sessionId,
+          language: props.language
+        },
+        { timeout: 90000 }
+      );
 
-  } catch (err: any) {
+        reportEditable.value = data.report || "";
+  }catch (err: any) {
     console.error("Error IA:", err);
 
     if (err?.code === "ECONNABORTED") {
