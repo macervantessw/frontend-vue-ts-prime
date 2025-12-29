@@ -196,7 +196,7 @@ const sessionError = computed(() => {
 
   // 0 = inválida, 1 = válida
   if (raw === 0) {
-    return t("Invalid Session");
+    return t("InvalidSession-Badpossition");
   }
 
   // 1 u otro valor → la consideramos válida
