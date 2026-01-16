@@ -311,7 +311,7 @@ async function reload() {
       isLoading.value = false;
       hasLoadedOnce.value = true; // “decidimos” que de momento no hay sesiones
       if (stopFirstWatch) { stopFirstWatch(); stopFirstWatch = null; }
-    }, 5000); // ajusta a tu gusto (2–8s suele ir bien)
+    }, 15000); // ajusta a tu gusto (2–8s suele ir bien)
   } catch (e) {
     loadError.value = e;
     isLoading.value = false;
