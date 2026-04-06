@@ -228,7 +228,7 @@ onMounted(() => {
     });
 
     if (foundEvent) {
-      if (foundEvent.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA) {
+      if (Number(foundEvent.eventType) === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA) {
         selectedEvent = foundEvent;
         showContextualMenu(param.sourceEvent);
       } else {
@@ -546,10 +546,11 @@ function findBox(event: Event) {
 function drawEvent(event: Event) {
   const from = (event.startTime * 1000) as Time;
   const to = (event.endTime * 1000) as Time;
+  const eventType = Number(event.eventType);
 
   let color = "hsla(207, 73%, 39%, 0.2)";
-  if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 0.2)";
-  else if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,0.2)";
+  if (eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 0.2)";
+  else if (eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,0.2)";
 
   const serie = series.find((s) => s.id === mainSerieId.value)?.serie as ISeriesApi<"Line"> | undefined;
   if (!serie) return;

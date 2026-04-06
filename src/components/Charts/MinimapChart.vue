@@ -187,9 +187,10 @@ function removeFromAddedEvents(event: Event) {
 function drawEvent(event: Event) {
   const from = (event.startTime * 1000) as Time;
   const to = (event.endTime * 1000) as Time;
+  const eventType = Number(event.eventType);
   let color = "hsla(207, 73%, 39%, 1)";
-  if (event.eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 1)";
-  else if (event.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,1)";
+  if (eventType === RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) color = "hsla(54, 97%, 56%, 1)";
+  else if (eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA) color = "hsl(24, 76%, 51%,1)";
   const serie = series[0];
   const box = drawBox(chart, from, to, serie, color, "", 40, 10);
   if (box) addedEventBoxes.push(box);
@@ -212,7 +213,8 @@ watch(
       const serie = series[0];
       removeBox(box, serie);
       removeFromAddedEvents(event);
-      if (event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_AWAKE && event.eventType !== RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) drawEvent(event);
+      const eventType = Number(event.eventType);
+      if (eventType !== RESPIRATORY_EVENTS.DISCARDABLE_AWAKE && eventType !== RESPIRATORY_EVENTS.DISCARDABLE_ISOLATED) drawEvent(event);
     }
   },
   { deep: true },
