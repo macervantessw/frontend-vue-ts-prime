@@ -67,8 +67,8 @@ export const useChartsStore = defineStore("Charts", {
         .then((snapshot) => {
           if (snapshot.exists() && sessionsStore.selectedSession) {
             const events = snapshot.val() as Event[];
-            sessionsStore.selectedSession.SessionCentralApneas = events.filter((ev) => ev.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA).length;
-            sessionsStore.selectedSession.SessionNumRespEvents = events.filter((ev) => ev.eventType === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA).length;
+            sessionsStore.selectedSession.SessionCentralApneas = events.filter((ev) => Number(ev.eventType) === RESPIRATORY_EVENTS.EVENT_TYPE_CENTRAL_APNEA).length;
+            sessionsStore.selectedSession.SessionNumRespEvents = events.filter((ev) => Number(ev.eventType) === RESPIRATORY_EVENTS.EVENT_TYPE_APNEA).length;
             sessionsStore.selectedSession.SessionIAH =
               "" +
               ((sessionsStore.selectedSession.SessionCentralApneas || 0) + (sessionsStore.selectedSession.SessionNumRespEvents || 0)) /

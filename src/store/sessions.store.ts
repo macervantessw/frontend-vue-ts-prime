@@ -10,7 +10,32 @@ import axios from "axios";
 import i18n from "../i18n";
 
 
-// ⭐ Añade esta función ARRIBA DEL STORE (fuera de actions)
+function normalizeNumericValue(value: unknown) {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? value : parsed;
+  }
+  return value;
+}
+
+function normalizeEvent(event: any) {
+  if (!event || typeof event !== "object") return event;
+
+  return {
+    ...event,
+    eventType: normalizeNumericValue(event.eventType),
+    startTime: normalizeNumericValue(event.startTime),
+    endTime: normalizeNumericValue(event.endTime),
+    sampleIndex: normalizeNumericValue(event.sampleIndex),
+  };
+}
+
+function normalizeEventList(events: any) {
+  if (!Array.isArray(events)) return events;
+  return events.map((event) => normalizeEvent(event));
+}
+
 function normalizeSession(s: any) {
   const raw = s.SessionIsValid;
 
@@ -33,6 +58,15 @@ function normalizeSession(s: any) {
 
   return {
     ...s,
+    Data: s?.Data
+      ? {
+          ...s.Data,
+          RespiratoryEvents: normalizeEventList(s.Data.RespiratoryEvents),
+          SnoringEvents: normalizeEventList(s.Data.SnoringEvents),
+          StateEvents: normalizeEventList(s.Data.StateEvents),
+          MovementEvents: normalizeEventList(s.Data.MovementEvents),
+        }
+      : s?.Data,
     SessionIsValid: normalized,
   };
 }
@@ -46,7 +80,7 @@ export const useSessionsStore = defineStore("Session", {
     sessions: [] as Session[],
     selectedSession: useLocalStorage<Session | null>("selectedSession", null, {
   serializer: {
-    read: (v: string): Session | null => (v ? (JSON.parse(v) as Session) : null),
+    read: (v: string): Session | null => (v ? (normalizeSession(JSON.parse(v)) as Session) : null),
     write: (v: Session | null): string => (v ? JSON.stringify(v) : ""),
   },
 }),
@@ -300,7 +334,7 @@ async fetchAllSessions(): Promise<void> {
       return get(child(ref, `users/${userId}/Sessions/${patientId}\\${sessionId}\\`))
         .then((snapshot) => {
           if (snapshot.exists()) {
-            return snapshot.val();
+            return normalizeSession(snapshot.val());
           } else {
             return null;
           }
